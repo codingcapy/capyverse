@@ -9,7 +9,7 @@ const useAuthStore = create<{
   tokenLoading: boolean;
   setUser: (args: User) => void;
   logoutService: () => void;
-  loginService: (unit: string, password: string) => void;
+  loginService: (email: string, password: string) => void;
 }>((set, get) => ({
   user: null,
   authLoading: false,
@@ -19,11 +19,11 @@ const useAuthStore = create<{
     setSession(null);
     set({ user: null, authLoading: false, tokenLoading: false });
   },
-  loginService: async (unit, password) => {
+  loginService: async (email, password) => {
     set({ authLoading: true });
     try {
       const res = await axios.post(`http://localhost:3333/api/v0/user/login`, {
-        unit,
+        email,
         password,
       });
       if (res.data.result?.user && res.data.result?.token) {
@@ -40,7 +40,7 @@ const useAuthStore = create<{
   loginWithToken: async () => {
     try {
       const res = await axios.post(
-        `https://millenium-issue-tracker-production.up.railway.app/api/v0/user/validation`
+        `http://localhost:3333/api/v0/user/validation`
       );
       if (res.data.result?.user && res.data.result?.token) {
         setSession(res.data.result?.token);
