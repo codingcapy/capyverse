@@ -23,8 +23,13 @@ export function Header() {
           onClick={() => setShowMenu(!showMenu)}
           className="flex px-5 py-2 font-bold"
         >
-          <CgProfile size={25} />
-          <div className="ml-1">{user.username}</div>
+          <div className="px-5 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300">
+            + Create
+          </div>
+          <div className="flex cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300">
+            <CgProfile size={25} />
+            <div className="ml-1">{user.username}</div>
+          </div>
         </div>
       ) : (
         <Link
@@ -40,7 +45,7 @@ export function Header() {
             logoutService();
             setShowMenu(false);
           }}
-          className="absolute top-[60px] right-0 bg-[#444444] p-5 cursor-pointer"
+          className="absolute top-[60px] right-0 bg-[#444444] p-5 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300"
         >
           Logout
         </div>

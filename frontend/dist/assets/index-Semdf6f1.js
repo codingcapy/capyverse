@@ -1,0 +1,1 @@
+import{j as e}from"./index-LT3886pk.js";function n(){return e.jsx("div",{className:"flex-1 p-2",children:e.jsx("div",{className:"text-center text-cyan-500 text-2xl font-bold pt-20",children:"Index"})})}export{n as component};
