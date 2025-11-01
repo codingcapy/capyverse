@@ -16,7 +16,15 @@
   },
   "dependencies": {
     "@hono/node-server": "^1.19.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/pg": "^8.15.6",
+    "dotenv": "^17.2.3",
+    "drizzle-kit": "^0.31.6",
     "drizzle-orm": "^0.44.7",
-    "hono": "^4.10.4"
+    "drizzle-zod": "^0.8.3",
+    "hono": "^4.10.4",
+    "jsonwebtoken": "^9.0.2",
+    "might-fail": "^0.7.5",
+    "pg": "^8.16.3"
   }
 }
