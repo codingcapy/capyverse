@@ -1,0 +1,73 @@
+import { Hono } from "hono";
+import { zValidator } from "@hono/zod-validator";
+import { createInsertSchema } from "drizzle-zod";
+import { scrypt, randomBytes } from "crypto";
+import { promisify } from "util";
+import { mightFail } from "might-fail";
+import { db } from "../db";
+import { eq } from "drizzle-orm";
+import { HTTPException } from "hono/http-exception";
+import { randomUUIDv7 } from "bun";
+import { users as usersTable } from "../schemas/users";
+
+const scryptAsync = promisify(scrypt);
+
+async function hashPassword(password: string) {
+  const salt = randomBytes(16).toString("hex");
+  const derivedKey = (await scryptAsync(password, salt, 64)) as Buffer;
+  return `${salt}:${derivedKey.toString("hex")}`;
+}
+
+export const usersRouter = new Hono().post(
+  "/",
+  zValidator(
+    "json",
+    createInsertSchema(usersTable).omit({
+      userId: true,
+      createdAt: true,
+    })
+  ),
+  async (c) => {
+    const insertValues = c.req.valid("json");
+    const { error: unitQueryError, result: unitQueryResult } = await mightFail(
+      db
+        .select()
+        .from(usersTable)
+        .where(eq(usersTable.email, insertValues.email))
+    );
+    if (unitQueryError) {
+      throw new HTTPException(500, {
+        message: "Error while fetching user",
+        cause: unitQueryError,
+      });
+    }
+    if (unitQueryResult.length > 0) {
+      return c.json(
+        { message: "An account with this unit already exists" },
+        409
+      );
+    }
+    const encrypted = await hashPassword(insertValues.password);
+    const userId = randomUUIDv7();
+    const { error: userInsertError, result: userInsertResult } =
+      await mightFail(
+        db
+          .insert(usersTable)
+          .values({
+            userId: userId,
+            username: insertValues.username,
+            email: insertValues.email,
+            password: encrypted,
+          })
+          .returning()
+      );
+    if (userInsertError) {
+      console.log("Error while creating user");
+      throw new HTTPException(500, {
+        message: "Error while creating user",
+        cause: userInsertResult,
+      });
+    }
+    return c.json({ user: userInsertResult[0] }, 200);
+  }
+);

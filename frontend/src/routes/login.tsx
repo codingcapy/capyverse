@@ -1,10 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/login")({
-  component: RouteComponent,
+  component: LoginComponent,
 });
 
-function RouteComponent() {
+function LoginComponent() {
   return (
     <div className="pt-20 w-[300px] mx-auto">
       <div className="text-center font-bold text-cyan-500 text-2xl mb-10">

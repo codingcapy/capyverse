@@ -1,10 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useCreateUserMutation } from "../lib/api/users";
 
 export const Route = createFileRoute("/signup")({
-  component: RouteComponent,
+  component: SignupComponent,
 });
 
-function RouteComponent() {
+function SignupComponent() {
+  const { mutate: createUser } = useCreateUserMutation();
+
   return (
     <div className="pt-20 w-[300px] mx-auto">
       <div className="text-center font-bold text-cyan-500 text-2xl mb-10">
