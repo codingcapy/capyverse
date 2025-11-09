@@ -21,7 +21,7 @@ function IndexComponent() {
 
   return (
     <div className="flex-1 p-2">
-      <div className="text-center text-cyan-500 text-2xl font-bold pt-20">
+      <div className="text-center text-cyan-500 text-2xl font-bold pt-20 pb-5">
         Index
       </div>
       <div className="flex flex-col">
@@ -37,19 +37,21 @@ function IndexComponent() {
                 postId: post.postId.toString(),
               }}
               key={post.postId}
-              className="mx-auto my-10 border rounded p-5"
+              className="mx-auto w-full md:w-[50%] border-t border-[#636363]"
             >
-              <div className="text-2xl font-bold">{post.title}</div>
-              <div>{post.content}</div>
-              {votesError ? (
-                <div>Error fetching votes</div>
-              ) : votesPending ? (
-                <div>Loading...</div>
-              ) : (
-                <div>
-                  {votes.filter((vote) => vote.postId === post.postId).length}
-                </div>
-              )}
+              <div className="my-1 rounded p-5 hover:bg-[#3e3e3e] transition-all ease-in-out duration-300">
+                <div className="text-2xl font-bold">{post.title}</div>
+                <div>{post.content}</div>
+                {votesError ? (
+                  <div>Error fetching votes</div>
+                ) : votesPending ? (
+                  <div>Loading...</div>
+                ) : (
+                  <div>
+                    {votes.filter((vote) => vote.postId === post.postId).length}
+                  </div>
+                )}
+              </div>
             </Link>
           ))
         )}

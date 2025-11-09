@@ -15,7 +15,7 @@ export function Header() {
       </Link>
       <input
         type="text"
-        className="px-5 py-2 border border-[#c4c4c4] rounded-2xl w-[30%] bg-[#414141]"
+        className="px-5 py-2 rounded-2xl w-[30%] bg-[#414141]"
         placeholder="Search Capyverse"
       />
       {user ? (
