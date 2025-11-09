@@ -26,9 +26,9 @@ function IndexComponent() {
       </div>
       <div className="flex flex-col">
         {postsError ? (
-          <div>Error fetching posts</div>
+          <div className="mx-auto w-full lg:w-[50%]">Error fetching posts</div>
         ) : postsPending ? (
-          <div>Loading...</div>
+          <div className="mx-auto w-full lg:w-[50%]">Loading...</div>
         ) : (
           posts?.map((post) => (
             <Link
@@ -37,7 +37,7 @@ function IndexComponent() {
                 postId: post.postId.toString(),
               }}
               key={post.postId}
-              className="mx-auto w-full md:w-[50%] border-t border-[#636363]"
+              className="mx-auto w-full lg:w-[50%] border-t border-[#636363]"
             >
               <div className="my-1 rounded p-5 hover:bg-[#3e3e3e] transition-all ease-in-out duration-300">
                 <div className="text-2xl font-bold">{post.title}</div>

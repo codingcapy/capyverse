@@ -1,1 +1,0 @@
-import{R as o,j as s}from"./index-D9AJ9_dE.js";function n(){const t=o.useRouteContext();return s.jsxs("div",{className:"p-20",children:[s.jsx("div",{children:'Hello "/posts/$post"!'}),s.jsxs("div",{children:[" ",t.title]}),s.jsx("div",{}),s.jsxs("div",{children:[" ",t.content]}),s.jsx("div",{children:"Upvote"}),s.jsx("div",{children:"Downvote"})]})}export{n as component};
