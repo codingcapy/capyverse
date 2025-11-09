@@ -43,7 +43,7 @@ export const usersRouter = new Hono().post(
     }
     if (unitQueryResult.length > 0) {
       return c.json(
-        { message: "An account with this unit already exists" },
+        { message: "An account with this email already exists" },
         409
       );
     }

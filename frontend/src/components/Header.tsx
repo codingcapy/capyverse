@@ -19,14 +19,17 @@ export function Header() {
         placeholder="Search Capyverse"
       />
       {user ? (
-        <div
-          onClick={() => setShowMenu(!showMenu)}
-          className="flex px-5 py-2 font-bold"
-        >
-          <div className="px-5 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300">
+        <div className="flex px-5 py-2 font-bold">
+          <Link
+            to="/createpost"
+            className="px-5 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300"
+          >
             + Create
-          </div>
-          <div className="flex cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300">
+          </Link>
+          <div
+            onClick={() => setShowMenu(!showMenu)}
+            className="flex cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300"
+          >
             <CgProfile size={25} />
             <div className="ml-1">{user.username}</div>
           </div>

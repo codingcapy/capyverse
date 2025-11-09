@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCreateUserMutation } from "../lib/api/users";
 import { useState } from "react";
 import useAuthStore from "../store/AuthStore";
@@ -11,6 +11,9 @@ function SignupComponent() {
   const { mutate: createUser } = useCreateUserMutation();
   const [notification, setNotification] = useState("");
   const { loginService, authLoading, user } = useAuthStore((state) => state);
+  const navigate = useNavigate();
+
+  if (!!user) navigate({ to: "/" });
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
