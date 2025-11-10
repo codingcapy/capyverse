@@ -1,7 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { getPostsQueryOptions } from "../lib/api/posts";
 import { useQuery } from "@tanstack/react-query";
-import { getVotesQueryOptions, useCreateVoteMutation } from "../lib/api/votes";
+import {
+  getVotesQueryOptions,
+  useCreateVoteMutation,
+  useUpdateVoteMutation,
+} from "../lib/api/votes";
 import { PiArrowFatUp } from "react-icons/pi";
 import { PiArrowFatDown } from "react-icons/pi";
 import { PiArrowFatUpFill } from "react-icons/pi";
@@ -9,6 +13,8 @@ import { PiArrowFatDownFill } from "react-icons/pi";
 import { FaEllipsis } from "react-icons/fa6";
 import { displayDate } from "../lib/utils";
 import useAuthStore from "../store/AuthStore";
+import { Post } from "../../../schemas/posts";
+import { Vote } from "../../../schemas/votes";
 
 export const Route = createFileRoute("/")({
   component: IndexComponent,
@@ -26,8 +32,35 @@ function IndexComponent() {
     isError: votesError,
   } = useQuery(getVotesQueryOptions());
   const { mutate: createVote } = useCreateVoteMutation();
+  const { mutate: updateVote } = useUpdateVoteMutation();
   const { user } = useAuthStore();
   const navigate = useNavigate();
+
+  function handleSubmitVote(
+    e: React.MouseEvent<HTMLDivElement>,
+    post: Post,
+    value: number
+  ) {
+    e.preventDefault();
+    e.stopPropagation();
+    const vote =
+      votes &&
+      votes.find(
+        (vote) =>
+          vote.postId === post.postId && user && vote.userId === user.userId
+      );
+    if (user && vote) {
+      updateVote({ voteId: vote.voteId, value });
+    } else if (user) {
+      createVote({
+        userId: (user && user.userId) || "",
+        postId: post.postId,
+        value,
+      });
+    } else {
+      navigate({ to: "/login" });
+    }
+  }
 
   return (
     <div className="flex-1 p-2">
@@ -82,23 +115,27 @@ function IndexComponent() {
                         vote.userId === user.userId &&
                         vote.value === 1
                     ).length > 0 ? (
-                      <div className="px-2 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300">
+                      <div
+                        onClick={() =>
+                          updateVote({
+                            voteId: votes.find(
+                              (vote) =>
+                                vote.postId === post.postId &&
+                                user &&
+                                vote.userId === user.userId &&
+                                vote.value === 1
+                            )!.voteId,
+                            value: 0,
+                          })
+                        }
+                        className="px-2 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300"
+                      >
                         <PiArrowFatUpFill size={20} />
                       </div>
                     ) : (
                       <div
                         onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          if (user) {
-                            createVote({
-                              userId: (user && user.userId) || "",
-                              postId: post.postId,
-                              value: 1,
-                            });
-                          } else {
-                            navigate({ to: "/login" });
-                          }
+                          handleSubmitVote(e, post, 1);
                         }}
                         className="px-2 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300"
                       >
@@ -106,10 +143,9 @@ function IndexComponent() {
                       </div>
                     )}
                     <div className="">
-                      {
-                        votes.filter((vote) => vote.postId === post.postId)
-                          .length
-                      }
+                      {votes
+                        .filter((vote) => vote.postId === post.postId)
+                        .reduce((acc, vote) => acc + vote.value!, 0)}
                     </div>
                     {votes.filter(
                       (vote) =>
@@ -118,23 +154,27 @@ function IndexComponent() {
                         vote.userId === user.userId &&
                         vote.value === -1
                     ).length > 0 ? (
-                      <div className="px-2 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300">
+                      <div
+                        onClick={() =>
+                          updateVote({
+                            voteId: votes.find(
+                              (vote) =>
+                                vote.postId === post.postId &&
+                                user &&
+                                vote.userId === user.userId &&
+                                vote.value === -1
+                            )!.voteId,
+                            value: 0,
+                          })
+                        }
+                        className="px-2 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300"
+                      >
                         <PiArrowFatDownFill size={20} />
                       </div>
                     ) : (
                       <div
                         onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          if (user) {
-                            createVote({
-                              userId: (user && user.userId) || "",
-                              postId: post.postId,
-                              value: -1,
-                            });
-                          } else {
-                            navigate({ to: "/login" });
-                          }
+                          handleSubmitVote(e, post, -1);
                         }}
                         className="px-2 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300"
                       >
