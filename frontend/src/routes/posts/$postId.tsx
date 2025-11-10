@@ -3,6 +3,8 @@ import z from "zod";
 import { getPostByIdQueryOptions } from "../../lib/api/posts";
 import { PiArrowFatUp } from "react-icons/pi";
 import { PiArrowFatDown } from "react-icons/pi";
+import { PiArrowFatUpFill } from "react-icons/pi";
+import { PiArrowFatDownFill } from "react-icons/pi";
 
 export const Route = createFileRoute("/posts/$postId")({
   beforeLoad: async ({ context, params }) => {
