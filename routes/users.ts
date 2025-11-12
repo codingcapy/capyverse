@@ -18,56 +18,79 @@ async function hashPassword(password: string) {
   return `${salt}:${derivedKey.toString("hex")}`;
 }
 
-export const usersRouter = new Hono().post(
-  "/",
-  zValidator(
-    "json",
-    createInsertSchema(usersTable).omit({
-      userId: true,
-      createdAt: true,
-    })
-  ),
-  async (c) => {
-    const insertValues = c.req.valid("json");
-    const { error: unitQueryError, result: unitQueryResult } = await mightFail(
+export const usersRouter = new Hono()
+  .post(
+    "/",
+    zValidator(
+      "json",
+      createInsertSchema(usersTable).omit({
+        userId: true,
+        createdAt: true,
+      })
+    ),
+    async (c) => {
+      const insertValues = c.req.valid("json");
+      const { error: unitQueryError, result: unitQueryResult } =
+        await mightFail(
+          db
+            .select()
+            .from(usersTable)
+            .where(eq(usersTable.email, insertValues.email))
+        );
+      if (unitQueryError) {
+        throw new HTTPException(500, {
+          message: "Error while fetching user",
+          cause: unitQueryError,
+        });
+      }
+      if (unitQueryResult.length > 0) {
+        return c.json(
+          { message: "An account with this email already exists" },
+          409
+        );
+      }
+      const encrypted = await hashPassword(insertValues.password);
+      const userId = randomUUIDv7();
+      const { error: userInsertError, result: userInsertResult } =
+        await mightFail(
+          db
+            .insert(usersTable)
+            .values({
+              userId: userId,
+              username: insertValues.username,
+              email: insertValues.email,
+              password: encrypted,
+            })
+            .returning()
+        );
+      if (userInsertError) {
+        console.log("Error while creating user");
+        throw new HTTPException(500, {
+          message: "Error while creating user",
+          cause: userInsertResult,
+        });
+      }
+      return c.json({ user: userInsertResult[0] }, 200);
+    }
+  )
+  .get("/:userId", async (c) => {
+    const { userId } = c.req.param();
+    const { result: userQueryResult, error: userQueryError } = await mightFail(
       db
-        .select()
+        .select({
+          username: usersTable.username,
+          profilePic: usersTable.profilePic,
+        })
         .from(usersTable)
-        .where(eq(usersTable.email, insertValues.email))
+        .where(eq(usersTable.userId, userId))
     );
-    if (unitQueryError) {
+    if (userQueryError) {
       throw new HTTPException(500, {
-        message: "Error while fetching user",
-        cause: unitQueryError,
+        message: "Error occurred when fetching user",
+        cause: userQueryError,
       });
     }
-    if (unitQueryResult.length > 0) {
-      return c.json(
-        { message: "An account with this email already exists" },
-        409
-      );
-    }
-    const encrypted = await hashPassword(insertValues.password);
-    const userId = randomUUIDv7();
-    const { error: userInsertError, result: userInsertResult } =
-      await mightFail(
-        db
-          .insert(usersTable)
-          .values({
-            userId: userId,
-            username: insertValues.username,
-            email: insertValues.email,
-            password: encrypted,
-          })
-          .returning()
-      );
-    if (userInsertError) {
-      console.log("Error while creating user");
-      throw new HTTPException(500, {
-        message: "Error while creating user",
-        cause: userInsertResult,
-      });
-    }
-    return c.json({ user: userInsertResult[0] }, 200);
-  }
-);
+    return c.json({
+      userQuery: userQueryResult[0],
+    });
+  });

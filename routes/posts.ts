@@ -5,7 +5,7 @@ import { posts as postsTable } from "../schemas/posts";
 import { users as usersTable } from "../schemas/users";
 import { mightFail, mightFailSync } from "might-fail";
 import { db } from "../db";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 
@@ -64,6 +64,8 @@ export const postsRouter = new Hono()
           })
           .from(postsTable)
           .innerJoin(usersTable, eq(postsTable.userId, usersTable.userId))
+          .orderBy(desc(postsTable.createdAt))
+          .limit(100)
       );
     if (postsQueryError) {
       throw new HTTPException(500, {
@@ -77,7 +79,6 @@ export const postsRouter = new Hono()
   })
   .get("/:postId", async (c) => {
     const { postId: postIdString } = c.req.param();
-    console.log(postIdString);
     const postId = assertIsParsableInt(postIdString);
     const { result: postsQueryResult, error: postsQueryError } =
       await mightFail(

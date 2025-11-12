@@ -6,6 +6,7 @@ export const users = pgTable("users", {
   username: varchar("username"),
   email: varchar("email").notNull().unique(),
   password: varchar("password").notNull(),
+  profilePic: varchar("profile_pic"),
   role: varchar("role").default("member").notNull(),
   status: varchar("status").default("active").notNull(),
   preference: varchar("preference").default("light").notNull(),

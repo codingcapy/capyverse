@@ -9,6 +9,8 @@ import {
   getCommentsQueryOptions,
   useCreateCommentMutation,
 } from "../../lib/api/comments";
+import { getUserByIdQueryOptions } from "../../lib/api/users";
+import { displayDate } from "../../lib/utils";
 
 export const Route = createFileRoute("/posts/$postId")({
   beforeLoad: async ({ context, params }) => {
@@ -44,6 +46,11 @@ function PostComponent() {
     isPending: commentsPending,
     error: commentsError,
   } = useQuery(getCommentsQueryOptions());
+  const {
+    data: author,
+    isPending: authorPending,
+    error: authorError,
+  } = useQuery(getUserByIdQueryOptions(post.userId));
   const [commentContent, setCommentContent] = useState("");
   const { mutate: createComment } = useCreateCommentMutation();
   const navigate = useNavigate();
@@ -57,6 +64,17 @@ function PostComponent() {
 
   return (
     <div className="p-20 mx-auto w-full lg:w-[50%]">
+      <div className="flex text-[#bdbdbd] text-sm">
+        {authorPending ? (
+          <div>Loading...</div>
+        ) : authorError ? (
+          <div>Error loading author</div>
+        ) : (
+          <div className="font-bold">{author.username}</div>
+        )}
+        <div className="px-1">•</div>
+        <div>{displayDate(post.createdAt)}</div>
+      </div>
       <div className="text-4xl font-bold"> {post.title}</div>
       <div className="my-10">
         <div>{post.content}</div>

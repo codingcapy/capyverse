@@ -49,3 +49,21 @@ export const useCreateUserMutation = (onError?: (message: string) => void) => {
     },
   });
 };
+
+async function getUserById(userId: string) {
+  const res = await client.api.v0.users[":userId"].$get({
+    param: { userId },
+  });
+
+  if (!res.ok) {
+    throw new Error("Error getting user by id");
+  }
+  const { userQuery } = await res.json();
+  return userQuery;
+}
+
+export const getUserByIdQueryOptions = (userId: string) =>
+  queryOptions({
+    queryKey: ["users", userId],
+    queryFn: () => getUserById(userId),
+  });
