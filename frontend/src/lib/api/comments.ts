@@ -24,6 +24,7 @@ export function mapSerializedCommentToSchema(
 }
 
 async function createComment(args: CreateCommentArgs) {
+  console.log(args);
   const res = await client.api.v0.comments.$post({ json: args });
   if (!res.ok) {
     let errorMessage =

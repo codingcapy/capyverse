@@ -12,7 +12,7 @@ export const comments = pgTable("comments", {
   userId: varchar("user_id").notNull(),
   postId: integer("post_id").notNull(),
   level: integer("level").default(0).notNull(),
-  content: integer("content"),
+  content: varchar("content"),
   status: varchar("status").default("active").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

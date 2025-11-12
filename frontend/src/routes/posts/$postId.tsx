@@ -1,10 +1,6 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import z from "zod";
 import { getPostByIdQueryOptions } from "../../lib/api/posts";
-import { PiArrowFatUp } from "react-icons/pi";
-import { PiArrowFatDown } from "react-icons/pi";
-import { PiArrowFatUpFill } from "react-icons/pi";
-import { PiArrowFatDownFill } from "react-icons/pi";
 import { Post } from "../../../../schemas/posts";
 import {
   getVotesQueryOptions,
@@ -14,6 +10,11 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import useAuthStore from "../../store/AuthStore";
 import { VotesComponent } from "../../components/VotesComponent";
+import { useState } from "react";
+import {
+  getCommentsQueryOptions,
+  useCreateCommentMutation,
+} from "../../lib/api/comments";
 
 export const Route = createFileRoute("/posts/$postId")({
   beforeLoad: async ({ context, params }) => {
@@ -45,38 +46,22 @@ function PostComponent() {
   const post = Route.useRouteContext();
   const { user } = useAuthStore();
   const {
-    data: votes,
-    isPending: votesPending,
-    isError: votesError,
-  } = useQuery(getVotesQueryOptions());
-  const { mutate: createVote } = useCreateVoteMutation();
-  const { mutate: updateVote } = useUpdateVoteMutation();
+    data: comments,
+    isPending: commentsPending,
+    error: commentsError,
+  } = useQuery(getCommentsQueryOptions());
+  const [commentContent, setCommentContent] = useState("");
+  const { mutate: createComment } = useCreateCommentMutation();
   const navigate = useNavigate();
 
-  function handleSubmitVote(
-    e: React.MouseEvent<HTMLDivElement>,
-    post: Post,
-    value: number
-  ) {
+  function handleCreateComment(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    e.stopPropagation();
-    const vote =
-      votes &&
-      votes.find(
-        (vote) =>
-          vote.postId === post.postId && user && vote.userId === user.userId
-      );
-    if (user && vote) {
-      updateVote({ voteId: vote.voteId, value });
-    } else if (user) {
-      createVote({
-        userId: (user && user.userId) || "",
-        postId: post.postId,
-        value,
-      });
-    } else {
-      navigate({ to: "/login" });
-    }
+    if (!user) return navigate({ to: "/login" });
+    const userId = user.userId;
+    createComment({ userId, postId: post.postId, content: commentContent });
+    console.log(userId);
+    console.log(post.postId);
+    console.log(commentContent);
   }
 
   return (
@@ -86,13 +71,25 @@ function PostComponent() {
         <div> {post.content}</div>
       </div>
       <VotesComponent post={post} />
-      <form action="">
+      <form onSubmit={handleCreateComment}>
         <input
           type="text"
           placeholder="Add your reply"
-          className="px-5 py-2 my-5 rounded-full border border-[#5c5c5c] w-full"
+          className="px-5 py-2 my-5 rounded-full border border-[#5c5c5c] w-full hover:bg-[#383838] hover:border-[#818181] transition-all ease-in-out duration-300"
+          value={commentContent}
+          onChange={(e) => setCommentContent(e.target.value)}
+          required
         />
       </form>
+      {commentsError ? (
+        <div></div>
+      ) : commentsPending ? (
+        <div></div>
+      ) : (
+        comments.map((comment) => (
+          <div key={comment.commentId}>{comment.content}</div>
+        ))
+      )}
     </div>
   );
 }

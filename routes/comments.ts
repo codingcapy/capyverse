@@ -11,10 +11,15 @@ export const commentsRouter = new Hono()
     "/",
     zValidator(
       "json",
-      createInsertSchema(commentsTable).omit({ status: true, createdAt: true })
+      createInsertSchema(commentsTable).omit({
+        status: true,
+        createdAt: true,
+        commentId: true,
+      })
     ),
     async (c) => {
       const insertValues = c.req.valid("json");
+      console.log(insertValues);
       const { error: commentInsertError, result: commentInsertResult } =
         await mightFail(
           db.insert(commentsTable).values(insertValues).returning()

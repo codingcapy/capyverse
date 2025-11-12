@@ -25,7 +25,7 @@ function IndexComponent() {
         ) : postsPending ? (
           <div className="mx-auto w-full lg:w-[50%]">Loading...</div>
         ) : (
-          posts?.map((post) => <PostThumbnail post={post} />)
+          posts?.map((post) => <PostThumbnail post={post} key={post.postId} />)
         )}
       </div>
     </div>
