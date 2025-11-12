@@ -1,10 +1,19 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import z from "zod";
 import { getPostByIdQueryOptions } from "../../lib/api/posts";
 import { PiArrowFatUp } from "react-icons/pi";
 import { PiArrowFatDown } from "react-icons/pi";
 import { PiArrowFatUpFill } from "react-icons/pi";
 import { PiArrowFatDownFill } from "react-icons/pi";
+import { Post } from "../../../../schemas/posts";
+import {
+  getVotesQueryOptions,
+  useCreateVoteMutation,
+  useUpdateVoteMutation,
+} from "../../lib/api/votes";
+import { useQuery } from "@tanstack/react-query";
+import useAuthStore from "../../store/AuthStore";
+import { VotesComponent } from "../../components/VotesComponent";
 
 export const Route = createFileRoute("/posts/$postId")({
   beforeLoad: async ({ context, params }) => {
@@ -34,6 +43,41 @@ export const Route = createFileRoute("/posts/$postId")({
 
 function PostComponent() {
   const post = Route.useRouteContext();
+  const { user } = useAuthStore();
+  const {
+    data: votes,
+    isPending: votesPending,
+    isError: votesError,
+  } = useQuery(getVotesQueryOptions());
+  const { mutate: createVote } = useCreateVoteMutation();
+  const { mutate: updateVote } = useUpdateVoteMutation();
+  const navigate = useNavigate();
+
+  function handleSubmitVote(
+    e: React.MouseEvent<HTMLDivElement>,
+    post: Post,
+    value: number
+  ) {
+    e.preventDefault();
+    e.stopPropagation();
+    const vote =
+      votes &&
+      votes.find(
+        (vote) =>
+          vote.postId === post.postId && user && vote.userId === user.userId
+      );
+    if (user && vote) {
+      updateVote({ voteId: vote.voteId, value });
+    } else if (user) {
+      createVote({
+        userId: (user && user.userId) || "",
+        postId: post.postId,
+        value,
+      });
+    } else {
+      navigate({ to: "/login" });
+    }
+  }
 
   return (
     <div className="p-20 mx-auto w-full lg:w-[50%]">
@@ -41,15 +85,14 @@ function PostComponent() {
       <div className="my-10">
         <div> {post.content}</div>
       </div>
-      <div className="flex bg-[#3e3e3e] w-fit rounded-full py-1 justify-center">
-        <div className="px-2 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300">
-          <PiArrowFatUp size={20} />
-        </div>
-        <div className="">0</div>
-        <div className="px-2 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300">
-          <PiArrowFatDown size={20} />
-        </div>
-      </div>
+      <VotesComponent post={post} />
+      <form action="">
+        <input
+          type="text"
+          placeholder="Add your reply"
+          className="px-5 py-2 my-5 rounded-full border border-[#5c5c5c] w-full"
+        />
+      </form>
     </div>
   );
 }

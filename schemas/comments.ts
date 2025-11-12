@@ -11,7 +11,7 @@ export const comments = pgTable("comments", {
   commentId: serial("comment_id").primaryKey(),
   userId: varchar("user_id").notNull(),
   postId: integer("post_id").notNull(),
-  level: integer("level"),
+  level: integer("level").default(0).notNull(),
   content: integer("content"),
   status: varchar("status").default("active").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
