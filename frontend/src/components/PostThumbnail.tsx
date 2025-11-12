@@ -1,10 +1,10 @@
-import { Post } from "../../../schemas/posts";
 import { Link } from "@tanstack/react-router";
 import { FaEllipsis } from "react-icons/fa6";
 import { VotesComponent } from "./VotesComponent";
 import { displayDate } from "../lib/utils";
+import { PostWithUser } from "../lib/api/posts";
 
-export function PostThumbnail(props: { post: Post }) {
+export function PostThumbnail(props: { post: PostWithUser }) {
   return (
     <Link
       to="/posts/$postId"
@@ -17,7 +17,7 @@ export function PostThumbnail(props: { post: Post }) {
       <div className="relative my-1 rounded p-5 hover:bg-[#3e3e3e] transition-all ease-in-out duration-300">
         <div className="flex justify-between">
           <div className="flex text-[#bdbdbd] text-sm">
-            <div className="font-bold">placeholder_username</div>
+            <div className="font-bold">{props.post.username}</div>
             <div className="px-1">•</div>
             <div>{displayDate(props.post.createdAt)}</div>
           </div>

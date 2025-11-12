@@ -1,12 +1,6 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import z from "zod";
 import { getPostByIdQueryOptions } from "../../lib/api/posts";
-import { Post } from "../../../../schemas/posts";
-import {
-  getVotesQueryOptions,
-  useCreateVoteMutation,
-  useUpdateVoteMutation,
-} from "../../lib/api/votes";
 import { useQuery } from "@tanstack/react-query";
 import useAuthStore from "../../store/AuthStore";
 import { VotesComponent } from "../../components/VotesComponent";
@@ -59,16 +53,13 @@ function PostComponent() {
     if (!user) return navigate({ to: "/login" });
     const userId = user.userId;
     createComment({ userId, postId: post.postId, content: commentContent });
-    console.log(userId);
-    console.log(post.postId);
-    console.log(commentContent);
   }
 
   return (
     <div className="p-20 mx-auto w-full lg:w-[50%]">
       <div className="text-4xl font-bold"> {post.title}</div>
       <div className="my-10">
-        <div> {post.content}</div>
+        <div>{post.content}</div>
       </div>
       <VotesComponent post={post} />
       <form onSubmit={handleCreateComment}>

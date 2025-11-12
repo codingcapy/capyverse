@@ -10,14 +10,21 @@ type CreatePostArgs = ArgumentTypes<
   typeof client.api.v0.posts.$post
 >[0]["json"];
 
-type SerializePost = ExtractData<
+type RawPost = ExtractData<
   Awaited<ReturnType<typeof client.api.v0.posts.$get>>
 >["posts"][number];
 
-export function mapSerializedPostToSchema(SerializedPost: SerializePost): Post {
+type SerializePost = RawPost & { username?: string | null };
+
+export type PostWithUser = Post & { username: string | null };
+
+export function mapSerializedPostToSchema(
+  serialized: SerializePost
+): PostWithUser {
   return {
-    ...SerializedPost,
-    createdAt: new Date(SerializedPost.createdAt),
+    ...serialized,
+    username: serialized.username ?? null,
+    createdAt: new Date(serialized.createdAt),
   };
 }
 
@@ -86,7 +93,7 @@ async function getPostById(postId: number) {
     throw new Error("Error getting post by id");
   }
   const { post } = await res.json();
-  return mapSerializedPostToSchema(post);
+  return mapSerializedPostToSchema(post as SerializePost);
 }
 
 export const getPostByIdQueryOptions = (postId: number) =>

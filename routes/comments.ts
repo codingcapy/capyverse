@@ -19,7 +19,6 @@ export const commentsRouter = new Hono()
     ),
     async (c) => {
       const insertValues = c.req.valid("json");
-      console.log(insertValues);
       const { error: commentInsertError, result: commentInsertResult } =
         await mightFail(
           db.insert(commentsTable).values(insertValues).returning()

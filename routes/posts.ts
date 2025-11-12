@@ -2,6 +2,7 @@ import { zValidator } from "@hono/zod-validator";
 import { createInsertSchema } from "drizzle-zod";
 import { Hono } from "hono";
 import { posts as postsTable } from "../schemas/posts";
+import { users as usersTable } from "../schemas/users";
 import { mightFail, mightFailSync } from "might-fail";
 import { db } from "../db";
 import { eq } from "drizzle-orm";
@@ -49,7 +50,21 @@ export const postsRouter = new Hono()
   )
   .get("/", async (c) => {
     const { result: postsQueryResult, error: postsQueryError } =
-      await mightFail(db.select().from(postsTable));
+      await mightFail(
+        db
+          .select({
+            postId: postsTable.postId,
+            userId: postsTable.userId,
+            communityId: postsTable.communityId,
+            title: postsTable.title,
+            content: postsTable.content,
+            status: postsTable.status,
+            createdAt: postsTable.createdAt,
+            username: usersTable.username,
+          })
+          .from(postsTable)
+          .innerJoin(usersTable, eq(postsTable.userId, usersTable.userId))
+      );
     if (postsQueryError) {
       throw new HTTPException(500, {
         message: "Error occurred when fetching posts",
