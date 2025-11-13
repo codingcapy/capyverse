@@ -63,17 +63,19 @@ export const useCreateCommentMutation = (
   });
 };
 
-async function getComments() {
-  const res = await client.api.v0.comments.$get();
+async function getCommentsByPostId(postId: number) {
+  const res = await client.api.v0.comments[":postId"].$get({
+    param: { postId: postId.toString() },
+  });
   if (!res.ok) {
-    throw new Error("Error getting comments");
+    throw new Error("Error getting comments by id");
   }
   const { comments } = await res.json();
   return comments.map(mapSerializedCommentToSchema);
 }
 
-export const getCommentsQueryOptions = () =>
+export const getCommentsByPostIdQueryOptions = (postId: number) =>
   queryOptions({
-    queryKey: ["comments"],
-    queryFn: () => getComments(),
+    queryKey: ["comments", postId],
+    queryFn: () => getCommentsByPostId(postId),
   });

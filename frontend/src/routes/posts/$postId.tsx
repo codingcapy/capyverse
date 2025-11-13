@@ -6,7 +6,7 @@ import useAuthStore from "../../store/AuthStore";
 import { VotesComponent } from "../../components/VotesComponent";
 import { useState } from "react";
 import {
-  getCommentsQueryOptions,
+  getCommentsByPostIdQueryOptions,
   useCreateCommentMutation,
 } from "../../lib/api/comments";
 import { getUserByIdQueryOptions } from "../../lib/api/users";
@@ -45,7 +45,7 @@ function PostComponent() {
     data: comments,
     isPending: commentsPending,
     error: commentsError,
-  } = useQuery(getCommentsQueryOptions());
+  } = useQuery(getCommentsByPostIdQueryOptions(post.postId));
   const {
     data: author,
     isPending: authorPending,
@@ -59,7 +59,10 @@ function PostComponent() {
     e.preventDefault();
     if (!user) return navigate({ to: "/login" });
     const userId = user.userId;
-    createComment({ userId, postId: post.postId, content: commentContent });
+    createComment(
+      { userId, postId: post.postId, content: commentContent },
+      { onSuccess: () => setCommentContent("") }
+    );
   }
 
   return (
@@ -96,7 +99,14 @@ function PostComponent() {
         <div></div>
       ) : (
         comments.map((comment) => (
-          <div key={comment.commentId}>{comment.content}</div>
+          <div key={comment.commentId} className="my-3">
+            <div className="flex text-[#bdbdbd] text-sm">
+              <div className="font-bold">{post.username}</div>
+              <div className="px-1">•</div>
+              <div>{displayDate(post.createdAt)}</div>
+            </div>
+            {comment.content}
+          </div>
         ))
       )}
     </div>
