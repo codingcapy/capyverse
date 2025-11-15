@@ -7,6 +7,7 @@ import { db } from "../db";
 import { HTTPException } from "hono/http-exception";
 import { assertIsParsableInt } from "./posts";
 import { eq } from "drizzle-orm";
+import { users as usersTable } from "../schemas/users";
 
 export const commentsRouter = new Hono()
   .post(
@@ -35,7 +36,21 @@ export const commentsRouter = new Hono()
   )
   .get("/", async (c) => {
     const { result: commentsQueryResult, error: commentsQueryError } =
-      await mightFail(db.select().from(commentsTable));
+      await mightFail(
+        db
+          .select({
+            commentId: commentsTable.commentId,
+            userId: commentsTable.userId,
+            postId: commentsTable.postId,
+            level: commentsTable.level,
+            content: commentsTable.content,
+            status: commentsTable.status,
+            createdAt: commentsTable.createdAt,
+            username: usersTable.username,
+          })
+          .from(commentsTable)
+          .innerJoin(usersTable, eq(commentsTable.userId, usersTable.userId))
+      );
     if (commentsQueryError)
       throw new HTTPException(500, {
         message: "error querying comments",
@@ -48,7 +63,20 @@ export const commentsRouter = new Hono()
     const postId = assertIsParsableInt(postIdString);
     const { result: commentsQueryResult, error: commentsQueryError } =
       await mightFail(
-        db.select().from(commentsTable).where(eq(commentsTable.postId, postId))
+        db
+          .select({
+            commentId: commentsTable.commentId,
+            userId: commentsTable.userId,
+            postId: commentsTable.postId,
+            level: commentsTable.level,
+            content: commentsTable.content,
+            status: commentsTable.status,
+            createdAt: commentsTable.createdAt,
+            username: usersTable.username,
+          })
+          .from(commentsTable)
+          .innerJoin(usersTable, eq(commentsTable.userId, usersTable.userId))
+          .where(eq(commentsTable.postId, postId))
       );
     if (commentsQueryError)
       throw new HTTPException(500, {
