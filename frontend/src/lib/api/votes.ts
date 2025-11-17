@@ -81,6 +81,23 @@ export const getVotesQueryOptions = () =>
     queryFn: () => getVotes(),
   });
 
+async function getVotesByPostId(postId: number) {
+  const res = await client.api.v0.votes[":postId"].$get({
+    param: { postId: postId.toString() },
+  });
+  if (!res.ok) {
+    throw new Error("Error getting votes by postId");
+  }
+  const { votes } = await res.json();
+  return votes;
+}
+
+export const getVotesByPostIdQueryOptions = (postId: number) =>
+  queryOptions({
+    queryKey: ["votes", postId],
+    queryFn: () => getVotesByPostId(postId),
+  });
+
 async function updateVote(args: UpdateVoteArgs) {
   const res = await client.api.v0.votes.update.$post({ json: args });
   if (!res.ok) {

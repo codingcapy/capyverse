@@ -7,6 +7,7 @@ import { db } from "../db";
 import { HTTPException } from "hono/http-exception";
 import { and, eq } from "drizzle-orm";
 import z from "zod";
+import { assertIsParsableInt } from "./posts";
 
 const updateVoteSchema = z.object({
   voteId: z.number(),
@@ -71,4 +72,21 @@ export const votesRouter = new Hono()
       });
     }
     return c.json({ request: voteUpdateResult[0] }, 200);
+  })
+  .get("/:postId", async (c) => {
+    const { postId: postIdString } = c.req.param();
+    const postId = assertIsParsableInt(postIdString);
+    const { result: votesQueryResult, error: votesQueryError } =
+      await mightFail(
+        db.select().from(votesTable).where(eq(votesTable.postId, postId))
+      );
+    if (votesQueryError) {
+      throw new HTTPException(500, {
+        message: "Error occurred when fetching votes",
+        cause: votesQueryError,
+      });
+    }
+    return c.json({
+      votes: votesQueryResult,
+    });
   });

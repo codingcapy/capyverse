@@ -101,7 +101,7 @@ function PostComponent() {
         comments.map((comment) => (
           <div key={comment.commentId} className="my-3">
             <div className="flex text-[#bdbdbd] text-sm">
-              <div className="font-bold">{post.username}</div>
+              <div className="font-bold">{comment.username}</div>
               <div className="px-1">•</div>
               <div>{displayDate(post.createdAt)}</div>
             </div>

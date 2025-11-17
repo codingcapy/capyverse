@@ -3,7 +3,6 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-import { Comment } from "../../../../schemas/comments";
 import { ArgumentTypes, client, ExtractData } from "./client";
 
 type CreateCommentArgs = ArgumentTypes<
@@ -16,7 +15,7 @@ type SerializeComment = ExtractData<
 
 export function mapSerializedCommentToSchema(
   SerializedComment: SerializeComment
-): Comment {
+) {
   return {
     ...SerializedComment,
     createdAt: new Date(SerializedComment.createdAt),
