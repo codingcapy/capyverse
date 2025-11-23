@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import {
+  getVotesByPostIdQueryOptions,
   getVotesQueryOptions,
   useCreateVoteMutation,
   useUpdateVoteMutation,
@@ -17,7 +18,7 @@ export function VotesComponent(props: { post: Post }) {
     data: votes,
     isPending: votesPending,
     isError: votesError,
-  } = useQuery(getVotesQueryOptions());
+  } = useQuery(getVotesByPostIdQueryOptions(props.post.postId));
   const { mutate: createVote } = useCreateVoteMutation();
   const { mutate: updateVote } = useUpdateVoteMutation();
   const { user } = useAuthStore();

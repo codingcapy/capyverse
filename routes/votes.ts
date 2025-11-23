@@ -89,4 +89,21 @@ export const votesRouter = new Hono()
     return c.json({
       votes: votesQueryResult,
     });
+  })
+  .get("/comments/:commentId", async (c) => {
+    const { commentId: commentIdString } = c.req.param();
+    const commentId = assertIsParsableInt(commentIdString);
+    const { result: commentVotesQueryResult, error: commentVotesQueryError } =
+      await mightFail(
+        db.select().from(votesTable).where(eq(votesTable.commentId, commentId))
+      );
+    if (commentVotesQueryError) {
+      throw new HTTPException(500, {
+        message: "Error occurred when fetching comment votes",
+        cause: commentVotesQueryError,
+      });
+    }
+    return c.json({
+      votes: commentVotesQueryResult,
+    });
   });

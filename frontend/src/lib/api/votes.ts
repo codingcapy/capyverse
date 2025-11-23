@@ -130,3 +130,20 @@ export const useUpdateVoteMutation = (onError?: (message: string) => void) => {
     },
   });
 };
+
+async function getVotesByCommentId(commentId: number) {
+  const res = await client.api.v0.votes.comments[":commentId"].$get({
+    param: { commentId: commentId.toString() },
+  });
+  if (!res.ok) {
+    throw new Error("Error getting comment votes by commentId");
+  }
+  const { votes } = await res.json();
+  return votes;
+}
+
+export const getVotesByCommentIdQueryOptions = (commentId: number) =>
+  queryOptions({
+    queryKey: ["votes", commentId],
+    queryFn: () => getVotesByCommentId(commentId),
+  });
