@@ -76,7 +76,7 @@ export function CommentVotesComponent(props: { post: Post; comment: Comment }) {
                   value: 0,
                 });
               }}
-              className="px-2 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300"
+              className="pr-2 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300"
             >
               <PiArrowFatUpFill size={20} />
             </div>

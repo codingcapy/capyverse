@@ -12,6 +12,7 @@ import {
 import { getUserByIdQueryOptions } from "../../lib/api/users";
 import { displayDate } from "../../lib/utils";
 import { CommentVotesComponent } from "../../components/CommentVotesComponent";
+import { IoChatbubbleOutline } from "react-icons/io5";
 
 export const Route = createFileRoute("/posts/$postId")({
   beforeLoad: async ({ context, params }) => {
@@ -106,8 +107,16 @@ function PostComponent() {
               <div className="px-1">•</div>
               <div>{displayDate(post.createdAt)}</div>
             </div>
-            {comment.content}
-            <CommentVotesComponent post={post} comment={comment} />
+            <div>{comment.content}</div>
+            <div className="flex">
+              <div className="mr-3">
+                <CommentVotesComponent post={post} comment={comment} />
+              </div>
+              <div className="flex ml-2">
+                <IoChatbubbleOutline size={22} />
+                <div className="ml-2">Reply</div>
+              </div>
+            </div>
           </div>
         ))
       )}
