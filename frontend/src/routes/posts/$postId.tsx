@@ -11,6 +11,7 @@ import {
 } from "../../lib/api/comments";
 import { getUserByIdQueryOptions } from "../../lib/api/users";
 import { displayDate } from "../../lib/utils";
+import { CommentVotesComponent } from "../../components/CommentVotesComponent";
 
 export const Route = createFileRoute("/posts/$postId")({
   beforeLoad: async ({ context, params }) => {
@@ -106,6 +107,7 @@ function PostComponent() {
               <div>{displayDate(post.createdAt)}</div>
             </div>
             {comment.content}
+            <CommentVotesComponent post={post} comment={comment} />
           </div>
         ))
       )}

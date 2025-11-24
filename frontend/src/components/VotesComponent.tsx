@@ -32,11 +32,7 @@ export function VotesComponent(props: { post: Post }) {
     e.preventDefault();
     e.stopPropagation();
     const vote =
-      votes &&
-      votes.find(
-        (vote) =>
-          vote.postId === post.postId && user && vote.userId === user.userId
-      );
+      votes && votes.find((vote) => user && vote.userId === user.userId);
     if (user && vote) {
       updateVote({ voteId: vote.voteId, value });
     } else if (user) {
@@ -60,7 +56,7 @@ export function VotesComponent(props: { post: Post }) {
         <div className="flex bg-[#3e3e3e] w-fit rounded-full py-1 justify-center">
           {votes.filter(
             (vote) =>
-              vote.postId === props.post.postId &&
+              vote.commentId === null &&
               user &&
               vote.userId === user.userId &&
               vote.value === 1
@@ -72,7 +68,7 @@ export function VotesComponent(props: { post: Post }) {
                 updateVote({
                   voteId: votes.find(
                     (vote) =>
-                      vote.postId === props.post.postId &&
+                      vote.commentId === null &&
                       user &&
                       vote.userId === user.userId &&
                       vote.value === 1
@@ -96,12 +92,12 @@ export function VotesComponent(props: { post: Post }) {
           )}
           <div className="">
             {votes
-              .filter((vote) => vote.postId === props.post.postId)
+              .filter((vote) => vote.commentId === null)
               .reduce((acc, vote) => acc + vote.value!, 0)}
           </div>
           {votes.filter(
             (vote) =>
-              vote.postId === props.post.postId &&
+              vote.commentId === null &&
               user &&
               vote.userId === user.userId &&
               vote.value === -1
@@ -113,6 +109,7 @@ export function VotesComponent(props: { post: Post }) {
                 updateVote({
                   voteId: votes.find(
                     (vote) =>
+                      vote.commentId === null &&
                       vote.postId === props.post.postId &&
                       user &&
                       vote.userId === user.userId &&
