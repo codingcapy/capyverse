@@ -1,8 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   getVotesByCommentIdQueryOptions,
-  getVotesByPostIdQueryOptions,
-  getVotesQueryOptions,
   useCreateVoteMutation,
   useUpdateVoteMutation,
 } from "../lib/api/votes";

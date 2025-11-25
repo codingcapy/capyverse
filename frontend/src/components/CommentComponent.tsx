@@ -13,6 +13,7 @@ export function CommentComponent(props: {
     commentId: number;
     userId: string;
     postId: number;
+    parentCommentId: number | null;
     level: number;
     content: string | null;
     status: string;
@@ -34,6 +35,7 @@ export function CommentComponent(props: {
       {
         userId,
         postId: props.post.postId,
+        parentCommentId: props.comment.commentId,
         level: props.comment.level + 1,
         content: commentContent,
       },
