@@ -85,7 +85,7 @@ export function CommentVotesComponent(props: { post: Post; comment: Comment }) {
               onClick={(e) => {
                 handleSubmitVote(e, props.post, props.comment, 1);
               }}
-              className="px-2 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300"
+              className="pr-2 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300"
             >
               <PiArrowFatUp size={20} />
             </div>
