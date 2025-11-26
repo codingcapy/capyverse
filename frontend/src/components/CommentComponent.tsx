@@ -36,7 +36,10 @@ export function CommentComponent(props: { comment: CommentNode; post: Post }) {
       key={props.comment.commentId}
       className={`my-3`}
       style={{
-        paddingLeft: props.comment.level * 25,
+        paddingLeft:
+          window.innerWidth > 760
+            ? props.comment.level * 25
+            : props.comment.level * 10,
       }}
     >
       <div className="flex text-[#bdbdbd] text-sm">
