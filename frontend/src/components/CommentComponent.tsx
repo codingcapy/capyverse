@@ -58,17 +58,32 @@ export function CommentComponent(props: { comment: CommentNode; post: Post }) {
         </div>
       </div>
       {replyMode && (
-        <form onSubmit={handleCreateComment}>
+        <form
+          onSubmit={handleCreateComment}
+          className={`pl-5 py-2 my-5 ${replyMode ? "rounded-2xl" : "rounded-full"} border border-[#5c5c5c] w-full hover:bg-[#383838] hover:border-[#818181] transition-all ease-in-out duration-300`}
+        >
           <input
             type="text"
             placeholder="Add your reply"
-            className="px-5 py-2 my-5 rounded-full border border-[#5c5c5c] w-full hover:bg-[#383838] hover:border-[#818181] transition-all ease-in-out duration-300"
+            className="outline-none"
             value={commentContent}
             onChange={(e) => setCommentContent(e.target.value)}
             required
           />
-          <div>Cancel</div>
-          <div>Comment</div>
+          <div className="flex justify-end">
+            <div
+              onClick={(e) => {
+                e.stopPropagation();
+                setReplyMode(false);
+              }}
+              className="cursor-pointer px-2 py-1 rounded-full bg-[#383838]"
+            >
+              Cancel
+            </div>
+            <button className="mx-2 px-2 py-1 rounded-full bg-red-500">
+              Comment
+            </button>
+          </div>
         </form>
       )}
       {props.comment.children?.map((child) => (

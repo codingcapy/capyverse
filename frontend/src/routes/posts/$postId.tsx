@@ -144,11 +144,11 @@ function PostComponent() {
       <form
         onClick={() => setCommentMode(true)}
         onSubmit={handleCreateComment}
-        className="px-5 py-2 my-5 rounded-full border border-[#5c5c5c] w-full hover:bg-[#383838] hover:border-[#818181] transition-all ease-in-out duration-300"
+        className={`pl-5 py-2 my-5 ${commentMode ? "rounded-2xl" : "rounded-full"} border border-[#5c5c5c] w-full hover:bg-[#383838] hover:border-[#818181] transition-all ease-in-out duration-300`}
       >
         <input
           type="text"
-          placeholder="Add your reply"
+          placeholder="Join the conversation"
           value={commentContent}
           onChange={(e) => setCommentContent(e.target.value)}
           required
