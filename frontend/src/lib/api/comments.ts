@@ -9,7 +9,7 @@ type CreateCommentArgs = ArgumentTypes<
   typeof client.api.v0.comments.$post
 >[0]["json"];
 
-type SerializeComment = ExtractData<
+export type SerializeComment = ExtractData<
   Awaited<ReturnType<typeof client.api.v0.comments.$get>>
 >["comments"][number];
 

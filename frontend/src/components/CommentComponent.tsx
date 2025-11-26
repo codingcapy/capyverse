@@ -6,21 +6,9 @@ import { useState } from "react";
 import useAuthStore from "../store/AuthStore";
 import { useCreateCommentMutation } from "../lib/api/comments";
 import { useNavigate } from "@tanstack/react-router";
+import { CommentNode, SerializedComment } from "../routes/posts/$postId";
 
-export function CommentComponent(props: {
-  comment: {
-    createdAt: Date;
-    commentId: number;
-    userId: string;
-    postId: number;
-    parentCommentId: number | null;
-    level: number;
-    content: string | null;
-    status: string;
-    username: string | null;
-  };
-  post: Post;
-}) {
+export function CommentComponent(props: { comment: CommentNode; post: Post }) {
   const [replyMode, setReplyMode] = useState(false);
   const { user } = useAuthStore();
   const [commentContent, setCommentContent] = useState("");
@@ -79,8 +67,17 @@ export function CommentComponent(props: {
             onChange={(e) => setCommentContent(e.target.value)}
             required
           />
+          <div>Cancel</div>
+          <div>Comment</div>
         </form>
       )}
+      {props.comment.children?.map((child) => (
+        <CommentComponent
+          key={child.commentId}
+          comment={child}
+          post={props.post}
+        />
+      ))}
     </div>
   );
 }
