@@ -126,9 +126,7 @@ async function deletePost(args: DeletePostArgs) {
   return result;
 }
 
-export const useDeletePostStatusMutation = (
-  onError?: (message: string) => void
-) => {
+export const useDeletePostMutation = (onError?: (message: string) => void) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: deletePost,
