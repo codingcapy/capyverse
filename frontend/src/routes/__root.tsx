@@ -18,7 +18,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 function RootComponent() {
   return (
     <React.Fragment>
-      <div className="flex flex-col min-h-screen bg-[#222222] text-white p-2">
+      <div className="flex flex-col min-h-screen bg-[#222222] text-[#dddddd] p-2">
         <Header />
         <Outlet />
       </div>
