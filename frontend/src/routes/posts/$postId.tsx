@@ -4,7 +4,7 @@ import { getPostByIdQueryOptions } from "../../lib/api/posts";
 import { useQuery } from "@tanstack/react-query";
 import useAuthStore from "../../store/AuthStore";
 import { VotesComponent } from "../../components/VotesComponent";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   getCommentsByPostIdQueryOptions,
   useCreateCommentMutation,
@@ -12,6 +12,9 @@ import {
 import { getUserByIdQueryOptions } from "../../lib/api/users";
 import { displayDate } from "../../lib/utils";
 import { CommentComponent } from "../../components/CommentComponent";
+import { FaEllipsis } from "react-icons/fa6";
+import { FiEdit2 } from "react-icons/fi";
+import { FaRegTrashAlt } from "react-icons/fa";
 
 export type SerializedComment = {
   createdAt: Date;
@@ -75,6 +78,10 @@ function PostComponent() {
   const commentTree = buildCommentTree((comments && comments) || [], {
     sort: "asc",
   });
+  const [showMenu, setShowMenu] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [deleteMode, setDeleteMode] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
   function buildCommentTree(
     comments: SerializedComment[],
@@ -123,18 +130,61 @@ function PostComponent() {
     );
   }
 
+  // function handleClickOutside(event: MouseEvent) {
+  //   if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+  //     setShowMenu(false);
+  //   }
+  // }
+
+  // useEffect(() => {
+  //   document.addEventListener("click", handleClickOutside);
+  //   return () => document.removeEventListener("click", handleClickOutside);
+  // }, []);
+
   return (
     <div className="p-20 mx-auto w-full lg:w-[50%]">
-      <div className="flex text-[#bdbdbd] text-sm">
-        {authorPending ? (
-          <div>Loading...</div>
-        ) : authorError ? (
-          <div>Error loading author</div>
-        ) : (
-          <div className="font-bold">{author.username}</div>
+      <div className="relative flex justify-between">
+        <div className="flex text-[#bdbdbd] text-sm">
+          {authorPending ? (
+            <div>Loading...</div>
+          ) : authorError ? (
+            <div>Error loading author</div>
+          ) : (
+            <div className="font-bold">{author.username}</div>
+          )}
+          <div className="px-1">•</div>
+          <div>{displayDate(post.createdAt)}</div>
+        </div>
+        <div className="">
+          <div
+            onClick={() => setShowMenu(!showMenu)}
+            className=" absolute top-1 right-1 p-3 rounded-full hover:bg-[#575757] transition-all ease-in-out duration-300"
+          >
+            <FaEllipsis />
+          </div>
+        </div>
+        {showMenu && (
+          <div
+            ref={menuRef}
+            className="absolute top-12 right-2 py-2 px-5 rounded shadow-[0_0_15px_rgba(0,0,0,0.7)] z-100"
+          >
+            <div className="flex py-2 hover:text-[#ffffff]">
+              <FiEdit2 size={20} className="pt-1" />
+              <div className="ml-2">Edit</div>
+            </div>
+            <div
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                setDeleteMode(true);
+              }}
+              className="flex py-2 hover:text-[#ffffff]"
+            >
+              <FaRegTrashAlt size={20} className="pt-1 " />
+              <div className="ml-2">Delete</div>
+            </div>
+          </div>
         )}
-        <div className="px-1">•</div>
-        <div>{displayDate(post.createdAt)}</div>
       </div>
       <div className="text-4xl font-bold"> {post.title}</div>
       <div className="my-10">

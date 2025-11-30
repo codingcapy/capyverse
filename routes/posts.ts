@@ -109,7 +109,7 @@ export const postsRouter = new Hono()
       await mightFail(
         db
           .update(postsTable)
-          .set({ content: "[This post has beend deleted by the user]" })
+          .set({ content: "[This post has been deleted by the user]" })
           .where(eq(postsTable.postId, insertValues.postId))
           .returning()
       );
