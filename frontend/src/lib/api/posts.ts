@@ -10,6 +10,14 @@ type CreatePostArgs = ArgumentTypes<
   typeof client.api.v0.posts.$post
 >[0]["json"];
 
+type DeletePostArgs = ArgumentTypes<
+  typeof client.api.v0.posts.post.delete.$post
+>[0]["json"];
+
+type UpdatePostArgs = ArgumentTypes<
+  typeof client.api.v0.posts.post.update.$post
+>[0]["json"];
+
 type RawPost = ExtractData<
   Awaited<ReturnType<typeof client.api.v0.posts.$get>>
 >["posts"][number];
@@ -101,3 +109,73 @@ export const getPostByIdQueryOptions = (postId: number) =>
     queryKey: ["posts", postId],
     queryFn: () => getPostById(postId),
   });
+
+async function deletePost(args: DeletePostArgs) {
+  const res = await client.api.v0.posts.post.delete.$post({ json: args });
+  if (!res.ok) {
+    let errorMessage =
+      "There was an issue deleting your post :( We'll look into it ASAP!";
+    console.log(args);
+    try {
+    } catch (error) {
+      console.log(error);
+    }
+    throw new Error(errorMessage);
+  }
+  const result = await res.json();
+  return result;
+}
+
+export const useDeletePostStatusMutation = (
+  onError?: (message: string) => void
+) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deletePost,
+    onSettled: (_data, _error) => {
+      queryClient.invalidateQueries({
+        queryKey: ["posts"],
+      });
+    },
+    onError: (error) => {
+      if (onError) {
+        onError(error.message);
+      }
+    },
+  });
+};
+
+async function updatePost(args: UpdatePostArgs) {
+  const res = await client.api.v0.posts.post.update.$post({ json: args });
+  if (!res.ok) {
+    let errorMessage =
+      "There was an issue updating your post :( We'll look into it ASAP!";
+    console.log(args);
+    try {
+    } catch (error) {
+      console.log(error);
+    }
+    throw new Error(errorMessage);
+  }
+  const result = await res.json();
+  return result;
+}
+
+export const useUpdatePostStatusMutation = (
+  onError?: (message: string) => void
+) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: updatePost,
+    onSettled: (_data, _error) => {
+      queryClient.invalidateQueries({
+        queryKey: ["posts"],
+      });
+    },
+    onError: (error) => {
+      if (onError) {
+        onError(error.message);
+      }
+    },
+  });
+};

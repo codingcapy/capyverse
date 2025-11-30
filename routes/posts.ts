@@ -9,6 +9,15 @@ import { desc, eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 
+const deletePostSchema = z.object({
+  postId: z.number(),
+});
+
+const updatePostSchema = z.object({
+  postId: z.number(),
+  content: z.string(),
+});
+
 export function assertIsParsableInt(id: string): number {
   const { result: parsedId, error: parseIdError } = mightFailSync(() =>
     z.coerce.number().int().parse(id)
@@ -93,4 +102,44 @@ export const postsRouter = new Hono()
     return c.json({
       post: postsQueryResult[0],
     });
+  })
+  .post("/post/delete", zValidator("json", deletePostSchema), async (c) => {
+    const insertValues = c.req.valid("json");
+    const { error: postDeleteError, result: postDeleteResult } =
+      await mightFail(
+        db
+          .update(postsTable)
+          .set({ content: "[This post has beend deleted by the user]" })
+          .where(eq(postsTable.postId, insertValues.postId))
+          .returning()
+      );
+    if (postDeleteError) {
+      console.log("Error while deleting post");
+      console.log(postDeleteError);
+      throw new HTTPException(500, {
+        message: "Error while deleting post",
+        cause: postDeleteError,
+      });
+    }
+    return c.json({ postResult: postDeleteResult[0] }, 200);
+  })
+  .post("/post/update", zValidator("json", updatePostSchema), async (c) => {
+    const insertValues = c.req.valid("json");
+    const { error: postUpdateError, result: postUpdateResult } =
+      await mightFail(
+        db
+          .update(postsTable)
+          .set({ content: insertValues.content })
+          .where(eq(postsTable.postId, insertValues.postId))
+          .returning()
+      );
+    if (postUpdateError) {
+      console.log("Error while updatng post");
+      console.log(postUpdateError);
+      throw new HTTPException(500, {
+        message: "Error while updating post",
+        cause: postUpdateError,
+      });
+    }
+    return c.json({ postResult: postUpdateResult[0] }, 200);
   });
