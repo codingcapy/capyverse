@@ -6,12 +6,15 @@ import { PostWithUser, useDeletePostMutation } from "../lib/api/posts";
 import { useEffect, useRef, useState } from "react";
 import { FiEdit2 } from "react-icons/fi";
 import { FaRegTrashAlt } from "react-icons/fa";
+import { FaRegBookmark } from "react-icons/fa";
+import useAuthStore from "../store/AuthStore";
 
 export function PostThumbnail(props: { post: PostWithUser }) {
   const [showMenu, setShowMenu] = useState(false);
   const [deleteMode, setDeleteMode] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const { mutate: deletePost } = useDeletePostMutation();
+  const { user } = useAuthStore();
 
   function handleClickOutside(event: MouseEvent) {
     if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -57,23 +60,31 @@ export function PostThumbnail(props: { post: PostWithUser }) {
           {showMenu && (
             <div
               ref={menuRef}
-              className="absolute top-12 right-2 py-2 px-5 rounded shadow-[0_0_15px_rgba(0,0,0,0.7)]"
+              className="absolute top-12 right-2 py-2 px-5 rounded bg-[#222222] shadow-[0_0_15px_rgba(0,0,0,0.7)]"
             >
+              {user && props.post.userId === user.userId && (
+                <div className="flex py-2 hover:text-[#ffffff]">
+                  <FiEdit2 size={20} className="pt-1" />
+                  <div className="ml-2">Edit</div>
+                </div>
+              )}
               <div className="flex py-2 hover:text-[#ffffff]">
-                <FiEdit2 size={20} className="pt-1" />
-                <div className="ml-2">Edit</div>
+                <FaRegBookmark size={20} className="pt-1" />
+                <div className="ml-2">Save</div>
               </div>
-              <div
-                onClick={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  setDeleteMode(true);
-                }}
-                className="flex py-2 hover:text-[#ffffff]"
-              >
-                <FaRegTrashAlt size={20} className="pt-1 " />
-                <div className="ml-2">Delete</div>
-              </div>
+              {user && props.post.userId === user.userId && (
+                <div
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    setDeleteMode(true);
+                  }}
+                  className="flex py-2 hover:text-[#ffffff]"
+                >
+                  <FaRegTrashAlt size={20} className="pt-1 " />
+                  <div className="ml-2">Delete</div>
+                </div>
+              )}
             </div>
           )}
         </div>

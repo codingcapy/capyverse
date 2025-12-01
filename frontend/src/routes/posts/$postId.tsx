@@ -166,7 +166,7 @@ function PostComponent() {
         {showMenu && (
           <div
             ref={menuRef}
-            className="absolute top-12 right-2 py-2 px-5 rounded shadow-[0_0_15px_rgba(0,0,0,0.7)] z-100"
+            className="absolute top-12 right-2 py-2 px-5 rounded shadow-[0_0_15px_rgba(0,0,0,0.7)] z-60"
           >
             <div className="flex py-2 hover:text-[#ffffff]">
               <FiEdit2 size={20} className="pt-1" />
