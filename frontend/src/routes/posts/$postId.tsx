@@ -1,6 +1,9 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import z from "zod";
-import { getPostByIdQueryOptions } from "../../lib/api/posts";
+import {
+  getPostByIdQueryOptions,
+  useDeletePostMutation,
+} from "../../lib/api/posts";
 import { useQuery } from "@tanstack/react-query";
 import useAuthStore from "../../store/AuthStore";
 import { VotesComponent } from "../../components/VotesComponent";
@@ -79,6 +82,7 @@ function PostComponent() {
   });
   const [showMenu, setShowMenu] = useState(false);
   const [deleteMode, setDeleteMode] = useState(false);
+  const { mutate: deletePost } = useDeletePostMutation();
 
   function buildCommentTree(
     comments: SerializedComment[],
@@ -179,6 +183,42 @@ function PostComponent() {
           required
           className="outline-none"
         />
+        {user && post.userId === user.userId && deleteMode && (
+          <div
+            className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[#222222] p-6 rounded shadow-lg w-[90%] max-w-md text-center z-100`}
+          >
+            <div className="text-2xl font-bold">Delete Post?</div>
+            <div className="my-5">
+              Once you delete this post, it can’t be restored.
+            </div>
+            <div className="my-5 flex justify-end">
+              <div
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  deletePost({ postId: post.postId });
+                  setDeleteMode(false);
+                }}
+                className="p-2 mr-1 bg-red-500 rounded text-white bold secondary-font font-bold cursor-pointer"
+              >
+                DELETE
+              </div>
+              <div
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  setDeleteMode(false);
+                }}
+                className="p-2 ml-1 bg-[#5c5c5c] rounded bold secondary-font font-bold cursor-pointer"
+              >
+                CANCEL
+              </div>
+            </div>
+          </div>
+        )}
+        {user && post.userId === user.userId && deleteMode && (
+          <div className="fixed inset-0 bg-black opacity-50 z-60"></div>
+        )}
         {commentMode && (
           <div className="flex justify-end">
             <div
