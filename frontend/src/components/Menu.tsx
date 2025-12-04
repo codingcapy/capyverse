@@ -4,6 +4,8 @@ import { FiEdit2 } from "react-icons/fi";
 import { FaRegTrashAlt } from "react-icons/fa";
 import { FaRegBookmark } from "react-icons/fa";
 import { Post } from "../../../schemas/posts";
+import usePostStore from "../store/PostStore";
+import { useNavigate } from "@tanstack/react-router";
 
 export function Menu(props: {
   post: Post;
@@ -12,6 +14,8 @@ export function Menu(props: {
 }) {
   const menuRef = useRef<HTMLDivElement | null>(null);
   const { user } = useAuthStore();
+  const { setEditModePointer } = usePostStore();
+  const navigate = useNavigate();
 
   function handleClickOutside(event: MouseEvent) {
     if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -32,7 +36,14 @@ export function Menu(props: {
       {user && props.post.userId === user.userId && (
         <div className="flex py-2 hover:text-[#ffffff] cursor-pointer">
           <FiEdit2 size={20} className="pt-1" />
-          <div className="ml-2">Edit</div>
+          <div
+            onClick={() => {
+              setEditModePointer(props.post.postId);
+            }}
+            className="ml-2"
+          >
+            Edit
+          </div>
         </div>
       )}
       <div className="flex py-2 hover:text-[#ffffff] cursor-pointer">

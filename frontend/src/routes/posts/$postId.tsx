@@ -17,6 +17,7 @@ import { displayDate } from "../../lib/utils";
 import { CommentComponent } from "../../components/CommentComponent";
 import { FaEllipsis } from "react-icons/fa6";
 import { Menu } from "../../components/Menu";
+import usePostStore from "../../store/PostStore";
 
 export type SerializedComment = {
   createdAt: Date;
@@ -83,6 +84,7 @@ function PostComponent() {
   const [showMenu, setShowMenu] = useState(false);
   const [deleteMode, setDeleteMode] = useState(false);
   const { mutate: deletePost } = useDeletePostMutation();
+  const { editModePointer, setEditModePointer } = usePostStore();
 
   function buildCommentTree(
     comments: SerializedComment[],
@@ -166,9 +168,19 @@ function PostComponent() {
         )}
       </div>
       <div className="text-4xl font-bold"> {post.title}</div>
-      <div className="my-10">
-        <div>{post.content}</div>
-      </div>
+      {editModePointer === post.postId ? (
+        <textarea
+          name="content"
+          id="content"
+          required
+          className="p-2 border border-[#c4c4c4] rounded bg-[#414141] my-2"
+          placeholder="content"
+        />
+      ) : (
+        <div className="my-10">
+          <div>{post.content}</div>
+        </div>
+      )}
       <VotesComponent post={post} />
       <form
         onClick={() => setCommentMode(true)}
