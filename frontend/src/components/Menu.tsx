@@ -39,6 +39,7 @@ export function Menu(props: {
           <div
             onClick={() => {
               setEditModePointer(props.post.postId);
+              navigate({ to: `/posts/${props.post.postId}` });
             }}
             className="ml-2"
           >

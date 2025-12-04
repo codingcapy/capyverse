@@ -169,13 +169,29 @@ function PostComponent() {
       </div>
       <div className="text-4xl font-bold"> {post.title}</div>
       {editModePointer === post.postId ? (
-        <textarea
-          name="content"
-          id="content"
-          required
-          className="p-2 border border-[#c4c4c4] rounded bg-[#414141] my-2"
-          placeholder="content"
-        />
+        <div>
+          <textarea
+            name="content"
+            id="content"
+            required
+            className="p-2 border border-[#c4c4c4] rounded bg-[#414141] my-2 w-full h-[300px]"
+            placeholder="content"
+          />
+          <div className="flex justify-end">
+            <div
+              onClick={(e) => {
+                e.stopPropagation();
+                setEditModePointer(0);
+              }}
+              className="cursor-pointer px-2 py-1 rounded-full bg-[#383838]"
+            >
+              Cancel
+            </div>
+            <button className="mx-2 px-2 py-1 rounded-full bg-red-500">
+              Comment
+            </button>
+          </div>
+        </div>
       ) : (
         <div className="my-10">
           <div>{post.content}</div>
