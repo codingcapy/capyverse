@@ -1,4 +1,9 @@
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  redirect,
+  useNavigate,
+  useRouter,
+} from "@tanstack/react-router";
 import z from "zod";
 import {
   getPostByIdQueryOptions,
@@ -88,6 +93,7 @@ function PostComponent() {
   const { editModePointer, setEditModePointer } = usePostStore();
   const { mutate: updatePost } = useUpdatePostStatusMutation();
   const [editContent, setEditContent] = useState(post.content);
+  const router = useRouter();
 
   function buildCommentTree(
     comments: SerializedComment[],
@@ -179,6 +185,8 @@ function PostComponent() {
             required
             className="p-2 border border-[#c4c4c4] rounded my-2 w-full h-[300px]"
             placeholder="content"
+            value={editContent}
+            onChange={(e) => setEditContent(e.target.value)}
           />
           <div className="flex justify-end">
             <div
@@ -191,12 +199,20 @@ function PostComponent() {
               Cancel
             </div>
             <button
-              onClick={() =>
-                updatePost({
-                  postId: post.postId,
-                  content: editContent,
-                })
-              }
+              onClick={() => {
+                updatePost(
+                  {
+                    postId: post.postId,
+                    content: editContent,
+                  },
+                  {
+                    onSuccess: () => {
+                      router.invalidate();
+                      setEditModePointer(0);
+                    },
+                  }
+                );
+              }}
               className="mx-2 px-2 py-1 rounded-full bg-cyan-700"
             >
               Save

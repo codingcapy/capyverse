@@ -131,8 +131,9 @@ export const useDeletePostMutation = (onError?: (message: string) => void) => {
   return useMutation({
     mutationFn: deletePost,
     onSettled: (_data, _error) => {
+      if (!_data) return console.log("No data, returning");
       queryClient.invalidateQueries({
-        queryKey: ["posts"],
+        queryKey: ["posts", _data.postResult.postId],
       });
     },
     onError: (error) => {
@@ -166,8 +167,9 @@ export const useUpdatePostStatusMutation = (
   return useMutation({
     mutationFn: updatePost,
     onSettled: (_data, _error) => {
+      if (!_data) return console.log("No data, returning");
       queryClient.invalidateQueries({
-        queryKey: ["posts"],
+        queryKey: ["posts", _data.postResult.postId],
       });
     },
     onError: (error) => {
