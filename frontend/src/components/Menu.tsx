@@ -40,6 +40,7 @@ export function Menu(props: {
             onClick={() => {
               setEditModePointer(props.post.postId);
               navigate({ to: `/posts/${props.post.postId}` });
+              props.setShowMenu(false);
             }}
             className="ml-2"
           >
@@ -57,6 +58,7 @@ export function Menu(props: {
             e.stopPropagation();
             e.preventDefault();
             props.setDeleteMode(true);
+            props.setShowMenu(false);
           }}
           className="flex py-2 hover:text-[#ffffff] cursor-pointer"
         >

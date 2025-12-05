@@ -3,6 +3,7 @@ import z from "zod";
 import {
   getPostByIdQueryOptions,
   useDeletePostMutation,
+  useUpdatePostStatusMutation,
 } from "../../lib/api/posts";
 import { useQuery } from "@tanstack/react-query";
 import useAuthStore from "../../store/AuthStore";
@@ -85,6 +86,8 @@ function PostComponent() {
   const [deleteMode, setDeleteMode] = useState(false);
   const { mutate: deletePost } = useDeletePostMutation();
   const { editModePointer, setEditModePointer } = usePostStore();
+  const { mutate: updatePost } = useUpdatePostStatusMutation();
+  const [editContent, setEditContent] = useState(post.content);
 
   function buildCommentTree(
     comments: SerializedComment[],
@@ -174,7 +177,7 @@ function PostComponent() {
             name="content"
             id="content"
             required
-            className="p-2 border border-[#c4c4c4] rounded bg-[#414141] my-2 w-full h-[300px]"
+            className="p-2 border border-[#c4c4c4] rounded my-2 w-full h-[300px]"
             placeholder="content"
           />
           <div className="flex justify-end">
@@ -187,8 +190,16 @@ function PostComponent() {
             >
               Cancel
             </div>
-            <button className="mx-2 px-2 py-1 rounded-full bg-red-500">
-              Comment
+            <button
+              onClick={() =>
+                updatePost({
+                  postId: post.postId,
+                  content: editContent,
+                })
+              }
+              className="mx-2 px-2 py-1 rounded-full bg-cyan-700"
+            >
+              Save
             </button>
           </div>
         </div>
