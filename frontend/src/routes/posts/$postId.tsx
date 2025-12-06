@@ -251,8 +251,18 @@ function PostComponent() {
                 onClick={(e) => {
                   e.stopPropagation();
                   e.preventDefault();
-                  deletePost({ postId: post.postId });
-                  setDeleteMode(false);
+                  deletePost(
+                    { postId: post.postId },
+                    {
+                      onSuccess: () => {
+                        router.invalidate();
+                        setDeleteMode(false);
+                        setEditContent(
+                          "[This post has been deleted by the user]"
+                        );
+                      },
+                    }
+                  );
                 }}
                 className="p-2 mr-1 bg-red-500 rounded text-white bold secondary-font font-bold cursor-pointer"
               >

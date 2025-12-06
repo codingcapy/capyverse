@@ -135,6 +135,9 @@ export const useDeletePostMutation = (onError?: (message: string) => void) => {
       queryClient.invalidateQueries({
         queryKey: ["posts", _data.postResult.postId],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["posts"],
+      });
     },
     onError: (error) => {
       if (onError) {
