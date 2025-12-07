@@ -90,7 +90,7 @@ function PostComponent() {
   const [showMenu, setShowMenu] = useState(false);
   const [deleteMode, setDeleteMode] = useState(false);
   const { mutate: deletePost } = useDeletePostMutation();
-  const { editModePointer, setEditModePointer } = usePostStore();
+  const { editPostModePointer, setEditPostModePointer } = usePostStore();
   const { mutate: updatePost } = useUpdatePostStatusMutation();
   const [editContent, setEditContent] = useState(post.content);
   const router = useRouter();
@@ -177,7 +177,7 @@ function PostComponent() {
         )}
       </div>
       <div className="text-4xl font-bold"> {post.title}</div>
-      {editModePointer === post.postId ? (
+      {editPostModePointer === post.postId ? (
         <div>
           <textarea
             name="content"
@@ -192,7 +192,7 @@ function PostComponent() {
             <div
               onClick={(e) => {
                 e.stopPropagation();
-                setEditModePointer(0);
+                setEditPostModePointer(0);
               }}
               className="cursor-pointer px-2 py-1 rounded-full bg-[#383838]"
             >
@@ -208,7 +208,7 @@ function PostComponent() {
                   {
                     onSuccess: () => {
                       router.invalidate();
-                      setEditModePointer(0);
+                      setEditPostModePointer(0);
                     },
                   }
                 );

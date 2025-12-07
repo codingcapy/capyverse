@@ -1,11 +1,15 @@
 import { create } from "zustand";
 
 const usePostStore = create<{
-  editModePointer: number;
-  setEditModePointer: (args: number) => void;
+  editPostModePointer: number;
+  setEditPostModePointer: (args: number) => void;
+  editCommentModePointer: number;
+  setEditCommentModePointer: (args: number) => void;
 }>((set, get) => ({
-  editModePointer: 0,
-  setEditModePointer: (args) => set({ editModePointer: args }),
+  editPostModePointer: 0,
+  setEditPostModePointer: (args) => set({ editPostModePointer: args }),
+  editCommentModePointer: 0,
+  setEditCommentModePointer: (args) => set({ editCommentModePointer: args }),
 }));
 
 export default usePostStore;

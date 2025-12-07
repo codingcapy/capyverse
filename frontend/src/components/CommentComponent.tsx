@@ -8,6 +8,7 @@ import { useCreateCommentMutation } from "../lib/api/comments";
 import { useNavigate } from "@tanstack/react-router";
 import { CommentNode, SerializedComment } from "../routes/posts/$postId";
 import { FaEllipsis } from "react-icons/fa6";
+import { CommentMenu } from "./CommentMenu";
 
 export function CommentComponent(props: { comment: CommentNode; post: Post }) {
   const [replyMode, setReplyMode] = useState(false);
@@ -16,6 +17,7 @@ export function CommentComponent(props: { comment: CommentNode; post: Post }) {
   const { mutate: createComment } = useCreateCommentMutation();
   const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
+  const [deleteMode, setDeleteMode] = useState(false);
 
   function handleCreateComment(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -62,13 +64,24 @@ export function CommentComponent(props: { comment: CommentNode; post: Post }) {
           <div className="ml-2">Reply</div>
         </div>
         {user && props.comment.userId === user.userId && (
-          <div
-            onClick={(e) => {
-              setShowMenu(true);
-            }}
-            className="ml-3 px-2 pt-1.5 rounded-full hover:text-cyan-700 transition-all ease-in-out duration-300 cursor-pointer"
-          >
-            <FaEllipsis />
+          <div className="relative">
+            <div
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setShowMenu(!showMenu);
+              }}
+              className="ml-3 px-2 pt-1.5 rounded-full hover:text-cyan-700 transition-all ease-in-out duration-300 cursor-pointer"
+            >
+              <FaEllipsis />
+            </div>
+            {showMenu && (
+              <CommentMenu
+                comment={props.comment}
+                setDeleteMode={setDeleteMode}
+                setShowMenu={setShowMenu}
+              />
+            )}
           </div>
         )}
       </div>
