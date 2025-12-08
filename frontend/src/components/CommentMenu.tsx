@@ -39,7 +39,6 @@ export function CommentMenu(props: {
           <div
             onClick={() => {
               setEditCommentModePointer(props.comment.commentId);
-              navigate({ to: `/posts/${props.comment.postId}` });
               props.setShowMenu(false);
             }}
             className="ml-2"
