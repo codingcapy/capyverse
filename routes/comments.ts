@@ -8,6 +8,16 @@ import { HTTPException } from "hono/http-exception";
 import { assertIsParsableInt } from "./posts";
 import { eq } from "drizzle-orm";
 import { users as usersTable } from "../schemas/users";
+import z from "zod";
+
+const deleteCommentSchema = z.object({
+  commentId: z.number(),
+});
+
+const updateCommentSchema = z.object({
+  commentId: z.number(),
+  content: z.string(),
+});
 
 export const commentsRouter = new Hono()
   .post(
@@ -86,4 +96,28 @@ export const commentsRouter = new Hono()
         cause: commentsQueryError,
       });
     return c.json({ comments: commentsQueryResult });
-  });
+  })
+  .post(
+    "/comment/delete",
+    zValidator("json", deleteCommentSchema),
+    async (c) => {
+      const insertValues = c.req.valid("json");
+      const { error: commentDeleteError, result: commentDeleteResult } =
+        await mightFail(
+          db
+            .update(commentsTable)
+            .set({ content: "[This comment has been deleted by the user]" })
+            .where(eq(commentsTable.commentId, insertValues.commentId))
+            .returning()
+        );
+      if (commentDeleteError) {
+        console.log("Error while deleting comment");
+        console.log(commentDeleteError);
+        throw new HTTPException(500, {
+          message: "Error while deleting comment",
+          cause: commentDeleteError,
+        });
+      }
+      return c.json({ commentResult: commentDeleteResult[0] }, 200);
+    }
+  );
