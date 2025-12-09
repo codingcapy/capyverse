@@ -9,6 +9,10 @@ type CreateCommentArgs = ArgumentTypes<
   typeof client.api.v0.comments.$post
 >[0]["json"];
 
+type DeleteCommentArgs = ArgumentTypes<
+  typeof client.api.v0.comments.comment.delete.$post
+>[0]["json"];
+
 export type SerializeComment = ExtractData<
   Awaited<ReturnType<typeof client.api.v0.comments.$get>>
 >["comments"][number];
@@ -78,3 +82,42 @@ export const getCommentsByPostIdQueryOptions = (postId: number) =>
     queryKey: ["comments", postId],
     queryFn: () => getCommentsByPostId(postId),
   });
+
+async function deleteComment(args: DeleteCommentArgs) {
+  const res = await client.api.v0.comments.comment.delete.$post({ json: args });
+  if (!res.ok) {
+    let errorMessage =
+      "There was an issue deleting your post :( We'll look into it ASAP!";
+    console.log(args);
+    try {
+    } catch (error) {
+      console.log(error);
+    }
+    throw new Error(errorMessage);
+  }
+  const result = await res.json();
+  return result;
+}
+
+export const useDeleteCommentMutation = (
+  onError?: (message: string) => void
+) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteComment,
+    onSettled: (_data, _error) => {
+      if (!_data) return console.log("No data, returning");
+      queryClient.invalidateQueries({
+        queryKey: ["comments", _data.commentResult.postId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["posts"],
+      });
+    },
+    onError: (error) => {
+      if (onError) {
+        onError(error.message);
+      }
+    },
+  });
+};
