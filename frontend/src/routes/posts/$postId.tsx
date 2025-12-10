@@ -226,7 +226,10 @@ function PostComponent() {
       )}
       <VotesComponent post={post} />
       <form
-        onClick={() => setCommentMode(true)}
+        onClick={() => {
+          if (!user) navigate({ to: "/login" });
+          setCommentMode(true);
+        }}
         onSubmit={handleCreateComment}
         className={`pl-5 py-2 my-5 ${commentMode ? "rounded-2xl" : "rounded-full"} border border-[#5c5c5c] w-full hover:bg-[#383838] hover:border-[#818181] transition-all ease-in-out duration-300`}
       >

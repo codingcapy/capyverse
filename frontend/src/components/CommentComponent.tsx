@@ -57,7 +57,10 @@ export function CommentComponent(props: { comment: CommentNode; post: Post }) {
           <CommentVotesComponent post={props.post} comment={props.comment} />
         </div>
         <div
-          onClick={() => setReplyMode(true)}
+          onClick={() => {
+            if (!user) navigate({ to: "/login" });
+            setReplyMode(true);
+          }}
           className="flex ml-2 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300"
         >
           <IoChatbubbleOutline size={22} />
