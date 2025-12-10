@@ -120,4 +120,28 @@ export const commentsRouter = new Hono()
       }
       return c.json({ commentResult: commentDeleteResult[0] }, 200);
     }
+  )
+  .post(
+    "/comment/update",
+    zValidator("json", updateCommentSchema),
+    async (c) => {
+      const insertValues = c.req.valid("json");
+      const { error: commentEditError, result: commentEditResult } =
+        await mightFail(
+          db
+            .update(commentsTable)
+            .set({ content: insertValues.content })
+            .where(eq(commentsTable.commentId, insertValues.commentId))
+            .returning()
+        );
+      if (commentEditError) {
+        console.log("Error while editing comment");
+        console.log(commentEditError);
+        throw new HTTPException(500, {
+          message: "Error while editing comment",
+          cause: commentEditError,
+        });
+      }
+      return c.json({ commentResult: commentEditResult[0] }, 200);
+    }
   );
