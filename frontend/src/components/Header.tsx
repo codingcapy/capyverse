@@ -14,17 +14,20 @@ export function Header() {
       <Link to="/" className="text-2xl text-cyan-500 font-bold">
         Capyverse
       </Link>
-      {window.innerWidth > 500 ? (
+      {window.innerWidth > 500 && (
         <input
           type="text"
           className="px-5 py-2 rounded-2xl w-[30%] bg-[#414141]"
           placeholder="Search Capyverse"
         />
-      ) : (
-        <IoSearch size={30} className="pt-2" />
       )}
       {user ? (
         <div className="flex px-5 py-2 font-bold">
+          {window.innerWidth < 501 && (
+            <div className="">
+              <IoSearch size={25} />
+            </div>
+          )}
           <Link
             to="/createpost"
             className="px-5 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300"
