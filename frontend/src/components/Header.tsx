@@ -24,7 +24,7 @@ export function Header() {
       {user ? (
         <div className="flex px-5 py-2 font-bold">
           {window.innerWidth < 501 && (
-            <div className="">
+            <div className="cursor-pointer">
               <IoSearch size={25} />
             </div>
           )}
