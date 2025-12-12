@@ -7,11 +7,13 @@ import useAuthStore from "../store/AuthStore";
 import {
   useCreateCommentMutation,
   useDeleteCommentMutation,
+  useUpdateCommentMutation,
 } from "../lib/api/comments";
 import { useNavigate } from "@tanstack/react-router";
 import { CommentNode, SerializedComment } from "../routes/posts/$postId";
 import { FaEllipsis } from "react-icons/fa6";
 import { CommentMenu } from "./CommentMenu";
+import usePostStore from "../store/PostStore";
 
 export function CommentComponent(props: { comment: CommentNode; post: Post }) {
   const [replyMode, setReplyMode] = useState(false);
@@ -23,6 +25,8 @@ export function CommentComponent(props: { comment: CommentNode; post: Post }) {
   const [deleteMode, setDeleteMode] = useState(false);
   const { mutate: deleteComment, isPending: deleteCommentPending } =
     useDeleteCommentMutation();
+  const { editCommentModePointer, setEditCommentModePointer } = usePostStore();
+  const { mutate: updateComment } = useUpdateCommentMutation();
 
   function handleCreateComment(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -45,6 +49,23 @@ export function CommentComponent(props: { comment: CommentNode; post: Post }) {
     );
   }
 
+  function handleEditComment(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!user) return navigate({ to: "/login" });
+    updateComment(
+      {
+        commentId: props.comment.commentId,
+        content: commentContent,
+      },
+      {
+        onSuccess: () => {
+          setEditCommentModePointer(0);
+          setCommentContent("");
+        },
+      }
+    );
+  }
+
   return (
     <div
       key={props.comment.commentId}
@@ -61,7 +82,37 @@ export function CommentComponent(props: { comment: CommentNode; post: Post }) {
         <div className="px-1">•</div>
         <div>{displayDate(props.post.createdAt)}</div>
       </div>
-      <div>{props.comment.content}</div>
+      {editCommentModePointer === props.comment.commentId ? (
+        <form
+          onSubmit={handleEditComment}
+          className={`pl-5 py-2 my-5 ${replyMode ? "rounded-2xl" : "rounded-full"} border border-[#5c5c5c] w-full hover:bg-[#383838] hover:border-[#818181] transition-all ease-in-out duration-300`}
+        >
+          <input
+            type="text"
+            placeholder="Add your reply"
+            className="outline-none"
+            value={commentContent}
+            onChange={(e) => setCommentContent(e.target.value)}
+            required
+          />
+          <div className="flex justify-end">
+            <div
+              onClick={(e) => {
+                e.stopPropagation();
+                setEditCommentModePointer(0);
+              }}
+              className="cursor-pointer px-2 py-1 rounded-full bg-[#383838]"
+            >
+              Cancel
+            </div>
+            <button className="mx-2 px-2 py-1 rounded-full bg-red-500">
+              Save Edits
+            </button>
+          </div>
+        </form>
+      ) : (
+        <div>{props.comment.content}</div>
+      )}
       <div className="flex">
         <div className="mr-3">
           <CommentVotesComponent post={props.post} comment={props.comment} />
@@ -93,6 +144,7 @@ export function CommentComponent(props: { comment: CommentNode; post: Post }) {
                 comment={props.comment}
                 setDeleteMode={setDeleteMode}
                 setShowMenu={setShowMenu}
+                setCommentContent={setCommentContent}
               />
             )}
           </div>

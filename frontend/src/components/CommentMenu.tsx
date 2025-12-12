@@ -11,6 +11,7 @@ export function CommentMenu(props: {
   comment: Comment;
   setDeleteMode: Dispatch<SetStateAction<boolean>>;
   setShowMenu: Dispatch<SetStateAction<boolean>>;
+  setCommentContent: Dispatch<SetStateAction<string>>;
 }) {
   const menuRef = useRef<HTMLDivElement | null>(null);
   const { user } = useAuthStore();
@@ -39,6 +40,7 @@ export function CommentMenu(props: {
           <div
             onClick={() => {
               setEditCommentModePointer(props.comment.commentId);
+              props.setCommentContent(props.comment.content || "");
               props.setShowMenu(false);
             }}
             className="ml-2"
