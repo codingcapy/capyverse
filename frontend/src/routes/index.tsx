@@ -5,6 +5,7 @@ import { PostThumbnail } from "../components/PostThumbnail";
 import { PiCaretDownBold } from "react-icons/pi";
 import { useEffect, useRef, useState } from "react";
 import { getVotesQueryOptions } from "../lib/api/votes";
+import usePostStore from "../store/PostStore";
 
 type SortMode = "Popular" | "New";
 
@@ -26,6 +27,7 @@ function IndexComponent() {
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>("Popular");
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const { searchContent } = usePostStore();
 
   function handleClickOutside(event: MouseEvent) {
     if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -88,19 +90,55 @@ function IndexComponent() {
           <div className="mx-auto w-full lg:w-[50%]">Loading...</div>
         ) : posts ? (
           sortMode === "Popular" ? (
-            posts
-              .sort((a, b) => {
-                const aVotes =
-                  votes?.filter((v) => v.postId === a.postId).length || 0;
-                const bVotes =
-                  votes?.filter((v) => v.postId === b.postId).length || 0;
-                return bVotes - aVotes;
-              })
-              .map((post) => <PostThumbnail post={post} key={post.postId} />)
+            votesError ? (
+              <div className="mx-auto w-full lg:w-[50%]">
+                Error fetching votes
+              </div>
+            ) : votesLoading ? (
+              <div className="mx-auto w-full lg:w-[50%]">Loading...</div>
+            ) : votes ? (
+              posts
+                .sort((a, b) => {
+                  const aVotes =
+                    votes.filter((v) => v.postId === a.postId).length || 0;
+                  const bVotes =
+                    votes.filter((v) => v.postId === b.postId).length || 0;
+                  return bVotes - aVotes;
+                })
+                .map((post) =>
+                  searchContent === "" ? (
+                    <PostThumbnail post={post} key={post.postId} />
+                  ) : post.title
+                      .toLowerCase()
+                      .includes(searchContent.toLowerCase()) ||
+                    post.content
+                      .toLowerCase()
+                      .includes(searchContent.toLowerCase()) ? (
+                    <PostThumbnail post={post} key={post.postId} />
+                  ) : (
+                    ""
+                  )
+                )
+            ) : (
+              <div>An unexpected error has occured</div>
+            )
           ) : (
             posts
               .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-              .map((post) => <PostThumbnail post={post} key={post.postId} />)
+              .map((post) =>
+                searchContent === "" ? (
+                  <PostThumbnail post={post} key={post.postId} />
+                ) : post.title
+                    .toLowerCase()
+                    .includes(searchContent.toLowerCase()) ||
+                  post.content
+                    .toLowerCase()
+                    .includes(searchContent.toLowerCase()) ? (
+                  <PostThumbnail post={post} key={post.postId} />
+                ) : (
+                  ""
+                )
+              )
           )
         ) : (
           <div>An unexpected error has occured</div>

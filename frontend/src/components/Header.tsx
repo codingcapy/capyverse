@@ -4,12 +4,14 @@ import { useState } from "react";
 import { CgProfile } from "react-icons/cg";
 import { IoSearch } from "react-icons/io5";
 import { FaArrowLeft } from "react-icons/fa";
+import usePostStore from "../store/PostStore";
 
 export function Header() {
   const { user } = useAuthStore();
   const [showMenu, setShowMenu] = useState(false);
   const { logoutService } = useAuthStore();
   const [searchMode, setSearchMode] = useState(false);
+  const { searchContent, setSearchContent } = usePostStore();
 
   return (
     <div>
@@ -25,6 +27,7 @@ export function Header() {
             type="text"
             className="px-5 py-1 ml-2 rounded-2xl w-full bg-[#414141]"
             placeholder="Search Capyverse"
+            onChange={(e) => setSearchContent(e.target.value)}
           />
         </div>
       ) : (
@@ -37,6 +40,7 @@ export function Header() {
               type="text"
               className="px-5 py-2 rounded-2xl w-[30%] bg-[#414141]"
               placeholder="Search Capyverse"
+              onChange={(e) => setSearchContent(e.target.value)}
             />
           )}
           {user ? (
