@@ -92,7 +92,7 @@ export function VotesComponent(props: { post: Post }) {
               <PiArrowFatUp size={20} />
             </div>
           )}
-          <div className="">
+          <div className="font-semibold">
             {votes
               .filter((vote) => vote.commentId === null)
               .reduce((acc, vote) => acc + vote.value!, 0)}

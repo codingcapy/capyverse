@@ -9,6 +9,8 @@ import { Menu } from "./Menu";
 import defaultProfile from "/capypaul01.jpg";
 import { useQuery } from "@tanstack/react-query";
 import { getUserByIdQueryOptions } from "../lib/api/users";
+import { getCommentsByPostIdQueryOptions } from "../lib/api/comments";
+import { IoChatbubbleOutline } from "react-icons/io5";
 
 export function PostThumbnail(props: { post: PostWithUser }) {
   const [showMenu, setShowMenu] = useState(false);
@@ -19,6 +21,11 @@ export function PostThumbnail(props: { post: PostWithUser }) {
   const { data: poster, isLoading: posterLoading } = useQuery(
     getUserByIdQueryOptions(props.post.userId)
   );
+  const {
+    data: comments,
+    isLoading: commentsLoading,
+    error: commentsError,
+  } = useQuery(getCommentsByPostIdQueryOptions(props.post.postId));
 
   return (
     <div className="mx-auto w-full lg:w-[50%] 2xl:w-[750px] border-t border-[#636363]">
@@ -62,7 +69,23 @@ export function PostThumbnail(props: { post: PostWithUser }) {
           </div>
           <div className="text-2xl font-bold">{props.post.title}</div>
           <div className="my-2">{props.post.content}</div>
-          <VotesComponent post={props.post} />
+          <div className="flex">
+            <VotesComponent post={props.post} />
+            <div className="flex bg-[#3e3e3e] w-fit rounded-full py-1 justify-center ml-2 hover:text-cyan-500 transition-all ease-in-out duration-300">
+              <div className="pl-3 pr-1">
+                <IoChatbubbleOutline size={20} />
+              </div>
+              {commentsLoading ? (
+                <div className="pr-3">Loading...</div>
+              ) : commentsError ? (
+                <div className="pr-3">Error fetching comments</div>
+              ) : comments ? (
+                <div className="pr-3 font-semibold">{comments.length}</div>
+              ) : (
+                <div className="pr-3">An unexpected error has occured</div>
+              )}
+            </div>
+          </div>
           {showMenu && (
             <Menu
               post={props.post}

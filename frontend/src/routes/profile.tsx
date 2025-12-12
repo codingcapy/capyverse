@@ -4,6 +4,8 @@ import defaultProfile from "/capypaul01.jpg";
 import { useState } from "react";
 import { useUpdateProfilePicMutation } from "../lib/api/users";
 
+type ProfileMode = "Overview" | "Posts" | "Comments" | "Saved";
+
 export const Route = createFileRoute("/profile")({
   component: ProfilePage,
 });
@@ -12,6 +14,7 @@ function ProfilePage() {
   const { user } = useAuthStore();
   const [logoHovered, setLogoHovered] = useState(false);
   const { mutate: updateProfilePic } = useUpdateProfilePicMutation();
+  const [profileMode, setProfileMode] = useState<ProfileMode>("Overview");
 
   async function handleImageUpload(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -81,11 +84,31 @@ function ProfilePage() {
         </div>
         <div className="ml-5">{user ? user.username : "Unknown User"}</div>
       </div>
-      <div className="flex my-10">
-        <div className="px-3 cursor-pointer">Overview</div>
-        <div className="px-3 cursor-pointer">Posts</div>
-        <div className="px-3 cursor-pointer">Comments</div>
-        <div className="px-3 cursor-pointer">Saved</div>
+      <div className="flex my-10 font-bold">
+        <div
+          className={`px-3 py-2 cursor-pointer rounded-full ${profileMode === "Overview" && "bg-[#4b4b4b]"} hover:text-cyan-500 transition-all ease-in-out duration-300`}
+          onClick={() => setProfileMode("Overview")}
+        >
+          Overview
+        </div>
+        <div
+          className={`px-3 py-2 cursor-pointer rounded-full ${profileMode === "Posts" && "bg-[#4b4b4b]"} hover:text-cyan-500 transition-all ease-in-out duration-300`}
+          onClick={() => setProfileMode("Posts")}
+        >
+          Posts
+        </div>
+        <div
+          className={`px-3 py-2 cursor-pointer rounded-full ${profileMode === "Comments" && "bg-[#4b4b4b]"} hover:text-cyan-500 transition-all ease-in-out duration-300`}
+          onClick={() => setProfileMode("Comments")}
+        >
+          Comments
+        </div>
+        <div
+          className={`px-3 py-2 cursor-pointer rounded-full ${profileMode === "Saved" && "bg-[#4b4b4b]"} hover:text-cyan-500 transition-all ease-in-out duration-300`}
+          onClick={() => setProfileMode("Saved")}
+        >
+          Saved
+        </div>
       </div>
       <div className="">
         <Link
