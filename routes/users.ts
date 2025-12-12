@@ -9,6 +9,7 @@ import { eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import { randomUUIDv7 } from "bun";
 import { users as usersTable } from "../schemas/users";
+import z from "zod";
 
 const scryptAsync = promisify(scrypt);
 
@@ -17,6 +18,11 @@ async function hashPassword(password: string) {
   const derivedKey = (await scryptAsync(password, salt, 64)) as Buffer;
   return `${salt}:${derivedKey.toString("hex")}`;
 }
+
+const updateProfilePicSchema = z.object({
+  userId: z.string(),
+  profilePic: z.string(),
+});
 
 export const usersRouter = new Hono()
   .post(
@@ -93,4 +99,25 @@ export const usersRouter = new Hono()
     return c.json({
       userQuery: userQueryResult[0],
     });
-  });
+  })
+  .post(
+    "/update/profilepic",
+    zValidator("json", updateProfilePicSchema),
+    async (c) => {
+      const updateValues = c.req.valid("json");
+      const { error: queryError, result: newUserResult } = await mightFail(
+        db
+          .update(usersTable)
+          .set({ profilePic: updateValues.profilePic })
+          .where(eq(usersTable.userId, updateValues.userId))
+          .returning()
+      );
+      if (queryError) {
+        throw new HTTPException(500, {
+          message: "Error updating users table",
+          cause: queryError,
+        });
+      }
+      return c.json({ newUser: newUserResult[0] }, 200);
+    }
+  );

@@ -9,6 +9,10 @@ type CreateUserArgs = ArgumentTypes<
   typeof client.api.v0.users.$post
 >[0]["json"];
 
+type UpdateProfilePicArgs = ArgumentTypes<
+  typeof client.api.v0.users.update.profilepic.$post
+>[0]["json"];
+
 async function createUser(args: CreateUserArgs) {
   const res = await client.api.v0.users.$post({ json: args });
   if (!res.ok) {
@@ -67,3 +71,31 @@ export const getUserByIdQueryOptions = (userId: string) =>
     queryKey: ["users", userId],
     queryFn: () => getUserById(userId),
   });
+
+async function updateProfilePic(args: UpdateProfilePicArgs) {
+  const res = await client.api.v0.users.update.profilepic.$post({
+    json: args,
+  });
+  if (!res.ok) {
+    throw new Error("Error updating user.");
+  }
+  const { newUser } = await res.json();
+  console.log(newUser);
+  return newUser;
+}
+
+export const useUpdateProfilePicMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: updateProfilePic,
+    onSettled: (newUser) => {
+      if (!newUser) return;
+      queryClient.invalidateQueries({
+        queryKey: ["users", newUser.userId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["users"],
+      });
+    },
+  });
+};

@@ -94,7 +94,7 @@ export function Header() {
           {showMenu && (
             <div className="absolute top-[60px] right-[15px] bg-[#444444] shadow-[0_0_15px_rgba(0,0,0,0.7)]">
               <div className="px-4 pt-3 pb-1 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300">
-                View Profile
+                <Link to="/profile">View Profile</Link>
               </div>
               <div
                 onClick={() => {
