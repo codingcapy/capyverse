@@ -313,7 +313,7 @@ function PostComponent() {
         </div>
       )}
       {user && post.userId === user.userId && deleteMode && (
-        <div className="fixed inset-0 bg-black opacity-50 z-60"></div>
+        <div className="fixed inset-0 bg-black opacity-50 z-90"></div>
       )}
       {commentsError ? (
         <div>Error loading comments</div>

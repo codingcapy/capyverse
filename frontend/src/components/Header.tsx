@@ -1,6 +1,6 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import useAuthStore from "../store/AuthStore";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CgProfile } from "react-icons/cg";
 import { IoSearch } from "react-icons/io5";
 import { FaArrowLeft } from "react-icons/fa";
@@ -11,12 +11,25 @@ export function Header() {
   const [showMenu, setShowMenu] = useState(false);
   const { logoutService } = useAuthStore();
   const [searchMode, setSearchMode] = useState(false);
-  const { searchContent, setSearchContent } = usePostStore();
+  const { setSearchContent } = usePostStore();
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  const navigate = useNavigate();
+
+  function handleClickOutside(event: MouseEvent) {
+    if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      setShowMenu(false);
+    }
+  }
+
+  useEffect(() => {
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
 
   return (
     <div>
       {searchMode ? (
-        <div className="fixed top-0 left-0 p-2 md:px-5 md:py-2 z-50 flex justify-between w-screen bg-[#222222] border-b border-[#808080]">
+        <div className="fixed top-0 left-0 p-2 md:px-5 md:py-2 z-80 flex justify-between w-screen bg-[#222222] border-b border-[#808080]">
           <div
             onClick={() => setSearchMode(false)}
             className="mt-1 cursor-pointer"
@@ -31,7 +44,10 @@ export function Header() {
           />
         </div>
       ) : (
-        <header className="fixed top-0 left-0 p-2 md:px-5 md:py-2 z-50 flex justify-between w-screen bg-[#222222] border-b border-[#808080]">
+        <header
+          ref={menuRef}
+          className="fixed top-0 left-0 p-2 md:px-5 md:py-2 z-80 flex justify-between w-screen bg-[#222222] border-b border-[#808080]"
+        >
           <Link to="/" className="text-2xl text-cyan-500 font-bold">
             Capyverse
           </Link>
@@ -76,14 +92,19 @@ export function Header() {
             </Link>
           )}
           {showMenu && (
-            <div
-              onClick={() => {
-                logoutService();
-                setShowMenu(false);
-              }}
-              className="absolute top-[60px] right-0 bg-[#444444] p-5 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300"
-            >
-              Logout
+            <div className="absolute top-[60px] right-[15px] bg-[#444444] shadow-[0_0_15px_rgba(0,0,0,0.7)]">
+              <div className="px-4 pt-3 pb-1 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300">
+                View Profile
+              </div>
+              <div
+                onClick={() => {
+                  logoutService();
+                  setShowMenu(false);
+                }}
+                className="px-4 pb-3 pt-1 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300"
+              >
+                Logout
+              </div>
             </div>
           )}
         </header>

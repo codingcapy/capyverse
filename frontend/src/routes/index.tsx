@@ -60,7 +60,7 @@ function IndexComponent() {
             {showSortMenu && (
               <div
                 onClick={() => {}}
-                className="absolute top-5 left-0 bg-[#444444] px-5 py-2 z-50"
+                className="absolute top-5 left-0 bg-[#444444] px-5 py-2 z-50 shadow-[0_0_15px_rgba(0,0,0,0.7)]"
               >
                 <div
                   onClick={() => {

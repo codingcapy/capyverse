@@ -87,7 +87,7 @@ export function PostThumbnail(props: { post: PostWithUser }) {
         )}
       </Link>
       {user && props.post.userId === user.userId && deleteMode && (
-        <div className="fixed inset-0 bg-black opacity-50 z-60"></div>
+        <div className="fixed inset-0 bg-black opacity-50 z-90"></div>
       )}
     </div>
   );

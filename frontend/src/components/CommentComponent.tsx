@@ -219,7 +219,7 @@ export function CommentComponent(props: { comment: CommentNode; post: Post }) {
         </div>
       )}
       {deleteMode && (
-        <div className="fixed inset-0 bg-black opacity-50 z-60"></div>
+        <div className="fixed inset-0 bg-black opacity-50 z-90"></div>
       )}
       {props.comment.children?.map((child) => (
         <CommentComponent
