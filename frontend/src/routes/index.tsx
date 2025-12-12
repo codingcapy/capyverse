@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { PostThumbnail } from "../components/PostThumbnail";
 import { PiCaretDownBold } from "react-icons/pi";
 import { useEffect, useRef, useState } from "react";
+import { getVotesQueryOptions } from "../lib/api/votes";
 
 type SortMode = "Popular" | "New";
 
@@ -17,6 +18,11 @@ function IndexComponent() {
     isLoading: postsLoading,
     isError: postsError,
   } = useQuery(getPostsQueryOptions());
+  const {
+    data: votes,
+    isLoading: votesLoading,
+    isError: votesError,
+  } = useQuery(getVotesQueryOptions());
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>("Popular");
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -81,7 +87,21 @@ function IndexComponent() {
         ) : postsLoading ? (
           <div className="mx-auto w-full lg:w-[50%]">Loading...</div>
         ) : posts ? (
-          posts.map((post) => <PostThumbnail post={post} key={post.postId} />)
+          sortMode === "Popular" ? (
+            posts
+              .sort((a, b) => {
+                const aVotes =
+                  votes?.filter((v) => v.postId === a.postId).length || 0;
+                const bVotes =
+                  votes?.filter((v) => v.postId === b.postId).length || 0;
+                return bVotes - aVotes;
+              })
+              .map((post) => <PostThumbnail post={post} key={post.postId} />)
+          ) : (
+            posts
+              .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+              .map((post) => <PostThumbnail post={post} key={post.postId} />)
+          )
         ) : (
           <div>An unexpected error has occured</div>
         )}

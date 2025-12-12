@@ -73,7 +73,7 @@ export function CommentComponent(props: { comment: CommentNode; post: Post }) {
       key={props.comment.commentId}
       className={`my-3`}
       style={{
-        paddingLeft:
+        marginLeft:
           window.innerWidth > 760
             ? props.comment.level * 25
             : props.comment.level * 10,
