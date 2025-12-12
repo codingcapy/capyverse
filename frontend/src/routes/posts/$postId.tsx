@@ -244,54 +244,9 @@ function PostComponent() {
           value={commentContent}
           onChange={(e) => setCommentContent(e.target.value)}
           required
-          className="outline-none"
+          className="outline-none w-full"
         />
-        {user && post.userId === user.userId && deleteMode && (
-          <div
-            className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[#222222] p-6 rounded shadow-lg w-[90%] max-w-md text-center z-100`}
-          >
-            <div className="text-2xl font-bold">Delete Post?</div>
-            <div className="my-5">
-              Once you delete this post, it can’t be restored.
-            </div>
-            <div className="my-5 flex justify-end">
-              <div
-                onClick={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  deletePost(
-                    { postId: post.postId },
-                    {
-                      onSuccess: () => {
-                        router.invalidate();
-                        setDeleteMode(false);
-                        setEditContent(
-                          "[This post has been deleted by the user]"
-                        );
-                      },
-                    }
-                  );
-                }}
-                className="p-2 mr-1 bg-red-500 rounded text-white bold secondary-font font-bold cursor-pointer"
-              >
-                DELETE
-              </div>
-              <div
-                onClick={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  setDeleteMode(false);
-                }}
-                className="p-2 ml-1 bg-[#5c5c5c] rounded bold secondary-font font-bold cursor-pointer"
-              >
-                CANCEL
-              </div>
-            </div>
-          </div>
-        )}
-        {user && post.userId === user.userId && deleteMode && (
-          <div className="fixed inset-0 bg-black opacity-50 z-60"></div>
-        )}
+
         {commentMode && (
           <div className="flex justify-end">
             <div
@@ -303,12 +258,58 @@ function PostComponent() {
             >
               Cancel
             </div>
-            <button className="mx-2 px-2 py-1 rounded-full bg-red-500">
+            <button className="mx-2 px-2 py-1 rounded-full bg-red-500 cursor-pointer">
               Comment
             </button>
           </div>
         )}
       </form>
+      {user && post.userId === user.userId && deleteMode && (
+        <div
+          className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[#222222] p-6 rounded shadow-lg w-[90%] max-w-md text-center z-100`}
+        >
+          <div className="text-2xl font-bold">Delete Post?</div>
+          <div className="my-5">
+            Once you delete this post, it can’t be restored.
+          </div>
+          <div className="my-5 flex justify-end">
+            <div
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                deletePost(
+                  { postId: post.postId },
+                  {
+                    onSuccess: () => {
+                      router.invalidate();
+                      setDeleteMode(false);
+                      setEditContent(
+                        "[This post has been deleted by the user]"
+                      );
+                    },
+                  }
+                );
+              }}
+              className="p-2 mr-1 bg-red-500 rounded text-white bold secondary-font font-bold cursor-pointer"
+            >
+              DELETE
+            </div>
+            <div
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                setDeleteMode(false);
+              }}
+              className="p-2 ml-1 bg-[#5c5c5c] rounded bold secondary-font font-bold cursor-pointer"
+            >
+              CANCEL
+            </div>
+          </div>
+        </div>
+      )}
+      {user && post.userId === user.userId && deleteMode && (
+        <div className="fixed inset-0 bg-black opacity-50 z-60"></div>
+      )}
       {commentsError ? (
         <div></div>
       ) : commentsPending ? (

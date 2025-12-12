@@ -85,12 +85,12 @@ export function CommentComponent(props: { comment: CommentNode; post: Post }) {
       {editCommentModePointer === props.comment.commentId ? (
         <form
           onSubmit={handleEditComment}
-          className={`pl-5 py-2 my-5 ${replyMode ? "rounded-2xl" : "rounded-full"} border border-[#5c5c5c] w-full hover:bg-[#383838] hover:border-[#818181] transition-all ease-in-out duration-300`}
+          className={`pl-5 py-2 my-5 rounded-2xl border border-[#5c5c5c] w-full hover:bg-[#383838] hover:border-[#818181] transition-all ease-in-out duration-300`}
         >
           <input
             type="text"
             placeholder="Add your reply"
-            className="outline-none"
+            className="outline-none w-full"
             value={commentContent}
             onChange={(e) => setCommentContent(e.target.value)}
             required
@@ -105,7 +105,7 @@ export function CommentComponent(props: { comment: CommentNode; post: Post }) {
             >
               Cancel
             </div>
-            <button className="mx-2 px-2 py-1 rounded-full bg-red-500">
+            <button className="mx-2 px-2 py-1 rounded-full bg-red-500 cursor-pointer">
               Save Edits
             </button>
           </div>
@@ -158,7 +158,7 @@ export function CommentComponent(props: { comment: CommentNode; post: Post }) {
           <input
             type="text"
             placeholder="Add your reply"
-            className="outline-none"
+            className="outline-none w-full"
             value={commentContent}
             onChange={(e) => setCommentContent(e.target.value)}
             required
@@ -173,7 +173,7 @@ export function CommentComponent(props: { comment: CommentNode; post: Post }) {
             >
               Cancel
             </div>
-            <button className="mx-2 px-2 py-1 rounded-full bg-red-500">
+            <button className="mx-2 px-2 py-1 rounded-full bg-red-500 cursor-pointer">
               Comment
             </button>
           </div>
