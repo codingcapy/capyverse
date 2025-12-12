@@ -163,7 +163,7 @@ async function updatePost(args: UpdatePostArgs) {
   return result;
 }
 
-export const useUpdatePostStatusMutation = (
+export const useUpdatePostMutation = (
   onError?: (message: string) => void
 ) => {
   const queryClient = useQueryClient();

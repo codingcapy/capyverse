@@ -8,7 +8,7 @@ import z from "zod";
 import {
   getPostByIdQueryOptions,
   useDeletePostMutation,
-  useUpdatePostStatusMutation,
+  useUpdatePostMutation,
 } from "../../lib/api/posts";
 import { useQuery } from "@tanstack/react-query";
 import useAuthStore from "../../store/AuthStore";
@@ -91,7 +91,7 @@ function PostComponent() {
   const [deleteMode, setDeleteMode] = useState(false);
   const { mutate: deletePost } = useDeletePostMutation();
   const { editPostModePointer, setEditPostModePointer } = usePostStore();
-  const { mutate: updatePost } = useUpdatePostStatusMutation();
+  const { mutate: updatePost } = useUpdatePostMutation();
   const [editContent, setEditContent] = useState(post.content);
   const router = useRouter();
 
@@ -138,7 +138,12 @@ function PostComponent() {
     const userId = user.userId;
     createComment(
       { userId, postId: post.postId, content: commentContent },
-      { onSuccess: () => setCommentContent("") }
+      {
+        onSuccess: () => {
+          setCommentContent("");
+          setCommentMode(false);
+        },
+      }
     );
   }
 

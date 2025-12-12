@@ -4,7 +4,10 @@ import { displayDate } from "../lib/utils";
 import { CommentVotesComponent } from "./CommentVotesComponent";
 import { useState } from "react";
 import useAuthStore from "../store/AuthStore";
-import { useCreateCommentMutation } from "../lib/api/comments";
+import {
+  useCreateCommentMutation,
+  useDeleteCommentMutation,
+} from "../lib/api/comments";
 import { useNavigate } from "@tanstack/react-router";
 import { CommentNode, SerializedComment } from "../routes/posts/$postId";
 import { FaEllipsis } from "react-icons/fa6";
@@ -18,6 +21,8 @@ export function CommentComponent(props: { comment: CommentNode; post: Post }) {
   const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
   const [deleteMode, setDeleteMode] = useState(false);
+  const { mutate: deleteComment, isPending: deleteCommentPending } =
+    useDeleteCommentMutation();
 
   function handleCreateComment(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -31,7 +36,12 @@ export function CommentComponent(props: { comment: CommentNode; post: Post }) {
         level: props.comment.level + 1,
         content: commentContent,
       },
-      { onSuccess: () => setCommentContent("") }
+      {
+        onSuccess: () => {
+          setCommentContent("");
+          setReplyMode(false);
+        },
+      }
     );
   }
 
@@ -130,6 +140,8 @@ export function CommentComponent(props: { comment: CommentNode; post: Post }) {
               onClick={(e) => {
                 e.stopPropagation();
                 e.preventDefault();
+                deleteComment({ commentId: props.comment.commentId });
+                setDeleteMode(false);
               }}
               className="p-2 mr-1 bg-red-500 rounded text-white bold secondary-font font-bold cursor-pointer"
             >
