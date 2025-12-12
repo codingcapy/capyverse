@@ -43,7 +43,7 @@ export function PostThumbnail(props: { post: PostWithUser }) {
                     : defaultProfile
                 }
                 alt=""
-                className="w-[25px] h-[25px] rounded-full"
+                className="w-6 h-6 rounded-full"
               />
               <div className="font-bold ml-2">{props.post.username}</div>
               <div className="px-1">•</div>

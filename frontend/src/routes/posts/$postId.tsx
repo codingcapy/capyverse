@@ -24,6 +24,7 @@ import { CommentComponent } from "../../components/CommentComponent";
 import { FaEllipsis } from "react-icons/fa6";
 import { Menu } from "../../components/Menu";
 import usePostStore from "../../store/PostStore";
+import defaultProfile from "/capypaul01.jpg";
 
 export type SerializedComment = {
   createdAt: Date;
@@ -97,6 +98,9 @@ function PostComponent() {
     useUpdatePostMutation();
   const [editContent, setEditContent] = useState(post.content);
   const router = useRouter();
+  const { data: poster, isLoading: posterLoading } = useQuery(
+    getUserByIdQueryOptions(post.userId)
+  );
 
   function buildCommentTree(
     comments: SerializedComment[],
@@ -154,14 +158,27 @@ function PostComponent() {
     <div className="pt-[70px] mx-auto w-full lg:w-[50%]">
       <div className="relative flex justify-between">
         <div className="flex text-[#bdbdbd] text-sm">
+          <img
+            src={
+              !posterLoading
+                ? poster
+                  ? poster.profilePic
+                    ? poster.profilePic
+                    : defaultProfile
+                  : defaultProfile
+                : defaultProfile
+            }
+            alt=""
+            className="w-8 h-8 rounded-full"
+          />
           {authorLoading ? (
-            <div>Loading...</div>
+            <div className="ml-2">Loading...</div>
           ) : authorError ? (
             <div>Error loading author</div>
           ) : author ? (
-            <div className="font-bold">{author.username}</div>
+            <div className="font-bold ml-2">{author.username}</div>
           ) : (
-            <div>unknown author</div>
+            <div className="ml-2">unknown author</div>
           )}
           <div className="px-1">•</div>
           <div>{displayDate(post.createdAt)}</div>
