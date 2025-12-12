@@ -6,6 +6,9 @@ import { PostWithUser, useDeletePostMutation } from "../lib/api/posts";
 import { useState } from "react";
 import useAuthStore from "../store/AuthStore";
 import { Menu } from "./Menu";
+import defaultProfile from "/capypaul01.jpg";
+import { useQuery } from "@tanstack/react-query";
+import { getUserByIdQueryOptions } from "../lib/api/users";
 
 export function PostThumbnail(props: { post: PostWithUser }) {
   const [showMenu, setShowMenu] = useState(false);
@@ -13,6 +16,9 @@ export function PostThumbnail(props: { post: PostWithUser }) {
   const { mutate: deletePost, isPending: deletePostPending } =
     useDeletePostMutation();
   const { user } = useAuthStore();
+  const { data: poster, isLoading: posterLoading } = useQuery(
+    getUserByIdQueryOptions(props.post.userId)
+  );
 
   return (
     <div className="mx-auto w-full lg:w-[50%] 2xl:w-[750px] border-t border-[#636363]">
@@ -26,7 +32,20 @@ export function PostThumbnail(props: { post: PostWithUser }) {
         <div className="relative my-1 rounded p-5 hover:bg-[#333333] transition-all ease-in-out duration-300">
           <div className="flex justify-between">
             <div className="flex text-[#bdbdbd] text-sm">
-              <div className="font-bold">{props.post.username}</div>
+              <img
+                src={
+                  !posterLoading
+                    ? poster
+                      ? poster.profilePic
+                        ? poster.profilePic
+                        : defaultProfile
+                      : defaultProfile
+                    : defaultProfile
+                }
+                alt=""
+                className="w-[25px] h-[25px] rounded-full"
+              />
+              <div className="font-bold ml-2">{props.post.username}</div>
               <div className="px-1">•</div>
               <div>{displayDate(props.post.createdAt)}</div>
             </div>

@@ -151,7 +151,7 @@ function PostComponent() {
   }
 
   return (
-    <div className="p-20 mx-auto w-full lg:w-[50%]">
+    <div className="pt-[70px] mx-auto w-full lg:w-[50%]">
       <div className="relative flex justify-between">
         <div className="flex text-[#bdbdbd] text-sm">
           {authorLoading ? (
