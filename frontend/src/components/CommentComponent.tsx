@@ -175,8 +175,11 @@ export function CommentComponent(props: { comment: CommentNode; post: Post }) {
             >
               Cancel
             </div>
-            <button className="mx-2 px-2 py-1 rounded-full bg-red-500 cursor-pointer">
-              Comment
+            <button
+              disabled={createCommentPending}
+              className="mx-2 px-2 py-1 rounded-full bg-red-500 cursor-pointer"
+            >
+              {createCommentPending ? "Creating..." : "Comment"}
             </button>
           </div>
         </form>
@@ -194,12 +197,13 @@ export function CommentComponent(props: { comment: CommentNode; post: Post }) {
               onClick={(e) => {
                 e.stopPropagation();
                 e.preventDefault();
+                if (deleteCommentPending) return;
                 deleteComment({ commentId: props.comment.commentId });
                 setDeleteMode(false);
               }}
               className="p-2 mr-1 bg-red-500 rounded text-white bold secondary-font font-bold cursor-pointer"
             >
-              DELETE
+              {deleteCommentPending ? "Deleting..." : "DELETE"}
             </div>
             <div
               onClick={(e) => {
