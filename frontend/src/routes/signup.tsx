@@ -18,6 +18,7 @@ function SignupComponent() {
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (createUserPending) return;
     const username = (e.target as HTMLFormElement).username.value;
     const email = (e.target as HTMLFormElement).email.value;
     const password = (e.target as HTMLFormElement).password.value;
@@ -67,8 +68,11 @@ function SignupComponent() {
           className="p-2 border border-[#c4c4c4] rounded bg-[#414141] my-2"
           placeholder="password"
         />
-        <button className="bg-cyan-500 px-5 py-2 rounded-full font-bold my-5">
-          SIGN UP
+        <button
+          disabled={createUserPending}
+          className="bg-cyan-500 px-5 py-2 rounded-full font-bold my-5"
+        >
+          {createUserPending ? "Signing up..." : "SIGN UP"}
         </button>
       </form>
       <div>

@@ -107,12 +107,13 @@ export function PostThumbnail(props: { post: PostWithUser }) {
                 onClick={(e) => {
                   e.stopPropagation();
                   e.preventDefault();
+                  if (deletePostPending) return;
                   deletePost({ postId: props.post.postId });
                   setDeleteMode(false);
                 }}
                 className="p-2 mr-1 bg-red-500 rounded text-white bold secondary-font font-bold cursor-pointer"
               >
-                DELETE
+                {deletePostPending ? "Deleting..." : "DELETE"}
               </div>
               <div
                 onClick={(e) => {

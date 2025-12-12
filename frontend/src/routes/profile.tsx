@@ -13,10 +13,12 @@ export const Route = createFileRoute("/profile")({
 function ProfilePage() {
   const { user } = useAuthStore();
   const [logoHovered, setLogoHovered] = useState(false);
-  const { mutate: updateProfilePic } = useUpdateProfilePicMutation();
+  const { mutate: updateProfilePic, isPending: updateProfilePicPending } =
+    useUpdateProfilePicMutation();
   const [profileMode, setProfileMode] = useState<ProfileMode>("Overview");
 
   async function handleImageUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    if (updateProfilePicPending) return;
     const file = event.target.files?.[0];
     if (file) {
       if (file.size > 1024 * 1024) {

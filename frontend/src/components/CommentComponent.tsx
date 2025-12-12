@@ -107,8 +107,11 @@ export function CommentComponent(props: { comment: CommentNode; post: Post }) {
             >
               Cancel
             </div>
-            <button className="mx-2 px-2 py-1 rounded-full bg-red-500 cursor-pointer">
-              Save Edits
+            <button
+              disabled={updateCommentPending}
+              className="mx-2 px-2 py-1 rounded-full bg-red-500 cursor-pointer"
+            >
+              {updateCommentPending ? "Saving..." : "Save Edits"}
             </button>
           </div>
         </form>
@@ -122,6 +125,7 @@ export function CommentComponent(props: { comment: CommentNode; post: Post }) {
         <div
           onClick={() => {
             if (!user) navigate({ to: "/login" });
+            setCommentContent("");
             setReplyMode(true);
           }}
           className="flex ml-2 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300"

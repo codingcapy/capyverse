@@ -33,6 +33,7 @@ export function VotesComponent(props: { post: Post }) {
   ) {
     e.preventDefault();
     e.stopPropagation();
+    if (createVotePending || updateVotePending) return;
     const vote =
       votes && votes.find((vote) => user && vote.userId === user.userId);
     if (user && vote) {

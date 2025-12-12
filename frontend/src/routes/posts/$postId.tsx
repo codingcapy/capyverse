@@ -141,6 +141,7 @@ function PostComponent() {
 
   function handleCreateComment(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (createCommentPending) return;
     if (!user) return navigate({ to: "/login" });
     const userId = user.userId;
     createComment(
@@ -227,6 +228,7 @@ function PostComponent() {
             </div>
             <button
               onClick={() => {
+                if (updatePostPending) return;
                 updatePost(
                   {
                     postId: post.postId,
@@ -242,7 +244,7 @@ function PostComponent() {
               }}
               className="mx-2 px-2 py-1 rounded-full bg-cyan-700"
             >
-              Save
+              {updatePostPending ? "Saving..." : "Save"}
             </button>
           </div>
         </div>
@@ -280,8 +282,11 @@ function PostComponent() {
             >
               Cancel
             </div>
-            <button className="mx-2 px-2 py-1 rounded-full bg-red-500 cursor-pointer">
-              Comment
+            <button
+              disabled={createCommentPending}
+              className="mx-2 px-2 py-1 rounded-full bg-red-500 cursor-pointer"
+            >
+              {createCommentPending ? "Submitting..." : "Comment"}
             </button>
           </div>
         )}
@@ -299,6 +304,7 @@ function PostComponent() {
               onClick={(e) => {
                 e.stopPropagation();
                 e.preventDefault();
+                if (deletePostPending) return;
                 deletePost(
                   { postId: post.postId },
                   {
@@ -314,7 +320,7 @@ function PostComponent() {
               }}
               className="p-2 mr-1 bg-red-500 rounded text-white bold secondary-font font-bold cursor-pointer"
             >
-              DELETE
+              {deletePostPending ? "Deleting..." : "DELETE"}
             </div>
             <div
               onClick={(e) => {
