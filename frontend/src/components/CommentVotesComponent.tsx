@@ -16,11 +16,13 @@ import { Comment } from "../../../schemas/comments";
 export function CommentVotesComponent(props: { post: Post; comment: Comment }) {
   const {
     data: votes,
-    isPending: votesPending,
+    isLoading: votesLoading,
     isError: votesError,
   } = useQuery(getVotesByCommentIdQueryOptions(props.comment.commentId));
-  const { mutate: createVote } = useCreateVoteMutation();
-  const { mutate: updateVote } = useUpdateVoteMutation();
+  const { mutate: createVote, isPending: createVotePending } =
+    useCreateVoteMutation();
+  const { mutate: updateVote, isPending: updateVotePending } =
+    useUpdateVoteMutation();
   const { user } = useAuthStore();
   const navigate = useNavigate();
 
@@ -52,9 +54,9 @@ export function CommentVotesComponent(props: { post: Post; comment: Comment }) {
     <div>
       {votesError ? (
         <div>Error fetching votes</div>
-      ) : votesPending ? (
+      ) : votesLoading ? (
         <div>Loading...</div>
-      ) : (
+      ) : votes ? (
         <div className="flex w-fit rounded-full py-1 justify-center">
           {votes.filter(
             (vote) => user && vote.userId === user.userId && vote.value === 1
@@ -126,6 +128,8 @@ export function CommentVotesComponent(props: { post: Post; comment: Comment }) {
             </div>
           )}
         </div>
+      ) : (
+        <div>An unexpected error has occured</div>
       )}
     </div>
   );

@@ -10,7 +10,8 @@ import { Menu } from "./Menu";
 export function PostThumbnail(props: { post: PostWithUser }) {
   const [showMenu, setShowMenu] = useState(false);
   const [deleteMode, setDeleteMode] = useState(false);
-  const { mutate: deletePost } = useDeletePostMutation();
+  const { mutate: deletePost, isPending: deletePostPending } =
+    useDeletePostMutation();
   const { user } = useAuthStore();
 
   return (

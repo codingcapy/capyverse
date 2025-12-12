@@ -72,16 +72,17 @@ function PostComponent() {
   const { user } = useAuthStore();
   const {
     data: comments,
-    isPending: commentsPending,
+    isLoading: commentsLoading,
     error: commentsError,
   } = useQuery(getCommentsByPostIdQueryOptions(post.postId));
   const {
     data: author,
-    isPending: authorPending,
+    isLoading: authorLoading,
     error: authorError,
   } = useQuery(getUserByIdQueryOptions(post.userId));
   const [commentContent, setCommentContent] = useState("");
-  const { mutate: createComment } = useCreateCommentMutation();
+  const { mutate: createComment, isPending: createCommentPending } =
+    useCreateCommentMutation();
   const navigate = useNavigate();
   const [commentMode, setCommentMode] = useState(false);
   const commentTree = buildCommentTree((comments && comments) || [], {
@@ -89,9 +90,11 @@ function PostComponent() {
   });
   const [showMenu, setShowMenu] = useState(false);
   const [deleteMode, setDeleteMode] = useState(false);
-  const { mutate: deletePost } = useDeletePostMutation();
+  const { mutate: deletePost, isPending: deletePostPending } =
+    useDeletePostMutation();
   const { editPostModePointer, setEditPostModePointer } = usePostStore();
-  const { mutate: updatePost } = useUpdatePostMutation();
+  const { mutate: updatePost, isPending: updatePostPending } =
+    useUpdatePostMutation();
   const [editContent, setEditContent] = useState(post.content);
   const router = useRouter();
 
@@ -151,12 +154,14 @@ function PostComponent() {
     <div className="p-20 mx-auto w-full lg:w-[50%]">
       <div className="relative flex justify-between">
         <div className="flex text-[#bdbdbd] text-sm">
-          {authorPending ? (
+          {authorLoading ? (
             <div>Loading...</div>
           ) : authorError ? (
             <div>Error loading author</div>
-          ) : (
+          ) : author ? (
             <div className="font-bold">{author.username}</div>
+          ) : (
+            <div>unknown author</div>
           )}
           <div className="px-1">•</div>
           <div>{displayDate(post.createdAt)}</div>
@@ -311,9 +316,9 @@ function PostComponent() {
         <div className="fixed inset-0 bg-black opacity-50 z-60"></div>
       )}
       {commentsError ? (
-        <div></div>
-      ) : commentsPending ? (
-        <div></div>
+        <div>Error loading comments</div>
+      ) : commentsLoading ? (
+        <div>Loading...</div>
       ) : (
         commentTree.map((comment) => (
           <CommentComponent

@@ -14,7 +14,7 @@ export const Route = createFileRoute("/")({
 function IndexComponent() {
   const {
     data: posts,
-    isPending: postsPending,
+    isLoading: postsLoading,
     isError: postsError,
   } = useQuery(getPostsQueryOptions());
   const [showSortMenu, setShowSortMenu] = useState(false);
@@ -78,10 +78,12 @@ function IndexComponent() {
         </div>
         {postsError ? (
           <div className="mx-auto w-full lg:w-[50%]">Error fetching posts</div>
-        ) : postsPending ? (
+        ) : postsLoading ? (
           <div className="mx-auto w-full lg:w-[50%]">Loading...</div>
+        ) : posts ? (
+          posts.map((post) => <PostThumbnail post={post} key={post.postId} />)
         ) : (
-          posts?.map((post) => <PostThumbnail post={post} key={post.postId} />)
+          <div>An unexpected error has occured</div>
         )}
       </div>
     </div>

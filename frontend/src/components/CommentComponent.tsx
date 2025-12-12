@@ -19,14 +19,16 @@ export function CommentComponent(props: { comment: CommentNode; post: Post }) {
   const [replyMode, setReplyMode] = useState(false);
   const { user } = useAuthStore();
   const [commentContent, setCommentContent] = useState("");
-  const { mutate: createComment } = useCreateCommentMutation();
+  const { mutate: createComment, isPending: createCommentPending } =
+    useCreateCommentMutation();
   const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
   const [deleteMode, setDeleteMode] = useState(false);
   const { mutate: deleteComment, isPending: deleteCommentPending } =
     useDeleteCommentMutation();
   const { editCommentModePointer, setEditCommentModePointer } = usePostStore();
-  const { mutate: updateComment } = useUpdateCommentMutation();
+  const { mutate: updateComment, isPending: updateCommentPending } =
+    useUpdateCommentMutation();
 
   function handleCreateComment(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();

@@ -8,7 +8,8 @@ export const Route = createFileRoute("/signup")({
 });
 
 function SignupComponent() {
-  const { mutate: createUser } = useCreateUserMutation();
+  const { mutate: createUser, isPending: createUserPending } =
+    useCreateUserMutation();
   const [notification, setNotification] = useState("");
   const { loginService, authLoading, user } = useAuthStore((state) => state);
   const navigate = useNavigate();

@@ -16,11 +16,13 @@ import { PiArrowFatDownFill } from "react-icons/pi";
 export function VotesComponent(props: { post: Post }) {
   const {
     data: votes,
-    isPending: votesPending,
+    isLoading: votesLoading,
     isError: votesError,
   } = useQuery(getVotesByPostIdQueryOptions(props.post.postId));
-  const { mutate: createVote } = useCreateVoteMutation();
-  const { mutate: updateVote } = useUpdateVoteMutation();
+  const { mutate: createVote, isPending: createVotePending } =
+    useCreateVoteMutation();
+  const { mutate: updateVote, isPending: updateVotePending } =
+    useUpdateVoteMutation();
   const { user } = useAuthStore();
   const navigate = useNavigate();
 
@@ -50,9 +52,9 @@ export function VotesComponent(props: { post: Post }) {
     <div>
       {votesError ? (
         <div>Error fetching votes</div>
-      ) : votesPending ? (
+      ) : votesLoading ? (
         <div>Loading...</div>
-      ) : (
+      ) : votes ? (
         <div className="flex bg-[#3e3e3e] w-fit rounded-full py-1 justify-center">
           {votes.filter(
             (vote) =>
@@ -133,6 +135,8 @@ export function VotesComponent(props: { post: Post }) {
             </div>
           )}
         </div>
+      ) : (
+        <div>An unexpected error has occured</div>
       )}
     </div>
   );
