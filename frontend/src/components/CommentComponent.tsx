@@ -77,16 +77,7 @@ export function CommentComponent(props: { comment: CommentNode; post: Post }) {
   }
 
   return (
-    <div
-      key={props.comment.commentId}
-      className={`relative my-3 flex`}
-      style={{
-        marginLeft:
-          window.innerWidth > 760
-            ? props.comment.level * 25
-            : props.comment.level * 10,
-      }}
-    >
+    <div key={props.comment.commentId} className={`relative my-3 flex`}>
       <img
         src={
           !commenterLoading || !commenterError
