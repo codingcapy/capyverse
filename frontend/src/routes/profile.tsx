@@ -139,20 +139,41 @@ function ProfilePage() {
         </Link>
       </div>
       <div className="my-10">
-        {postsError ? (
-          <div>Error loading posts</div>
-        ) : postsLoading ? (
-          <div>Loading...</div>
-        ) : posts ? (
+        {(profileMode === "Overview" || profileMode === "Posts") &&
+        postsError ? (
+          <div className="mx-auto w-full md:w-[50%] 2xl:w-[750px] border-t border-[#636363]">
+            Error loading posts
+          </div>
+        ) : (profileMode === "Overview" || profileMode === "Posts") &&
+          postsLoading ? (
+          <div className="mx-auto w-full md:w-[50%] 2xl:w-[750px] border-t border-[#636363]">
+            Loading...
+          </div>
+        ) : (profileMode === "Overview" || profileMode === "Posts") && posts ? (
           posts.map((post) => <PostThumbnail post={post} key={post.postId} />)
         ) : (
-          <div>No posts yet!</div>
+          (profileMode === "Overview" ||
+            profileMode === "Posts" ||
+            profileMode === "Saved") && (
+            <div className="mx-auto w-full md:w-[50%] 2xl:w-[750px] border-t border-[#636363]">
+              <div className="relative my-1 rounded py-2 px-4">
+                No posts yet!
+              </div>
+            </div>
+          )
         )}
-        {commentsError ? (
-          <div>Error loading comments</div>
-        ) : commentsLoading ? (
-          <div>Loading...</div>
-        ) : comments ? (
+        {(profileMode === "Overview" || profileMode === "Comments") &&
+        commentsError ? (
+          <div className="mx-auto w-full md:w-[50%] 2xl:w-[750px] border-t border-[#636363]">
+            Error loading comments
+          </div>
+        ) : (profileMode === "Overview" || profileMode === "Comments") &&
+          commentsLoading ? (
+          <div className="mx-auto w-full md:w-[50%] 2xl:w-[750px] border-t border-[#636363]">
+            Loading...
+          </div>
+        ) : (profileMode === "Overview" || profileMode === "Comments") &&
+          comments ? (
           comments.map((comment) => (
             <div
               key={comment.commentId}
@@ -203,7 +224,15 @@ function ProfilePage() {
             </div>
           ))
         ) : (
-          <div>No comments yet!</div>
+          (profileMode === "Overview" ||
+            profileMode === "Comments" ||
+            profileMode === "Saved") && (
+            <div className="mx-auto w-full md:w-[50%] 2xl:w-[750px] border-t border-[#636363]">
+              <div className="relative my-1 rounded py-2 px-4">
+                No comments yet!
+              </div>
+            </div>
+          )
         )}
       </div>
     </div>
