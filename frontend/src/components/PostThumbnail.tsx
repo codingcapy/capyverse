@@ -34,7 +34,7 @@ export function PostThumbnail(props: { post: PostWithUser }) {
   } = useQuery(getImagesByPostIdQueryOptions(props.post.postId));
 
   return (
-    <div className="mx-auto w-full lg:w-[50%] 2xl:w-[750px] border-t border-[#636363]">
+    <div className="mx-auto w-full md:w-[50%] 2xl:w-[750px] border-t border-[#636363]">
       <Link
         to="/posts/$postId"
         params={{

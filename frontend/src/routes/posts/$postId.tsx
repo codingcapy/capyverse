@@ -166,7 +166,7 @@ function PostComponent() {
   }
 
   return (
-    <div className="pt-[70px] mx-auto w-full lg:w-[50%]">
+    <div className="pt-[88px] mx-auto w-full lg:w-[50%] 2xl:w-[40%]">
       <div className="relative flex justify-between">
         <div className="flex text-[#bdbdbd] text-sm">
           <img
@@ -214,7 +214,7 @@ function PostComponent() {
           />
         )}
       </div>
-      <div className="text-4xl font-bold"> {post.title}</div>
+      <div className="text-3xl font-semibold"> {post.title}</div>
       <div>
         {imagesError ? (
           <div className="w-full h-auto md:h-[400px] xl:h-[500px] border border-[#424242] bg-[#202020] rounded-xl my-2 flex items-center justify-center">
