@@ -11,6 +11,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getUserByIdQueryOptions } from "../lib/api/users";
 import { getCommentsByPostIdQueryOptions } from "../lib/api/comments";
 import { IoChatbubbleOutline } from "react-icons/io5";
+import { getImagesByPostIdQueryOptions } from "../lib/api/images";
 
 export function PostThumbnail(props: { post: PostWithUser }) {
   const [showMenu, setShowMenu] = useState(false);
@@ -26,6 +27,11 @@ export function PostThumbnail(props: { post: PostWithUser }) {
     isLoading: commentsLoading,
     error: commentsError,
   } = useQuery(getCommentsByPostIdQueryOptions(props.post.postId));
+  const {
+    data: images,
+    isLoading: imagesLoading,
+    error: imagesError,
+  } = useQuery(getImagesByPostIdQueryOptions(props.post.postId));
 
   return (
     <div className="mx-auto w-full lg:w-[50%] 2xl:w-[750px] border-t border-[#636363]">
@@ -68,6 +74,29 @@ export function PostThumbnail(props: { post: PostWithUser }) {
             </div>
           </div>
           <div className="text-2xl font-bold">{props.post.title}</div>
+          {imagesLoading ? (
+            <div>Loading...</div>
+          ) : imagesError ? (
+            <div>Error loading images</div>
+          ) : images ? (
+            images.map((image, idx) => {
+              if (idx < 1)
+                return (
+                  <div
+                    key={image.imageId}
+                    className="w-full h-auto md:h-[400px] xl:h-[500px] border border-[#424242] bg-[#202020] rounded-xl my-2"
+                  >
+                    <img
+                      src={`https://${image.imageUrl}`}
+                      alt=""
+                      className="h-full mx-auto"
+                    />
+                  </div>
+                );
+            })
+          ) : (
+            <div>An unexpected error has occured</div>
+          )}
           <div className="my-2">{props.post.content}</div>
           <div className="flex">
             <VotesComponent post={props.post} />

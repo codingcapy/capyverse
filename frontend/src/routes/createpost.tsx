@@ -25,22 +25,21 @@ function CreatePostPage() {
   const [notification, setNotification] = useState("");
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const { mutate: uploadImage, isPending: uploadImagePending } =
     useUploadImageMutation();
-  const { data: imagesByUser, isLoading: imagesByUserLoading } = useQuery(
-    getImagesByUserIdQueryOptions((user && user.userId) || "")
-  );
+  const {
+    data: imagesByUser,
+    isLoading: imagesByUserLoading,
+    error: imagesByUserError,
+  } = useQuery(getImagesByUserIdQueryOptions((user && user.userId) || ""));
   const [imageUploadNotification, setImageUploadNotification] = useState("");
   const { mutate: deleteImage } = useDeleteImageMutation();
   const [activeImageIndex, setActiveImageIndex] = useState(0);
-  const carouselImages =
-    imagesByUser?.filter((image) => image.posted === false) ?? [];
+  const activeImage = imagesByUser && imagesByUser[activeImageIndex];
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-
     if (!user) return "Error: no logged in user";
     const titleInput = (e.target as HTMLFormElement).titleinput.value;
     const content = (e.target as HTMLFormElement).content.value;
@@ -52,15 +51,6 @@ function CreatePostPage() {
       }
     );
     if (createPostError) setNotification(createPostError.toString());
-  }
-
-  function handleImage(file: File) {
-    if (imagesByUser && imagesByUser.length > 4)
-      return setImageUploadNotification("Exceeds maximum image upload of 5");
-    if (!file.type.startsWith("image/")) return;
-    setImageFile(file);
-    const previewUrl = URL.createObjectURL(file);
-    setImagePreview(previewUrl);
   }
 
   function handleImageUpload(event: React.ChangeEvent<HTMLInputElement>) {
@@ -80,12 +70,6 @@ function CreatePostPage() {
       if (imagePreview) URL.revokeObjectURL(imagePreview);
     };
   }, [imagePreview]);
-
-  useEffect(() => {
-    if (activeImageIndex >= carouselImages.length) {
-      setActiveImageIndex(Math.max(carouselImages.length - 1, 0));
-    }
-  }, [carouselImages.length, activeImageIndex]);
 
   return (
     <div className="pt-20 w-[80%] lg:w-[50%] 2xl:w-[30%] mx-auto">
@@ -134,69 +118,74 @@ function CreatePostPage() {
             accept="image/png, image/jpeg, image/heic, image/webp"
           />
           <div className="relative w-full h-full">
-            {carouselImages.length > 0 ? (
-              <div className="relative w-full h-full flex items-center justify-center">
-                {/* Left Arrow */}
-                {carouselImages.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setActiveImageIndex((i) =>
-                        i === 0 ? carouselImages.length - 1 : i - 1
-                      )
-                    }
-                    className="absolute left-2 z-10 bg-zinc-800/80 hover:bg-zinc-700 p-2 rounded-full"
-                  >
-                    ‹
-                  </button>
-                )}
-
-                {/* Image */}
-                <div className="relative">
-                  <FaTrashCan
-                    size={20}
-                    className="text-red-400 absolute top-2 right-2 bg-zinc-700 p-[4px] rounded z-10 cursor-pointer"
-                    onClick={() =>
-                      deleteImage({
-                        imageId: carouselImages[activeImageIndex].imageId,
-                      })
-                    }
-                  />
-                  <img
-                    src={`https://${carouselImages[activeImageIndex].imageUrl}`}
-                    className="max-h-[140px] mx-auto rounded-lg bg-[#3d3d3d] object-contain"
-                  />
-                </div>
-
-                {/* Right Arrow */}
-                {carouselImages.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setActiveImageIndex((i) =>
-                        i === carouselImages.length - 1 ? 0 : i + 1
-                      )
-                    }
-                    className="absolute right-2 z-10 bg-zinc-800/80 hover:bg-zinc-700 p-2 rounded-full"
-                  >
-                    ›
-                  </button>
-                )}
-
-                {/* Dots */}
-                <div className="absolute bottom-2 flex gap-1">
-                  {carouselImages.map((_, i) => (
+            {imagesByUserError ? (
+              <div>Error loading images</div>
+            ) : imagesByUserLoading ? (
+              <div>Loading...</div>
+            ) : imagesByUser ? (
+              imagesByUser.length > 0 ? (
+                <div className="relative w-full h-full flex items-center justify-center">
+                  {imagesByUser.length > 1 && (
                     <button
-                      key={i}
                       type="button"
-                      onClick={() => setActiveImageIndex(i)}
-                      className={`w-2 h-2 rounded-full ${
-                        i === activeImageIndex ? "bg-cyan-400" : "bg-zinc-500"
-                      }`}
-                    />
-                  ))}
+                      onClick={() =>
+                        setActiveImageIndex((i) =>
+                          i === 0 ? imagesByUser.length - 1 : i - 1
+                        )
+                      }
+                      className="absolute left-2 z-10 bg-zinc-800/80 hover:bg-zinc-700 p-2 rounded-full"
+                    >
+                      ‹
+                    </button>
+                  )}
+                  {activeImage && (
+                    <div className="relative">
+                      <FaTrashCan
+                        size={20}
+                        className="text-red-400 absolute top-2 right-2 bg-zinc-700 p-[4px] rounded z-10 cursor-pointer"
+                        onClick={() =>
+                          deleteImage({
+                            imageId: imagesByUser[activeImageIndex].imageId,
+                          })
+                        }
+                      />
+                      <img
+                        src={`https://${imagesByUser[activeImageIndex].imageUrl}`}
+                        className="max-h-[140px] mx-auto rounded-lg bg-[#3d3d3d] object-contain"
+                      />
+                    </div>
+                  )}
+                  {imagesByUser.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setActiveImageIndex((i) =>
+                          i === imagesByUser.length - 1 ? 0 : i + 1
+                        )
+                      }
+                      className="absolute right-2 z-10 bg-zinc-800/80 hover:bg-zinc-700 p-2 rounded-full"
+                    >
+                      ›
+                    </button>
+                  )}
+                  <div className="absolute bottom-2 flex gap-1">
+                    {imagesByUser.map((_, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => setActiveImageIndex(i)}
+                        className={`w-2 h-2 rounded-full ${
+                          i === activeImageIndex ? "bg-cyan-400" : "bg-zinc-500"
+                        }`}
+                      />
+                    ))}
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="text-center pt-[60px]">
+                  An unexpected error has occurred
+                </div>
+              )
             ) : (
               <div className="text-center pt-[60px]">
                 Drag and drop or upload images

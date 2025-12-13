@@ -68,7 +68,7 @@ export function useUploadImageMutation() {
   });
 }
 
-async function getImagesByPostId(postId: string) {
+async function getImagesByPostId(postId: number) {
   const res = await client.api.v0.images[":postId"].$get({
     param: { postId: postId.toString() },
   });
@@ -79,7 +79,7 @@ async function getImagesByPostId(postId: string) {
   return images.map(mapSerializedImageToSchema);
 }
 
-export const getImagesByPostIdQueryOptions = (args: string) =>
+export const getImagesByPostIdQueryOptions = (args: number) =>
   queryOptions({
     queryKey: ["images", args],
     queryFn: () => getImagesByPostId(args),
