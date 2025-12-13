@@ -226,7 +226,7 @@ function PostComponent() {
           </div>
         ) : images ? (
           images.length > 0 ? (
-            <div className="relative w-full h-full flex items-center justify-center">
+            <div className="relative w-full h-full flex items-center justify-center mt-1">
               {images.length > 1 && (
                 <button
                   type="button"
@@ -330,7 +330,7 @@ function PostComponent() {
           </div>
         </div>
       ) : (
-        <div className="my-10">
+        <div className="mb-5">
           <div>{post.content}</div>
         </div>
       )}
