@@ -84,7 +84,7 @@ export function PostThumbnail(props: { post: PostWithUser }) {
                 return (
                   <div
                     key={image.imageId}
-                    className="w-full h-auto md:h-[400px] xl:h-[500px] border border-[#424242] bg-[#202020] rounded-xl my-2 flex items-center justify-center"
+                    className="w-full h-[220px] sm:h-[300px] md:h-[400px] xl:h-[500px] border border-[#424242] bg-[#202020] rounded-xl my-2 flex items-center justify-center"
                   >
                     <img
                       src={`https://${image.imageUrl}`}

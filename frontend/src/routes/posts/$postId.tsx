@@ -26,6 +26,8 @@ import { Menu } from "../../components/Menu";
 import usePostStore from "../../store/PostStore";
 import defaultProfile from "/capypaul01.jpg";
 import { getImagesByPostIdQueryOptions } from "../../lib/api/images";
+import { PiCaretRightBold } from "react-icons/pi";
+import { PiCaretLeftBold } from "react-icons/pi";
 
 export type SerializedComment = {
   createdAt: Date;
@@ -235,11 +237,11 @@ function PostComponent() {
                   }
                   className="absolute left-2 z-10 bg-zinc-800/80 hover:bg-zinc-700 p-2 rounded-full"
                 >
-                  ‹
+                  <PiCaretLeftBold />
                 </button>
               )}
               {activeImage && (
-                <div className="w-full h-auto md:h-[400px] xl:h-[500px] border border-[#424242] bg-[#202020] rounded-xl my-2 flex items-center justify-center">
+                <div className="w-full h-[220px] sm:h-[300px] md:h-[400px] xl:h-[500px] border border-[#424242] bg-[#202020] rounded-xl my-2 flex items-center justify-center">
                   <img
                     src={`https://${images[activeImageIndex].imageUrl}`}
                     className="w-full h-full object-contain"
@@ -256,20 +258,21 @@ function PostComponent() {
                   }
                   className="absolute right-2 z-10 bg-zinc-800/80 hover:bg-zinc-700 p-2 rounded-full"
                 >
-                  ›
+                  <PiCaretRightBold />
                 </button>
               )}
               <div className="absolute bottom-2 flex gap-1">
-                {images.map((_, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => setActiveImageIndex(i)}
-                    className={`w-2 h-2 rounded-full ${
-                      i === activeImageIndex ? "bg-cyan-400" : "bg-zinc-500"
-                    }`}
-                  />
-                ))}
+                {images.length > 1 &&
+                  images.map((_, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => setActiveImageIndex(i)}
+                      className={`w-2 h-2 rounded-full ${
+                        i === activeImageIndex ? "bg-cyan-400" : "bg-zinc-500"
+                      }`}
+                    />
+                  ))}
               </div>
             </div>
           ) : (
