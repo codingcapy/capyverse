@@ -6,7 +6,7 @@ export const posts = pgTable("posts", {
   userId: varchar("user_id").notNull(),
   communityId: varchar("community_id"),
   title: varchar("title").notNull(),
-  content: varchar("content").notNull(),
+  content: varchar("content").notNull().default(""),
   status: varchar("status").default("active").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
