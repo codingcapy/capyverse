@@ -42,7 +42,7 @@ export function PostThumbnail(props: { post: PostWithUser }) {
         }}
         key={props.post.postId}
       >
-        <div className="relative my-1 rounded p-5 hover:bg-[#333333] transition-all ease-in-out duration-300">
+        <div className="relative my-1 rounded py-2 px-4 hover:bg-[#333333] transition-all ease-in-out duration-300">
           <div className="flex justify-between">
             <div className="flex text-[#bdbdbd] text-sm">
               <img
@@ -73,7 +73,9 @@ export function PostThumbnail(props: { post: PostWithUser }) {
               <FaEllipsis />
             </div>
           </div>
-          <div className="text-2xl font-bold">{props.post.title}</div>
+          <div className="text-xl md:text-2xl font-semibold">
+            {props.post.title}
+          </div>
           {imagesLoading ? (
             <div>Loading...</div>
           ) : imagesError ? (
