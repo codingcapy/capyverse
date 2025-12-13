@@ -3,6 +3,13 @@ import useAuthStore from "../store/AuthStore";
 import defaultProfile from "/capypaul01.jpg";
 import { useState } from "react";
 import { useUpdateProfilePicMutation } from "../lib/api/users";
+import { useQuery } from "@tanstack/react-query";
+import { getPostsByUserIdQueryOptions } from "../lib/api/posts";
+import { getCommentsByUserIdQueryOptions } from "../lib/api/comments";
+import { PostThumbnail } from "../components/PostThumbnail";
+import { displayDate } from "../lib/utils";
+import { FaEllipsis } from "react-icons/fa6";
+import { CommentVotesComponent } from "../components/CommentVotesComponent";
 
 type ProfileMode = "Overview" | "Posts" | "Comments" | "Saved";
 
@@ -16,6 +23,17 @@ function ProfilePage() {
   const { mutate: updateProfilePic, isPending: updateProfilePicPending } =
     useUpdateProfilePicMutation();
   const [profileMode, setProfileMode] = useState<ProfileMode>("Overview");
+  const {
+    data: posts,
+    isLoading: postsLoading,
+    error: postsError,
+  } = useQuery(getPostsByUserIdQueryOptions((user && user.userId) || ""));
+  const {
+    data: comments,
+    isLoading: commentsLoading,
+    error: commentsError,
+  } = useQuery(getCommentsByUserIdQueryOptions((user && user.userId) || ""));
+  const [showMenu, setShowMenu] = useState(false);
 
   async function handleImageUpload(event: React.ChangeEvent<HTMLInputElement>) {
     if (updateProfilePicPending) return;
@@ -119,6 +137,74 @@ function ProfilePage() {
         >
           + Create Post
         </Link>
+      </div>
+      <div className="my-10">
+        {postsError ? (
+          <div>Error loading posts</div>
+        ) : postsLoading ? (
+          <div>Loading...</div>
+        ) : posts ? (
+          posts.map((post) => <PostThumbnail post={post} key={post.postId} />)
+        ) : (
+          <div>No posts yet!</div>
+        )}
+        {commentsError ? (
+          <div>Error loading comments</div>
+        ) : commentsLoading ? (
+          <div>Loading...</div>
+        ) : comments ? (
+          comments.map((comment) => (
+            <div
+              key={comment.commentId}
+              className="mx-auto w-full md:w-[50%] 2xl:w-[750px] border-t border-[#636363]"
+            >
+              <Link
+                to="/posts/$postId"
+                params={{
+                  postId: comment.postId.toString(),
+                }}
+                key={comment.postId}
+              >
+                <div className="relative my-1 rounded py-2 px-4 hover:bg-[#333333] transition-all ease-in-out duration-300">
+                  <div className="flex justify-between">
+                    <div className="flex text-[#bdbdbd] text-sm">
+                      <img
+                        src={
+                          user
+                            ? user.profilePic
+                              ? user.profilePic
+                              : defaultProfile
+                            : defaultProfile
+                        }
+                        alt=""
+                        className="w-6 h-6 rounded-full"
+                      />
+                      <div className="font-bold ml-2">
+                        {user && user.username}
+                      </div>
+                      <div className="px-1">•</div>
+                      <div>{displayDate(comment.createdAt)}</div>
+                    </div>
+                    <div
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        setShowMenu(!showMenu);
+                      }}
+                      className="absolute top-1 right-1 p-3 rounded-full hover:bg-[#575757] transition-all ease-in-out duration-300"
+                    >
+                      <FaEllipsis />
+                    </div>
+                  </div>
+                  <div>{comment.content}</div>
+                  <CommentVotesComponent comment={comment} />
+                </div>
+              </Link>
+            </div>
+          ))
+        ) : (
+          <div>No comments yet!</div>
+        )}
       </div>
     </div>
   );

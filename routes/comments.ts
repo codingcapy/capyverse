@@ -144,4 +144,34 @@ export const commentsRouter = new Hono()
       }
       return c.json({ commentResult: commentEditResult[0] }, 200);
     }
-  );
+  )
+  .get("/user/:userId", async (c) => {
+    const userId = c.req.param("userId");
+    const { result: commentsQueryResult, error: commentsQueryError } =
+      await mightFail(
+        db
+          .select({
+            commentId: commentsTable.commentId,
+            userId: commentsTable.userId,
+            postId: commentsTable.postId,
+            parentCommentId: commentsTable.parentCommentId,
+            level: commentsTable.level,
+            content: commentsTable.content,
+            status: commentsTable.status,
+            createdAt: commentsTable.createdAt,
+            username: usersTable.username,
+          })
+          .from(commentsTable)
+          .innerJoin(usersTable, eq(commentsTable.userId, usersTable.userId))
+          .where(eq(commentsTable.userId, userId))
+      );
+    if (commentsQueryError) {
+      throw new HTTPException(500, {
+        message: "Error occurred when fetching comments by user id",
+        cause: commentsQueryError,
+      });
+    }
+    return c.json({
+      comments: commentsQueryResult,
+    });
+  });

@@ -133,7 +133,7 @@ export function CommentComponent(props: { comment: CommentNode; post: Post }) {
         )}
         <div className="flex">
           <div className="mr-3">
-            <CommentVotesComponent post={props.post} comment={props.comment} />
+            <CommentVotesComponent comment={props.comment} />
           </div>
           <div
             onClick={() => {

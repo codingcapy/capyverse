@@ -163,9 +163,7 @@ async function updatePost(args: UpdatePostArgs) {
   return result;
 }
 
-export const useUpdatePostMutation = (
-  onError?: (message: string) => void
-) => {
+export const useUpdatePostMutation = (onError?: (message: string) => void) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: updatePost,
@@ -182,3 +180,21 @@ export const useUpdatePostMutation = (
     },
   });
 };
+
+async function getPostsByUserId(userId: string) {
+  const res = await client.api.v0.posts.user[":userId"].$get({
+    param: { userId: userId.toString() },
+  });
+
+  if (!res.ok) {
+    throw new Error("Error getting posts by user id");
+  }
+  const { posts } = await res.json();
+  return posts.map(mapSerializedPostToSchema);
+}
+
+export const getPostsByUserIdQueryOptions = (userId: string) =>
+  queryOptions({
+    queryKey: ["posts", userId],
+    queryFn: () => getPostsByUserId(userId),
+  });

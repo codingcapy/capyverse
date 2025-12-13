@@ -164,3 +164,21 @@ export const useUpdateCommentMutation = (
     },
   });
 };
+
+async function getCommentsByUserId(userId: string) {
+  const res = await client.api.v0.comments.user[":userId"].$get({
+    param: { userId: userId.toString() },
+  });
+
+  if (!res.ok) {
+    throw new Error("Error getting comments by user id");
+  }
+  const { comments } = await res.json();
+  return comments.map(mapSerializedCommentToSchema);
+}
+
+export const getCommentsByUserIdQueryOptions = (userId: string) =>
+  queryOptions({
+    queryKey: ["comments", userId],
+    queryFn: () => getCommentsByUserId(userId),
+  });

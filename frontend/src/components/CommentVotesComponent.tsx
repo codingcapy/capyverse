@@ -6,14 +6,13 @@ import {
 } from "../lib/api/votes";
 import useAuthStore from "../store/AuthStore";
 import { useNavigate } from "@tanstack/react-router";
-import { Post } from "../../../schemas/posts";
 import { PiArrowFatUp } from "react-icons/pi";
 import { PiArrowFatDown } from "react-icons/pi";
 import { PiArrowFatUpFill } from "react-icons/pi";
 import { PiArrowFatDownFill } from "react-icons/pi";
 import { Comment } from "../../../schemas/comments";
 
-export function CommentVotesComponent(props: { post: Post; comment: Comment }) {
+export function CommentVotesComponent(props: { comment: Comment }) {
   const {
     data: votes,
     isLoading: votesLoading,
@@ -28,7 +27,6 @@ export function CommentVotesComponent(props: { post: Post; comment: Comment }) {
 
   function handleSubmitVote(
     e: React.MouseEvent<HTMLDivElement>,
-    post: Post,
     comment: Comment,
     value: number
   ) {
@@ -42,7 +40,7 @@ export function CommentVotesComponent(props: { post: Post; comment: Comment }) {
     } else if (user) {
       createVote({
         userId: (user && user.userId) || "",
-        postId: post.postId,
+        postId: comment.postId,
         commentId: comment.commentId,
         value,
       });
@@ -69,7 +67,7 @@ export function CommentVotesComponent(props: { post: Post; comment: Comment }) {
                 updateVote({
                   voteId: votes.find(
                     (vote) =>
-                      vote.postId === props.post.postId &&
+                      vote.postId === props.comment.postId &&
                       user &&
                       vote.userId === user.userId &&
                       vote.value === 1
@@ -84,7 +82,7 @@ export function CommentVotesComponent(props: { post: Post; comment: Comment }) {
           ) : (
             <div
               onClick={(e) => {
-                handleSubmitVote(e, props.post, props.comment, 1);
+                handleSubmitVote(e, props.comment, 1);
               }}
               className="pr-2 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300"
             >
@@ -93,7 +91,7 @@ export function CommentVotesComponent(props: { post: Post; comment: Comment }) {
           )}
           <div className="">
             {votes
-              .filter((vote) => vote.postId === props.post.postId)
+              .filter((vote) => vote.postId === props.comment.postId)
               .reduce((acc, vote) => acc + vote.value!, 0)}
           </div>
           {votes.filter(
@@ -106,7 +104,7 @@ export function CommentVotesComponent(props: { post: Post; comment: Comment }) {
                 updateVote({
                   voteId: votes.find(
                     (vote) =>
-                      vote.postId === props.post.postId &&
+                      vote.postId === props.comment.postId &&
                       user &&
                       vote.userId === user.userId &&
                       vote.value === -1
@@ -121,7 +119,7 @@ export function CommentVotesComponent(props: { post: Post; comment: Comment }) {
           ) : (
             <div
               onClick={(e) => {
-                handleSubmitVote(e, props.post, props.comment, -1);
+                handleSubmitVote(e, props.comment, -1);
               }}
               className="px-2 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300"
             >

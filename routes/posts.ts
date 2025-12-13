@@ -111,6 +111,35 @@ export const postsRouter = new Hono()
       posts: postsQueryResult,
     });
   })
+  .get("/user/:userId", async (c) => {
+    const userId = c.req.param("userId");
+    const { result: postsQueryResult, error: postsQueryError } =
+      await mightFail(
+        db
+          .select({
+            postId: postsTable.postId,
+            userId: postsTable.userId,
+            communityId: postsTable.communityId,
+            title: postsTable.title,
+            content: postsTable.content,
+            status: postsTable.status,
+            createdAt: postsTable.createdAt,
+            username: usersTable.username,
+          })
+          .from(postsTable)
+          .innerJoin(usersTable, eq(postsTable.userId, usersTable.userId))
+          .where(eq(postsTable.userId, userId))
+      );
+    if (postsQueryError) {
+      throw new HTTPException(500, {
+        message: "Error occurred when fetching posts by user id",
+        cause: postsQueryError,
+      });
+    }
+    return c.json({
+      posts: postsQueryResult,
+    });
+  })
   .get("/:postId", async (c) => {
     const { postId: postIdString } = c.req.param();
     const postId = assertIsParsableInt(postIdString);
