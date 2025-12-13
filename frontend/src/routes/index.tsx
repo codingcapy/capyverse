@@ -141,7 +141,7 @@ function IndexComponent() {
               )
           )
         ) : (
-          <div>An unexpected error has occured</div>
+          <div>No posts! Be the first to create one.</div>
         )}
       </div>
     </div>

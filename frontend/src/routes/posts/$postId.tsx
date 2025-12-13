@@ -276,14 +276,10 @@ function PostComponent() {
               </div>
             </div>
           ) : (
-            <div className="text-center pt-[60px]">
-              An unexpected error has occurred
-            </div>
+            <div className="mt-5"></div>
           )
         ) : (
-          <div className="text-center pt-[60px]">
-            An unexpected error has occurred
-          </div>
+          <div className="mt-5"></div>
         )}
       </div>
       {editPostModePointer === post.postId ? (
