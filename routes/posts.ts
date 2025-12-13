@@ -3,9 +3,10 @@ import { createInsertSchema } from "drizzle-zod";
 import { Hono } from "hono";
 import { posts as postsTable } from "../schemas/posts";
 import { users as usersTable } from "../schemas/users";
+import { images as imagesTable } from "../schemas/images";
 import { mightFail, mightFailSync } from "might-fail";
 import { db } from "../db";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 
@@ -52,6 +53,29 @@ export const postsRouter = new Hono()
         throw new HTTPException(500, {
           message: "Error while creating post",
           cause: postInsertError,
+        });
+      }
+      const { error: imageUpdateError, result: imageUpdateResult } =
+        await mightFail(
+          db
+            .update(imagesTable)
+            .set({
+              postId: postInsertResult[0] && postInsertResult[0].postId,
+              posted: true,
+            })
+            .where(
+              and(
+                eq(imagesTable.userId, insertValues.userId),
+                eq(imagesTable.posted, false)
+              )
+            )
+            .returning()
+        );
+      if (imageUpdateError) {
+        console.log("Error while updating image");
+        throw new HTTPException(500, {
+          message: "Error while updating image",
+          cause: imageUpdateResult,
         });
       }
       return c.json({ postResult: postInsertResult[0] }, 200);
