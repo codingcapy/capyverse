@@ -25,6 +25,7 @@ import { FaEllipsis } from "react-icons/fa6";
 import { Menu } from "../../components/Menu";
 import usePostStore from "../../store/PostStore";
 import defaultProfile from "/capypaul01.jpg";
+import { getImagesByPostIdQueryOptions } from "../../lib/api/images";
 
 export type SerializedComment = {
   createdAt: Date;
@@ -101,6 +102,13 @@ function PostComponent() {
   const { data: poster, isLoading: posterLoading } = useQuery(
     getUserByIdQueryOptions(post.userId)
   );
+  const {
+    data: images,
+    isLoading: imagesLoading,
+    error: imagesError,
+  } = useQuery(getImagesByPostIdQueryOptions(post.postId));
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const activeImage = images && images[activeImageIndex];
 
   function buildCommentTree(
     comments: SerializedComment[],
@@ -205,6 +213,76 @@ function PostComponent() {
         )}
       </div>
       <div className="text-4xl font-bold"> {post.title}</div>
+      <div>
+        {imagesError ? (
+          <div className="w-full h-auto md:h-[400px] xl:h-[500px] border border-[#424242] bg-[#202020] rounded-xl my-2 flex items-center justify-center">
+            Error loading images
+          </div>
+        ) : imagesLoading ? (
+          <div className="w-full h-auto md:h-[400px] xl:h-[500px] border border-[#424242] bg-[#202020] rounded-xl my-2 flex items-center justify-center">
+            Loading...
+          </div>
+        ) : images ? (
+          images.length > 0 ? (
+            <div className="relative w-full h-full flex items-center justify-center">
+              {images.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setActiveImageIndex((i) =>
+                      i === 0 ? images.length - 1 : i - 1
+                    )
+                  }
+                  className="absolute left-2 z-10 bg-zinc-800/80 hover:bg-zinc-700 p-2 rounded-full"
+                >
+                  ‹
+                </button>
+              )}
+              {activeImage && (
+                <div className="w-full h-auto md:h-[400px] xl:h-[500px] border border-[#424242] bg-[#202020] rounded-xl my-2 flex items-center justify-center">
+                  <img
+                    src={`https://${images[activeImageIndex].imageUrl}`}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+              )}
+              {images.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setActiveImageIndex((i) =>
+                      i === images.length - 1 ? 0 : i + 1
+                    )
+                  }
+                  className="absolute right-2 z-10 bg-zinc-800/80 hover:bg-zinc-700 p-2 rounded-full"
+                >
+                  ›
+                </button>
+              )}
+              <div className="absolute bottom-2 flex gap-1">
+                {images.map((_, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => setActiveImageIndex(i)}
+                    className={`w-2 h-2 rounded-full ${
+                      i === activeImageIndex ? "bg-cyan-400" : "bg-zinc-500"
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-center pt-[60px]">
+              An unexpected error has occurred
+            </div>
+          )
+        ) : (
+          <div className="text-center pt-[60px]">
+            An unexpected error has occurred
+          </div>
+        )}
+      </div>
       {editPostModePointer === post.postId ? (
         <div>
           <textarea

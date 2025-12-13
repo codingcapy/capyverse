@@ -183,7 +183,7 @@ function CreatePostPage() {
                 </div>
               ) : (
                 <div className="text-center pt-[60px]">
-                  An unexpected error has occurred
+                  Drag and drop or upload images
                 </div>
               )
             ) : (
