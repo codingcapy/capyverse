@@ -1,7 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import useAuthStore from "../store/AuthStore";
 import defaultProfile from "/capypaul01.jpg";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useUpdateProfilePicMutation } from "../lib/api/users";
 import { useQuery } from "@tanstack/react-query";
 import { getPostsByUserIdQueryOptions } from "../lib/api/posts";
@@ -34,6 +34,7 @@ function ProfilePage() {
     error: commentsError,
   } = useQuery(getCommentsByUserIdQueryOptions((user && user.userId) || ""));
   const [showMenu, setShowMenu] = useState(false);
+  const navigate = useNavigate();
 
   async function handleImageUpload(event: React.ChangeEvent<HTMLInputElement>) {
     if (updateProfilePicPending) return;
@@ -62,6 +63,10 @@ function ProfilePage() {
       reader.readAsDataURL(file);
     }
   }
+
+  useEffect(() => {
+    if (!user) navigate({ to: "/" });
+  }, []);
 
   return (
     <div className="pt-[70px] max-w-[1000px] mx-auto">

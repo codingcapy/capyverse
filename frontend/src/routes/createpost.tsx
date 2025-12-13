@@ -66,6 +66,10 @@ function CreatePostPage() {
   }
 
   useEffect(() => {
+    if (!user) navigate({ to: "/" });
+  }, []);
+
+  useEffect(() => {
     return () => {
       if (imagePreview) URL.revokeObjectURL(imagePreview);
     };
