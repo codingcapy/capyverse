@@ -9,6 +9,7 @@ import { db } from "../db";
 import { and, desc, eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
+import { deleteImageFromS3 } from "./images";
 
 const deletePostSchema = z.object({
   postId: z.number(),
@@ -145,6 +146,21 @@ export const postsRouter = new Hono()
         cause: postDeleteError,
       });
     }
+    const { error: imageDeleteError, result: imageDeleteResult } =
+      await mightFail(
+        db
+          .delete(imagesTable)
+          .where(and(eq(imagesTable.postId, insertValues.postId)))
+          .returning()
+      );
+    if (imageDeleteError) {
+      console.log("Error while updating image");
+      throw new HTTPException(500, {
+        message: "Error while updating image",
+        cause: imageDeleteError,
+      });
+    }
+    imageDeleteResult.map((image) => deleteImageFromS3(image.imageUrl));
     return c.json({ postResult: postDeleteResult[0] }, 200);
   })
   .post("/post/update", zValidator("json", updatePostSchema), async (c) => {
