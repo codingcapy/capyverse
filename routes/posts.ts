@@ -10,6 +10,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import { deleteImageFromS3 } from "./images";
+import { savedPosts as savedPostsTable } from "../schemas/savedPosts";
 
 const deletePostSchema = z.object({
   postId: z.number(),
@@ -18,6 +19,11 @@ const deletePostSchema = z.object({
 const updatePostSchema = z.object({
   postId: z.number(),
   content: z.string(),
+});
+
+const savePostSchema = z.object({
+  userId: z.string(),
+  postId: z.number(),
 });
 
 export function assertIsParsableInt(id: string): number {
@@ -158,13 +164,13 @@ export const postsRouter = new Hono()
     });
   })
   .post("/post/delete", zValidator("json", deletePostSchema), async (c) => {
-    const insertValues = c.req.valid("json");
+    const deleteValues = c.req.valid("json");
     const { error: postDeleteError, result: postDeleteResult } =
       await mightFail(
         db
           .update(postsTable)
           .set({ content: "[This post has been deleted by the user]" })
-          .where(eq(postsTable.postId, insertValues.postId))
+          .where(eq(postsTable.postId, deleteValues.postId))
           .returning()
       );
     if (postDeleteError) {
@@ -179,7 +185,7 @@ export const postsRouter = new Hono()
       await mightFail(
         db
           .delete(imagesTable)
-          .where(and(eq(imagesTable.postId, insertValues.postId)))
+          .where(and(eq(imagesTable.postId, deleteValues.postId)))
           .returning()
       );
     if (imageDeleteError) {
@@ -193,13 +199,13 @@ export const postsRouter = new Hono()
     return c.json({ postResult: postDeleteResult[0] }, 200);
   })
   .post("/post/update", zValidator("json", updatePostSchema), async (c) => {
-    const insertValues = c.req.valid("json");
+    const updateValues = c.req.valid("json");
     const { error: postUpdateError, result: postUpdateResult } =
       await mightFail(
         db
           .update(postsTable)
-          .set({ content: insertValues.content })
-          .where(eq(postsTable.postId, insertValues.postId))
+          .set({ content: updateValues.content })
+          .where(eq(postsTable.postId, updateValues.postId))
           .returning()
       );
     if (postUpdateError) {
@@ -211,4 +217,19 @@ export const postsRouter = new Hono()
       });
     }
     return c.json({ postResult: postUpdateResult[0] }, 200);
+  })
+  .post("/save", zValidator("json", savePostSchema), async (c) => {
+    const saveValues = c.req.valid("json");
+    const { error: postSaveError, result: postSaveResult } = await mightFail(
+      db.insert(savedPostsTable).values(saveValues).returning()
+    );
+    if (postSaveError) {
+      console.log("Error while creating post");
+      console.log(postSaveError);
+      throw new HTTPException(500, {
+        message: "Error while creating post",
+        cause: postSaveError,
+      });
+    }
+    return c.json({ postResult: postSaveResult[0] }, 200);
   });
