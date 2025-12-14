@@ -77,7 +77,7 @@ export function CommentComponent(props: { comment: CommentNode; post: Post }) {
   }
 
   return (
-    <div key={props.comment.commentId} className={`relative my-3 flex`}>
+    <div key={props.comment.commentId} className={`relative my-3 flex w-full`}>
       <img
         src={
           !commenterLoading || !commenterError
@@ -91,7 +91,7 @@ export function CommentComponent(props: { comment: CommentNode; post: Post }) {
         alt=""
         className="absolute top-0 left-0 w-8 h-8 rounded-full"
       />
-      <div className="ml-4 pl-5 border-l border-[#555555]">
+      <div className="ml-4 pl-5 border-l border-[#555555] w-full">
         <div className="flex text-[#bdbdbd] text-sm">
           <div className="font-bold">{props.comment.username}</div>
           <div className="px-1">•</div>

@@ -6,6 +6,7 @@ import { FaEllipsis } from "react-icons/fa6";
 import { CommentVotesComponent } from "./CommentVotesComponent";
 import { useState } from "react";
 import { CommentMenu } from "./CommentMenu";
+import { useDeleteCommentMutation } from "../lib/api/comments";
 
 export function CommentThumbnail(props: {
   comment: {
@@ -24,6 +25,8 @@ export function CommentThumbnail(props: {
   const [showMenu, setShowMenu] = useState(false);
   const [deleteMode, setDeleteMode] = useState(false);
   const [commentContent, setCommentContent] = useState("");
+  const { mutate: deleteComment, isPending: deleteCommentPending } =
+    useDeleteCommentMutation();
 
   return (
     <div
@@ -78,6 +81,43 @@ export function CommentThumbnail(props: {
           )}
         </div>
       </Link>
+      {deleteMode && (
+        <div
+          className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[#222222] p-6 rounded shadow-lg w-[90%] max-w-md text-center z-100`}
+        >
+          <div className="text-2xl font-bold">Delete Comment?</div>
+          <div className="my-5">
+            Once you delete this comment, it can’t be restored.
+          </div>
+          <div className="my-5 flex justify-end">
+            <div
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                if (deleteCommentPending) return;
+                deleteComment({ commentId: props.comment.commentId });
+                setDeleteMode(false);
+              }}
+              className="p-2 mr-1 bg-red-500 rounded text-white bold secondary-font font-bold cursor-pointer"
+            >
+              {deleteCommentPending ? "Deleting..." : "DELETE"}
+            </div>
+            <div
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                setDeleteMode(false);
+              }}
+              className="p-2 ml-1 bg-[#5c5c5c] rounded bold secondary-font font-bold cursor-pointer"
+            >
+              CANCEL
+            </div>
+          </div>
+        </div>
+      )}
+      {deleteMode && (
+        <div className="fixed inset-0 bg-black opacity-50 z-90"></div>
+      )}
     </div>
   );
 }
