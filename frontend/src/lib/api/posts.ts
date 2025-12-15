@@ -18,6 +18,10 @@ type UpdatePostArgs = ArgumentTypes<
   typeof client.api.v0.posts.post.update.$post
 >[0]["json"];
 
+type SavePostArgs = ArgumentTypes<
+  typeof client.api.v0.posts.save.$post
+>[0]["json"];
+
 type RawPost = ExtractData<
   Awaited<ReturnType<typeof client.api.v0.posts.$get>>
 >["posts"][number];
@@ -198,3 +202,40 @@ export const getPostsByUserIdQueryOptions = (userId: string) =>
     queryKey: ["posts", userId],
     queryFn: () => getPostsByUserId(userId),
   });
+
+async function savePost(args: SavePostArgs) {
+  const res = await client.api.v0.posts.save.$post({ json: args });
+  if (!res.ok) {
+    let errorMessage =
+      "There was an issue saving your post :( We'll look into it ASAP!";
+    console.log(args);
+    try {
+    } catch (error) {
+      console.log(error);
+    }
+    throw new Error(errorMessage);
+  }
+  const result = await res.json();
+  return result;
+}
+
+export const useSavePostMutation = (onError?: (message: string) => void) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: savePost,
+    onSettled: (_data, _error) => {
+      if (!_data) return console.log("No data, returning");
+      queryClient.invalidateQueries({
+        queryKey: ["posts", _data.postResult.postId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["posts"],
+      });
+    },
+    onError: (error) => {
+      if (onError) {
+        onError(error.message);
+      }
+    },
+  });
+};

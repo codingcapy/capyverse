@@ -6,6 +6,7 @@ import { FaRegBookmark } from "react-icons/fa";
 import { Post } from "../../../schemas/posts";
 import usePostStore from "../store/PostStore";
 import { useNavigate } from "@tanstack/react-router";
+import { useSavePostMutation } from "../lib/api/posts";
 
 export function Menu(props: {
   post: Post;
@@ -16,6 +17,8 @@ export function Menu(props: {
   const { user } = useAuthStore();
   const { setEditPostModePointer } = usePostStore();
   const navigate = useNavigate();
+  const { mutate: savePost, isPending: savePostPending } =
+    useSavePostMutation();
 
   function handleClickOutside(event: MouseEvent) {
     if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -50,7 +53,20 @@ export function Menu(props: {
       )}
       <div className="flex py-2 hover:text-[#ffffff] cursor-pointer">
         <FaRegBookmark size={20} className="pt-1" />
-        <div className="ml-2">Save</div>
+        <div
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            if (!user) return navigate({ to: "/login" });
+            savePost(
+              { userId: user?.userId || "", postId: props.post.postId },
+              { onSuccess: () => props.setShowMenu(false) }
+            );
+          }}
+          className="ml-2"
+        >
+          Save
+        </div>
       </div>
       {user && props.post.userId === user.userId && (
         <div
