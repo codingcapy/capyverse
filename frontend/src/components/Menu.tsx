@@ -6,7 +6,12 @@ import { FaRegBookmark } from "react-icons/fa";
 import { Post } from "../../../schemas/posts";
 import usePostStore from "../store/PostStore";
 import { useNavigate } from "@tanstack/react-router";
-import { useSavePostMutation } from "../lib/api/posts";
+import {
+  getSavedPostsByUserIdQueryOptions,
+  useSavePostMutation,
+} from "../lib/api/posts";
+import { useQuery } from "@tanstack/react-query";
+import { FaBookmark } from "react-icons/fa";
 
 export function Menu(props: {
   post: Post;
@@ -19,6 +24,12 @@ export function Menu(props: {
   const navigate = useNavigate();
   const { mutate: savePost, isPending: savePostPending } =
     useSavePostMutation();
+  const { data: savedPosts } = useQuery(
+    getSavedPostsByUserIdQueryOptions((user && user.userId) || "")
+  );
+  const isSaved = !!savedPosts?.some(
+    (savedPost) => savedPost.postId === props.post.postId
+  );
 
   function handleClickOutside(event: MouseEvent) {
     if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -52,20 +63,24 @@ export function Menu(props: {
         </div>
       )}
       <div className="flex py-2 hover:text-[#ffffff] cursor-pointer">
-        <FaRegBookmark size={20} className="pt-1" />
+        {isSaved ? (
+          <FaBookmark size={20} className="pt-1" />
+        ) : (
+          <FaRegBookmark size={20} className="pt-1" />
+        )}
         <div
           onClick={(e) => {
             e.stopPropagation();
             e.preventDefault();
             if (!user) return navigate({ to: "/login" });
             savePost(
-              { userId: user?.userId || "", postId: props.post.postId },
+              { userId: user.userId || "", postId: props.post.postId },
               { onSuccess: () => props.setShowMenu(false) }
             );
           }}
           className="ml-2"
         >
-          Save
+          {isSaved ? "Remove from saved" : "Save"}
         </div>
       </div>
       {user && props.post.userId === user.userId && (

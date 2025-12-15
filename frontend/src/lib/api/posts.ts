@@ -239,3 +239,21 @@ export const useSavePostMutation = (onError?: (message: string) => void) => {
     },
   });
 };
+
+async function getSavedPostsByUserId(userId: string) {
+  const res = await client.api.v0.posts.saved[":userId"].$get({
+    param: { userId: userId.toString() },
+  });
+
+  if (!res.ok) {
+    throw new Error("Error getting saved posts by user id");
+  }
+  const { posts } = await res.json();
+  return posts.map(mapSerializedPostToSchema);
+}
+
+export const getSavedPostsByUserIdQueryOptions = (userId: string) =>
+  queryOptions({
+    queryKey: ["posts", userId],
+    queryFn: () => getSavedPostsByUserId(userId),
+  });

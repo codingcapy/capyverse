@@ -263,4 +263,23 @@ export const postsRouter = new Hono()
     return c.json({
       posts: savedPostsResult,
     });
+  })
+  .post("/unsave", zValidator("json", savePostSchema), async (c) => {
+    const saveValues = c.req.valid("json");
+    const { error: postUnsaveError, result: postUnsaveResult } =
+      await mightFail(
+        db
+          .delete(savedPostsTable)
+          .where(eq(savedPostsTable.postId, saveValues.postId))
+          .returning()
+      );
+    if (postUnsaveError) {
+      console.log("Error while creating post");
+      console.log(postUnsaveError);
+      throw new HTTPException(500, {
+        message: "Error while creating post",
+        cause: postUnsaveError,
+      });
+    }
+    return c.json({ postResult: postUnsaveResult[0] }, 200);
   });
