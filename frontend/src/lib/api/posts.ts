@@ -22,6 +22,10 @@ type SavePostArgs = ArgumentTypes<
   typeof client.api.v0.posts.save.$post
 >[0]["json"];
 
+type UnsavePostArgs = ArgumentTypes<
+  typeof client.api.v0.posts.unsave.$post
+>[0]["json"];
+
 type RawPost = ExtractData<
   Awaited<ReturnType<typeof client.api.v0.posts.$get>>
 >["posts"][number];
@@ -257,3 +261,40 @@ export const getSavedPostsByUserIdQueryOptions = (userId: string) =>
     queryKey: ["posts", userId],
     queryFn: () => getSavedPostsByUserId(userId),
   });
+
+async function unsavePost(args: UnsavePostArgs) {
+  const res = await client.api.v0.posts.unsave.$post({ json: args });
+  if (!res.ok) {
+    let errorMessage =
+      "There was an issue unsaving your post :( We'll look into it ASAP!";
+    console.log(args);
+    try {
+    } catch (error) {
+      console.log(error);
+    }
+    throw new Error(errorMessage);
+  }
+  const result = await res.json();
+  return result;
+}
+
+export const useUnsavePostMutation = (onError?: (message: string) => void) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: unsavePost,
+    onSettled: (_data, _error) => {
+      if (!_data) return console.log("No data, returning");
+      queryClient.invalidateQueries({
+        queryKey: ["posts", _data.postResult.postId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["posts"],
+      });
+    },
+    onError: (error) => {
+      if (onError) {
+        onError(error.message);
+      }
+    },
+  });
+};

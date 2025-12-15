@@ -9,6 +9,7 @@ import { useNavigate } from "@tanstack/react-router";
 import {
   getSavedPostsByUserIdQueryOptions,
   useSavePostMutation,
+  useUnsavePostMutation,
 } from "../lib/api/posts";
 import { useQuery } from "@tanstack/react-query";
 import { FaBookmark } from "react-icons/fa";
@@ -30,6 +31,8 @@ export function Menu(props: {
   const isSaved = !!savedPosts?.some(
     (savedPost) => savedPost.postId === props.post.postId
   );
+  const { mutate: unsavePost, isPending: unsavePostPending } =
+    useUnsavePostMutation();
 
   function handleClickOutside(event: MouseEvent) {
     if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -62,27 +65,44 @@ export function Menu(props: {
           </div>
         </div>
       )}
-      <div className="flex py-2 hover:text-[#ffffff] cursor-pointer">
-        {isSaved ? (
+      {isSaved ? (
+        <div className="flex py-2 hover:text-[#ffffff] cursor-pointer">
           <FaBookmark size={20} className="pt-1" />
-        ) : (
-          <FaRegBookmark size={20} className="pt-1" />
-        )}
-        <div
-          onClick={(e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            if (!user) return navigate({ to: "/login" });
-            savePost(
-              { userId: user.userId || "", postId: props.post.postId },
-              { onSuccess: () => props.setShowMenu(false) }
-            );
-          }}
-          className="ml-2"
-        >
-          {isSaved ? "Remove from saved" : "Save"}
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              if (!user) return navigate({ to: "/login" });
+              unsavePost(
+                { userId: user.userId || "", postId: props.post.postId },
+                { onSuccess: () => props.setShowMenu(false) }
+              );
+            }}
+            className="ml-2"
+          >
+            Remove from saved
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="flex py-2 hover:text-[#ffffff] cursor-pointer">
+          <FaRegBookmark size={20} className="pt-1" />
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              if (!user) return navigate({ to: "/login" });
+              savePost(
+                { userId: user.userId || "", postId: props.post.postId },
+                { onSuccess: () => props.setShowMenu(false) }
+              );
+            }}
+            className="ml-2"
+          >
+            Save
+          </div>
+        </div>
+      )}
+
       {user && props.post.userId === user.userId && (
         <div
           onClick={(e) => {

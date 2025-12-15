@@ -26,6 +26,25 @@ export const votesRouter = new Hono()
     ),
     async (c) => {
       const insertValues = c.req.valid("json");
+      const { result: votesQueryResult, error: votesQueryError } =
+        await mightFail(
+          db
+            .select()
+            .from(votesTable)
+            .where(
+              and(
+                eq(votesTable.userId, insertValues.userId),
+                eq(votesTable.postId, insertValues.postId)
+              )
+            )
+        );
+      if (votesQueryError) {
+        throw new HTTPException(500, {
+          message: "Error occurred when fetching votes",
+          cause: votesQueryError,
+        });
+      }
+      if (votesQueryResult.length > 0) return;
       const { error: voteInsertError, result: voteInsertResult } =
         await mightFail(db.insert(votesTable).values(insertValues).returning());
       if (voteInsertError) {
