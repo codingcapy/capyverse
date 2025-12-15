@@ -232,4 +232,35 @@ export const postsRouter = new Hono()
       });
     }
     return c.json({ postResult: postSaveResult[0] }, 200);
+  })
+  .get("/saved/:userId", async (c) => {
+    const userId = c.req.param("userId");
+    const { result: savedPostsResult, error: savedPostsError } =
+      await mightFail(
+        db
+          .select({
+            postId: postsTable.postId,
+            userId: postsTable.userId, // author id
+            communityId: postsTable.communityId,
+            title: postsTable.title,
+            content: postsTable.content,
+            status: postsTable.status,
+            createdAt: postsTable.createdAt,
+            username: usersTable.username, // author username
+          })
+          .from(savedPostsTable)
+          .innerJoin(postsTable, eq(savedPostsTable.postId, postsTable.postId))
+          .innerJoin(usersTable, eq(postsTable.userId, usersTable.userId))
+          .where(eq(savedPostsTable.userId, userId))
+          .orderBy(desc(savedPostsTable.createdAt)) // optional but recommended
+      );
+    if (savedPostsError) {
+      throw new HTTPException(500, {
+        message: "Error occurred when fetching saved posts",
+        cause: savedPostsError,
+      });
+    }
+    return c.json({
+      posts: savedPostsResult,
+    });
   });
