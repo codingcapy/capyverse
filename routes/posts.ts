@@ -115,16 +115,20 @@ export const postsRouter = new Hono()
         score: sql<number>`coalesce(sum(${votesTable.value}), 0)`.as("score"),
       })
       .from(votesTable)
+      .where(
+        and(sql`${votesTable.value} != 0`, sql`${votesTable.commentId} IS NULL`)
+      )
       .groupBy(votesTable.postId)
       .as("scores");
     const { result, error } = await mightFail(
       db
-        .select({
-          post: postsTable,
-        })
+        .select({ post: postsTable })
         .from(postsTable)
         .leftJoin(scoreSubquery, eq(scoreSubquery.postId, postsTable.postId))
-        .orderBy(desc(sql`coalesce(${scoreSubquery.score}, 0)`))
+        .orderBy(
+          desc(sql`coalesce(${scoreSubquery.score}, 0)`),
+          desc(postsTable.createdAt)
+        )
         .limit(10)
     );
     if (error) {
