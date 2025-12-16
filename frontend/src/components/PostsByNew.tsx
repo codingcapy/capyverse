@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getPostsQueryOptions } from "../lib/api/posts";
 import usePostStore from "../store/PostStore";
 import { PostThumbnail } from "./PostThumbnail";
+import { useState } from "react";
 
 export function PostsByNew() {
   const {

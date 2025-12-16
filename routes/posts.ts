@@ -109,6 +109,10 @@ export const postsRouter = new Hono()
     });
   })
   .get("/popular", async (c) => {
+    const limit = Number(c.req.query("limit") ?? 10);
+    const cursorScore = c.req.query("cursorScore");
+    const cursorCreatedAt = c.req.query("cursorCreatedAt");
+    const cursorPostId = c.req.query("cursorPostId");
     const scoreSubquery = db
       .select({
         postId: votesTable.postId,
@@ -120,16 +124,32 @@ export const postsRouter = new Hono()
       )
       .groupBy(votesTable.postId)
       .as("scores");
+    const cursorWhere =
+      cursorScore && cursorPostId
+        ? sql`
+        (
+          coalesce(${scoreSubquery.score}, 0) < ${Number(cursorScore)}
+        )
+        OR (
+          coalesce(${scoreSubquery.score}, 0) = ${Number(cursorScore)}
+          AND ${postsTable.postId} < ${Number(cursorPostId)}
+        )
+      `
+        : undefined;
     const { result, error } = await mightFail(
       db
-        .select({ post: postsTable })
+        .select({
+          post: postsTable,
+          score: sql<number>`coalesce(${scoreSubquery.score}, 0)`.as("score"),
+        })
         .from(postsTable)
         .leftJoin(scoreSubquery, eq(scoreSubquery.postId, postsTable.postId))
+        .where(cursorWhere)
         .orderBy(
           desc(sql`coalesce(${scoreSubquery.score}, 0)`),
-          desc(postsTable.createdAt)
+          desc(postsTable.postId)
         )
-        .limit(10)
+        .limit(limit + 1) // fetch one extra to detect next page
     );
     if (error) {
       throw new HTTPException(500, {
@@ -137,8 +157,22 @@ export const postsRouter = new Hono()
         cause: error,
       });
     }
+    const hasNextPage = result.length > limit;
+    const pageItems = hasNextPage ? result.slice(0, limit) : result;
+    const last = pageItems.at(-1);
+    console.log({
+      returned: pageItems.length,
+      hasNextPage,
+    });
     return c.json({
-      posts: result.map((r) => r.post),
+      posts: pageItems.map((r) => r.post),
+      nextCursor: hasNextPage
+        ? {
+            score: last!.score,
+            createdAt: last!.post.createdAt,
+            postId: last!.post.postId,
+          }
+        : null,
     });
   })
   .get("/user/:userId", async (c) => {
