@@ -92,18 +92,8 @@ export const postsRouter = new Hono()
     const { result: postsQueryResult, error: postsQueryError } =
       await mightFail(
         db
-          .select({
-            postId: postsTable.postId,
-            userId: postsTable.userId,
-            communityId: postsTable.communityId,
-            title: postsTable.title,
-            content: postsTable.content,
-            status: postsTable.status,
-            createdAt: postsTable.createdAt,
-            username: usersTable.username,
-          })
+          .select()
           .from(postsTable)
-          .innerJoin(usersTable, eq(postsTable.userId, usersTable.userId))
           .orderBy(desc(postsTable.createdAt))
           .limit(100)
       );

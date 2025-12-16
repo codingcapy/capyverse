@@ -26,20 +26,13 @@ type UnsavePostArgs = ArgumentTypes<
   typeof client.api.v0.posts.unsave.$post
 >[0]["json"];
 
-type RawPost = ExtractData<
+type SerializePost = ExtractData<
   Awaited<ReturnType<typeof client.api.v0.posts.$get>>
 >["posts"][number];
 
-type SerializePost = RawPost & { username?: string | null };
-
-export type PostWithUser = Post & { username: string | null };
-
-export function mapSerializedPostToSchema(
-  serialized: SerializePost
-): PostWithUser {
+export function mapSerializedPostToSchema(serialized: SerializePost): Post {
   return {
     ...serialized,
-    username: serialized.username ?? null,
     createdAt: new Date(serialized.createdAt),
   };
 }
