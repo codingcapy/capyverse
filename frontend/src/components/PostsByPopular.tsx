@@ -7,7 +7,6 @@ import { PostThumbnail } from "./PostThumbnail";
 export function PostsByPopular() {
   const { searchContent } = usePostStore();
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
-
   const {
     data,
     fetchNextPage,
@@ -21,12 +20,10 @@ export function PostsByPopular() {
     initialPageParam: null,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
   });
-
   const posts = data?.pages.flatMap((page) => page.posts) ?? [];
 
   useEffect(() => {
     if (!loadMoreRef.current || !hasNextPage) return;
-
     const observer = new IntersectionObserver(([entry]) => {
       console.log({
         isIntersecting: entry.isIntersecting,
@@ -37,7 +34,6 @@ export function PostsByPopular() {
         fetchNextPage();
       }
     });
-
     observer.observe(loadMoreRef.current);
     return () => observer.disconnect();
   }, [fetchNextPage, hasNextPage]);
@@ -82,15 +78,13 @@ export function PostsByPopular() {
         .map((post) => (
           <PostThumbnail key={post.postId} post={post} />
         ))}
-
       <div
         ref={loadMoreRef}
-        // style={{
-        //   height: "40px",
-        //   background: "red",
-        // }}
+        style={{
+          height: "40px",
+          background: "#444444",
+        }}
       />
-
       {isFetchingNextPage && <div>Loading more…</div>}
       {!hasNextPage && <div>No more posts</div>}
     </div>

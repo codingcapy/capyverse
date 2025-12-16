@@ -93,6 +93,28 @@ export const getPostsQueryOptions = () =>
     queryFn: () => getPosts(),
   });
 
+export type NewPostsCursor = {
+  postId: number;
+} | null;
+
+export async function getNewPostsPage({
+  pageParam,
+}: {
+  pageParam: NewPostsCursor;
+}) {
+  const res = await client.api.v0.posts.$get({
+    query: pageParam ? { cursorPostId: String(pageParam.postId) } : {},
+  });
+  if (!res.ok) {
+    throw new Error("Error getting posts");
+  }
+  const { posts, nextCursor } = await res.json();
+  return {
+    posts: posts.map(mapSerializedPostToSchema),
+    nextCursor,
+  };
+}
+
 export type PopularPostsCursor = {
   score: number;
   createdAt: string;
@@ -117,9 +139,7 @@ export async function getPopularPostsPage({
   if (!res.ok) {
     throw new Error("Error getting popular posts");
   }
-
   const { posts, nextCursor } = await res.json();
-
   return {
     posts: posts.map(mapSerializedPostToSchema),
     nextCursor,
@@ -130,7 +150,6 @@ async function getPostById(postId: number) {
   const res = await client.api.v0.posts[":postId"].$get({
     param: { postId: postId.toString() },
   });
-
   if (!res.ok) {
     throw new Error("Error getting post by id");
   }

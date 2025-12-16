@@ -90,22 +90,31 @@ export const postsRouter = new Hono()
     }
   )
   .get("/", async (c) => {
-    const { result: postsQueryResult, error: postsQueryError } =
-      await mightFail(
-        db
-          .select()
-          .from(postsTable)
-          .orderBy(desc(postsTable.createdAt))
-          .limit(100)
-      );
-    if (postsQueryError) {
+    const limit = Number(c.req.query("limit") ?? 10);
+    const cursorPostId = c.req.query("cursorPostId");
+    const cursorWhere = cursorPostId
+      ? sql`${postsTable.postId} < ${Number(cursorPostId)}`
+      : undefined;
+    const { result, error } = await mightFail(
+      db
+        .select()
+        .from(postsTable)
+        .where(cursorWhere)
+        .orderBy(desc(postsTable.postId)) // newest first
+        .limit(limit + 1)
+    );
+    if (error) {
       throw new HTTPException(500, {
         message: "Error occurred when fetching posts",
-        cause: postsQueryError,
+        cause: error,
       });
     }
+    const hasNextPage = result.length > limit;
+    const pageItems = hasNextPage ? result.slice(0, limit) : result;
+    const last = pageItems.at(-1);
     return c.json({
-      posts: postsQueryResult,
+      posts: pageItems,
+      nextCursor: hasNextPage ? { postId: last!.postId } : null,
     });
   })
   .get("/popular", async (c) => {
