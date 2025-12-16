@@ -5,7 +5,7 @@ import { votes as votesTable } from "../schemas/votes";
 import { mightFail } from "might-fail";
 import { db } from "../db";
 import { HTTPException } from "hono/http-exception";
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import z from "zod";
 import { assertIsParsableInt } from "./posts";
 
@@ -34,17 +34,23 @@ export const votesRouter = new Hono()
             .where(
               and(
                 eq(votesTable.userId, insertValues.userId),
-                eq(votesTable.postId, insertValues.postId)
+                eq(votesTable.postId, insertValues.postId),
+                isNull(votesTable.commentId)
               )
             )
         );
       if (votesQueryError) {
         throw new HTTPException(500, {
-          message: "Error occurred when fetching votes",
+          message: "Error occurred when fetching vote",
           cause: votesQueryError,
         });
       }
-      if (votesQueryResult.length > 0) return;
+      if (votesQueryResult.length > 0) {
+        throw new HTTPException(500, {
+          message: "Vote already exists",
+          cause: votesQueryError,
+        });
+      }
       const { error: voteInsertError, result: voteInsertResult } =
         await mightFail(db.insert(votesTable).values(insertValues).returning());
       if (voteInsertError) {

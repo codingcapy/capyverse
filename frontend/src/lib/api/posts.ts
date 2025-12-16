@@ -253,12 +253,13 @@ async function getSavedPostsByUserId(userId: string) {
     throw new Error("Error getting saved posts by user id");
   }
   const { posts } = await res.json();
+  console.log(posts);
   return posts.map(mapSerializedPostToSchema);
 }
 
 export const getSavedPostsByUserIdQueryOptions = (userId: string) =>
   queryOptions({
-    queryKey: ["posts", userId],
+    queryKey: ["saved-posts", userId],
     queryFn: () => getSavedPostsByUserId(userId),
   });
 

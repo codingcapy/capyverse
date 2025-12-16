@@ -220,6 +220,30 @@ export const postsRouter = new Hono()
   })
   .post("/save", zValidator("json", savePostSchema), async (c) => {
     const saveValues = c.req.valid("json");
+    const { result: savedPostQueryResult, error: savedPostsQueryError } =
+      await mightFail(
+        db
+          .select()
+          .from(savedPostsTable)
+          .where(
+            and(
+              eq(savedPostsTable.userId, saveValues.userId),
+              eq(savedPostsTable.postId, saveValues.postId)
+            )
+          )
+      );
+    if (savedPostsQueryError) {
+      throw new HTTPException(500, {
+        message: "Error occurred when fetching saved post",
+        cause: savedPostsQueryError,
+      });
+    }
+    if (savedPostQueryResult.length > 0) {
+      throw new HTTPException(500, {
+        message: "Saved post already exists",
+        cause: savedPostsQueryError,
+      });
+    }
     const { error: postSaveError, result: postSaveResult } = await mightFail(
       db.insert(savedPostsTable).values(saveValues).returning()
     );

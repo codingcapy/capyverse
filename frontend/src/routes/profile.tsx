@@ -4,7 +4,10 @@ import defaultProfile from "/capypaul01.jpg";
 import { useEffect, useState } from "react";
 import { useUpdateProfilePicMutation } from "../lib/api/users";
 import { useQuery } from "@tanstack/react-query";
-import { getPostsByUserIdQueryOptions } from "../lib/api/posts";
+import {
+  getPostsByUserIdQueryOptions,
+  getSavedPostsByUserIdQueryOptions,
+} from "../lib/api/posts";
 import { getCommentsByUserIdQueryOptions } from "../lib/api/comments";
 import { PostThumbnail } from "../components/PostThumbnail";
 import { CommentThumbnail } from "../components/CommentThumbnail";
@@ -33,6 +36,11 @@ function ProfilePage() {
   } = useQuery(getCommentsByUserIdQueryOptions((user && user.userId) || ""));
   const [showMenu, setShowMenu] = useState(false);
   const navigate = useNavigate();
+  const {
+    data: savedPosts,
+    isLoading: savedPostsLoading,
+    error: savedPostsError,
+  } = useQuery(getSavedPostsByUserIdQueryOptions((user && user.userId) || ""));
 
   async function handleImageUpload(event: React.ChangeEvent<HTMLInputElement>) {
     if (updateProfilePicPending) return;
@@ -65,6 +73,8 @@ function ProfilePage() {
   useEffect(() => {
     if (!user) navigate({ to: "/" });
   }, []);
+
+  useEffect(() => console.log(savedPosts), [savedPosts]);
 
   return (
     <div className="pt-[70px] max-w-[1000px] mx-auto">
@@ -154,6 +164,15 @@ function ProfilePage() {
           </div>
         ) : (profileMode === "Overview" || profileMode === "Posts") && posts ? (
           posts.map((post) => <PostThumbnail post={post} key={post.postId} />)
+        ) : savedPostsError ? (
+          <div>Error loading saved posts</div>
+        ) : savedPostsLoading ? (
+          <div>Loading...</div>
+        ) : savedPosts ? (
+          profileMode === "Saved" &&
+          savedPosts.map((post) => (
+            <PostThumbnail post={post} key={post.postId} />
+          ))
         ) : (
           (profileMode === "Overview" ||
             profileMode === "Posts" ||
@@ -177,7 +196,9 @@ function ProfilePage() {
           </div>
         ) : (profileMode === "Overview" || profileMode === "Comments") &&
           comments ? (
-          comments.map((comment) => <CommentThumbnail comment={comment} />)
+          comments.map((comment) => (
+            <CommentThumbnail comment={comment} key={comment.commentId} />
+          ))
         ) : (
           (profileMode === "Overview" ||
             profileMode === "Comments" ||
