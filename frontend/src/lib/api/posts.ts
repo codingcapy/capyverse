@@ -93,6 +93,21 @@ export const getPostsQueryOptions = () =>
     queryFn: () => getPosts(),
   });
 
+async function getPostsByPopular() {
+  const res = await client.api.v0.posts.popular.$get();
+  if (!res.ok) {
+    throw new Error("Error getting posts");
+  }
+  const { posts } = await res.json();
+  return posts.map(mapSerializedPostToSchema);
+}
+
+export const getPostsByPopularQueryOptions = () =>
+  queryOptions({
+    queryKey: ["popular-posts"],
+    queryFn: () => getPostsByPopular(),
+  });
+
 async function getPostById(postId: number) {
   const res = await client.api.v0.posts[":postId"].$get({
     param: { postId: postId.toString() },

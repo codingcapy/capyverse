@@ -4,9 +4,10 @@ import { Hono } from "hono";
 import { posts as postsTable } from "../schemas/posts";
 import { users as usersTable } from "../schemas/users";
 import { images as imagesTable } from "../schemas/images";
+import { votes as votesTable } from "../schemas/votes";
 import { mightFail, mightFailSync } from "might-fail";
 import { db } from "../db";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import { deleteImageFromS3 } from "./images";
@@ -105,6 +106,35 @@ export const postsRouter = new Hono()
     }
     return c.json({
       posts: postsQueryResult,
+    });
+  })
+  .get("/popular", async (c) => {
+    const scoreSubquery = db
+      .select({
+        postId: votesTable.postId,
+        score: sql<number>`coalesce(sum(${votesTable.value}), 0)`.as("score"),
+      })
+      .from(votesTable)
+      .groupBy(votesTable.postId)
+      .as("scores");
+    const { result, error } = await mightFail(
+      db
+        .select({
+          post: postsTable,
+        })
+        .from(postsTable)
+        .leftJoin(scoreSubquery, eq(scoreSubquery.postId, postsTable.postId))
+        .orderBy(desc(sql`coalesce(${scoreSubquery.score}, 0)`))
+        .limit(10)
+    );
+    if (error) {
+      throw new HTTPException(500, {
+        message: "Error occurred when fetching popular posts",
+        cause: error,
+      });
+    }
+    return c.json({
+      posts: result.map((r) => r.post),
     });
   })
   .get("/user/:userId", async (c) => {
