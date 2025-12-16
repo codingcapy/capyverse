@@ -6,9 +6,10 @@ import { mightFail } from "might-fail";
 import { db } from "../db";
 import { HTTPException } from "hono/http-exception";
 import { assertIsParsableInt } from "./posts";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { users as usersTable } from "../schemas/users";
 import z from "zod";
+import { savedComments as savedCommentsTable } from "../schemas/savedComments";
 
 const deleteCommentSchema = z.object({
   commentId: z.number(),
@@ -17,6 +18,11 @@ const deleteCommentSchema = z.object({
 const updateCommentSchema = z.object({
   commentId: z.number(),
   content: z.string(),
+});
+
+const saveCommentSchema = z.object({
+  userId: z.string(),
+  commentId: z.number(),
 });
 
 export const commentsRouter = new Hono()
@@ -174,4 +180,44 @@ export const commentsRouter = new Hono()
     return c.json({
       comments: commentsQueryResult,
     });
+  })
+  .post("/save", zValidator("json", saveCommentSchema), async (c) => {
+    const saveValues = c.req.valid("json");
+    const { result: savedCommentQueryResult, error: savedCommentsQueryError } =
+      await mightFail(
+        db
+          .select()
+          .from(savedCommentsTable)
+          .where(
+            and(
+              eq(savedCommentsTable.userId, saveValues.userId),
+              eq(savedCommentsTable.commentId, saveValues.commentId)
+            )
+          )
+      );
+    if (savedCommentsQueryError) {
+      throw new HTTPException(500, {
+        message: "Error occurred when fetching saved comment",
+        cause: savedCommentsQueryError,
+      });
+    }
+    if (savedCommentQueryResult.length > 0) {
+      throw new HTTPException(500, {
+        message: "Saved comment already exists",
+        cause: savedCommentsQueryError,
+      });
+    }
+    const { error: commentSaveError, result: commentSaveResult } =
+      await mightFail(
+        db.insert(savedCommentsTable).values(saveValues).returning()
+      );
+    if (commentSaveError) {
+      console.log("Error while creating saved comment");
+      console.log(commentSaveError);
+      throw new HTTPException(500, {
+        message: "Error while creating saved comment",
+        cause: commentSaveError,
+      });
+    }
+    return c.json({ commentResult: commentSaveResult[0] }, 200);
   });

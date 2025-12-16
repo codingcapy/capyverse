@@ -73,6 +73,7 @@ export function Menu(props: {
               e.stopPropagation();
               e.preventDefault();
               if (!user) return navigate({ to: "/login" });
+              if (unsavePostPending) return;
               unsavePost(
                 { userId: user.userId || "", postId: props.post.postId },
                 { onSuccess: () => props.setShowMenu(false) }
@@ -80,7 +81,7 @@ export function Menu(props: {
             }}
             className="ml-2"
           >
-            Remove from saved
+            {unsavePostPending ? "Removing..." : "Remove from saved"}
           </div>
         </div>
       ) : (
@@ -91,6 +92,7 @@ export function Menu(props: {
               e.stopPropagation();
               e.preventDefault();
               if (!user) return navigate({ to: "/login" });
+              if (savePostPending) return;
               savePost(
                 { userId: user.userId || "", postId: props.post.postId },
                 { onSuccess: () => props.setShowMenu(false) }
@@ -98,7 +100,7 @@ export function Menu(props: {
             }}
             className="ml-2"
           >
-            Save
+            {savePostPending ? "Saving..." : "Save"}
           </div>
         </div>
       )}
