@@ -188,20 +188,7 @@ export const postsRouter = new Hono()
     const userId = c.req.param("userId");
     const { result: postsQueryResult, error: postsQueryError } =
       await mightFail(
-        db
-          .select({
-            postId: postsTable.postId,
-            userId: postsTable.userId,
-            communityId: postsTable.communityId,
-            title: postsTable.title,
-            content: postsTable.content,
-            status: postsTable.status,
-            createdAt: postsTable.createdAt,
-            username: usersTable.username,
-          })
-          .from(postsTable)
-          .innerJoin(usersTable, eq(postsTable.userId, usersTable.userId))
-          .where(eq(postsTable.userId, userId))
+        db.select().from(postsTable).where(eq(postsTable.userId, userId))
       );
     if (postsQueryError) {
       throw new HTTPException(500, {
@@ -331,13 +318,12 @@ export const postsRouter = new Hono()
         db
           .select({
             postId: postsTable.postId,
-            userId: postsTable.userId, // author id
+            userId: postsTable.userId,
             communityId: postsTable.communityId,
             title: postsTable.title,
             content: postsTable.content,
             status: postsTable.status,
             createdAt: postsTable.createdAt,
-            username: usersTable.username, // author username
           })
           .from(savedPostsTable)
           .innerJoin(postsTable, eq(savedPostsTable.postId, postsTable.postId))

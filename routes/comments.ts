@@ -52,22 +52,7 @@ export const commentsRouter = new Hono()
   )
   .get("/", async (c) => {
     const { result: commentsQueryResult, error: commentsQueryError } =
-      await mightFail(
-        db
-          .select({
-            commentId: commentsTable.commentId,
-            userId: commentsTable.userId,
-            postId: commentsTable.postId,
-            parentCommentId: commentsTable.parentCommentId,
-            level: commentsTable.level,
-            content: commentsTable.content,
-            status: commentsTable.status,
-            createdAt: commentsTable.createdAt,
-            username: usersTable.username,
-          })
-          .from(commentsTable)
-          .innerJoin(usersTable, eq(commentsTable.userId, usersTable.userId))
-      );
+      await mightFail(db.select().from(commentsTable));
     if (commentsQueryError)
       throw new HTTPException(500, {
         message: "error querying comments",
@@ -80,21 +65,7 @@ export const commentsRouter = new Hono()
     const postId = assertIsParsableInt(postIdString);
     const { result: commentsQueryResult, error: commentsQueryError } =
       await mightFail(
-        db
-          .select({
-            commentId: commentsTable.commentId,
-            userId: commentsTable.userId,
-            postId: commentsTable.postId,
-            parentCommentId: commentsTable.parentCommentId,
-            level: commentsTable.level,
-            content: commentsTable.content,
-            status: commentsTable.status,
-            createdAt: commentsTable.createdAt,
-            username: usersTable.username,
-          })
-          .from(commentsTable)
-          .innerJoin(usersTable, eq(commentsTable.userId, usersTable.userId))
-          .where(eq(commentsTable.postId, postId))
+        db.select().from(commentsTable).where(eq(commentsTable.postId, postId))
       );
     if (commentsQueryError)
       throw new HTTPException(500, {
@@ -155,21 +126,7 @@ export const commentsRouter = new Hono()
     const userId = c.req.param("userId");
     const { result: commentsQueryResult, error: commentsQueryError } =
       await mightFail(
-        db
-          .select({
-            commentId: commentsTable.commentId,
-            userId: commentsTable.userId,
-            postId: commentsTable.postId,
-            parentCommentId: commentsTable.parentCommentId,
-            level: commentsTable.level,
-            content: commentsTable.content,
-            status: commentsTable.status,
-            createdAt: commentsTable.createdAt,
-            username: usersTable.username,
-          })
-          .from(commentsTable)
-          .innerJoin(usersTable, eq(commentsTable.userId, usersTable.userId))
-          .where(eq(commentsTable.userId, userId))
+        db.select().from(commentsTable).where(eq(commentsTable.userId, userId))
       );
     if (commentsQueryError) {
       throw new HTTPException(500, {
