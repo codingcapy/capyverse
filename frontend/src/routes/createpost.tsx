@@ -9,6 +9,7 @@ import {
 } from "../lib/api/images";
 import { useQuery } from "@tanstack/react-query";
 import { FaTrashCan } from "react-icons/fa6";
+import { PostContentInput } from "../components/PostContentInput";
 
 export const Route = createFileRoute("/createpost")({
   component: CreatePostPage,
@@ -37,6 +38,7 @@ function CreatePostPage() {
   const { mutate: deleteImage } = useDeleteImageMutation();
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const activeImage = imagesByUser && imagesByUser[activeImageIndex];
+  const [content, setContent] = useState("");
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -210,6 +212,7 @@ function CreatePostPage() {
           className="p-2 border border-[#c4c4c4] rounded-xl bg-[#414141] my-2 h-[200px]"
           placeholder="Content (optional)"
         />
+        <PostContentInput content={content} onChange={(e) => setContent(e)} />
         <button className="bg-cyan-500 px-5 py-2 rounded-full font-bold my-5">
           {createPostPending ? "Loading..." : "POST"}
         </button>

@@ -1,1 +1,10 @@
 @import "tailwindcss";
+
+.content-input {
+  outline: none !important;
+}
+
+.content-input:focus-within {
+  outline: none !important;
+  box-shadow: none !important;
+}
