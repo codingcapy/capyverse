@@ -6,9 +6,10 @@ import { mightFail } from "might-fail";
 import { db } from "../db";
 import { HTTPException } from "hono/http-exception";
 import { assertIsParsableInt } from "./posts";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { users as usersTable } from "../schemas/users";
 import z from "zod";
+import { savedComments as savedCommentsTable } from "../schemas/savedComments";
 
 const deleteCommentSchema = z.object({
   commentId: z.number(),
@@ -17,6 +18,11 @@ const deleteCommentSchema = z.object({
 const updateCommentSchema = z.object({
   commentId: z.number(),
   content: z.string(),
+});
+
+const saveCommentSchema = z.object({
+  userId: z.string(),
+  commentId: z.number(),
 });
 
 export const commentsRouter = new Hono()
@@ -46,22 +52,7 @@ export const commentsRouter = new Hono()
   )
   .get("/", async (c) => {
     const { result: commentsQueryResult, error: commentsQueryError } =
-      await mightFail(
-        db
-          .select({
-            commentId: commentsTable.commentId,
-            userId: commentsTable.userId,
-            postId: commentsTable.postId,
-            parentCommentId: commentsTable.parentCommentId,
-            level: commentsTable.level,
-            content: commentsTable.content,
-            status: commentsTable.status,
-            createdAt: commentsTable.createdAt,
-            username: usersTable.username,
-          })
-          .from(commentsTable)
-          .innerJoin(usersTable, eq(commentsTable.userId, usersTable.userId))
-      );
+      await mightFail(db.select().from(commentsTable));
     if (commentsQueryError)
       throw new HTTPException(500, {
         message: "error querying comments",
@@ -74,21 +65,7 @@ export const commentsRouter = new Hono()
     const postId = assertIsParsableInt(postIdString);
     const { result: commentsQueryResult, error: commentsQueryError } =
       await mightFail(
-        db
-          .select({
-            commentId: commentsTable.commentId,
-            userId: commentsTable.userId,
-            postId: commentsTable.postId,
-            parentCommentId: commentsTable.parentCommentId,
-            level: commentsTable.level,
-            content: commentsTable.content,
-            status: commentsTable.status,
-            createdAt: commentsTable.createdAt,
-            username: usersTable.username,
-          })
-          .from(commentsTable)
-          .innerJoin(usersTable, eq(commentsTable.userId, usersTable.userId))
-          .where(eq(commentsTable.postId, postId))
+        db.select().from(commentsTable).where(eq(commentsTable.postId, postId))
       );
     if (commentsQueryError)
       throw new HTTPException(500, {
@@ -149,21 +126,7 @@ export const commentsRouter = new Hono()
     const userId = c.req.param("userId");
     const { result: commentsQueryResult, error: commentsQueryError } =
       await mightFail(
-        db
-          .select({
-            commentId: commentsTable.commentId,
-            userId: commentsTable.userId,
-            postId: commentsTable.postId,
-            parentCommentId: commentsTable.parentCommentId,
-            level: commentsTable.level,
-            content: commentsTable.content,
-            status: commentsTable.status,
-            createdAt: commentsTable.createdAt,
-            username: usersTable.username,
-          })
-          .from(commentsTable)
-          .innerJoin(usersTable, eq(commentsTable.userId, usersTable.userId))
-          .where(eq(commentsTable.userId, userId))
+        db.select().from(commentsTable).where(eq(commentsTable.userId, userId))
       );
     if (commentsQueryError) {
       throw new HTTPException(500, {
@@ -174,4 +137,44 @@ export const commentsRouter = new Hono()
     return c.json({
       comments: commentsQueryResult,
     });
+  })
+  .post("/save", zValidator("json", saveCommentSchema), async (c) => {
+    const saveValues = c.req.valid("json");
+    const { result: savedCommentQueryResult, error: savedCommentsQueryError } =
+      await mightFail(
+        db
+          .select()
+          .from(savedCommentsTable)
+          .where(
+            and(
+              eq(savedCommentsTable.userId, saveValues.userId),
+              eq(savedCommentsTable.commentId, saveValues.commentId)
+            )
+          )
+      );
+    if (savedCommentsQueryError) {
+      throw new HTTPException(500, {
+        message: "Error occurred when fetching saved comment",
+        cause: savedCommentsQueryError,
+      });
+    }
+    if (savedCommentQueryResult.length > 0) {
+      throw new HTTPException(500, {
+        message: "Saved comment already exists",
+        cause: savedCommentsQueryError,
+      });
+    }
+    const { error: commentSaveError, result: commentSaveResult } =
+      await mightFail(
+        db.insert(savedCommentsTable).values(saveValues).returning()
+      );
+    if (commentSaveError) {
+      console.log("Error while creating saved comment");
+      console.log(commentSaveError);
+      throw new HTTPException(500, {
+        message: "Error while creating saved comment",
+        cause: commentSaveError,
+      });
+    }
+    return c.json({ commentResult: commentSaveResult[0] }, 200);
   });

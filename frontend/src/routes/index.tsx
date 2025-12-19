@@ -1,11 +1,8 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { getPostsQueryOptions } from "../lib/api/posts";
-import { useQuery } from "@tanstack/react-query";
-import { PostThumbnail } from "../components/PostThumbnail";
+import { createFileRoute } from "@tanstack/react-router";
 import { PiCaretDownBold } from "react-icons/pi";
 import { useEffect, useRef, useState } from "react";
-import { getVotesQueryOptions } from "../lib/api/votes";
-import usePostStore from "../store/PostStore";
+import { PostsByNew } from "../components/PostsByNew";
+import { PostsByPopular } from "../components/PostsByPopular";
 
 type SortMode = "Popular" | "New";
 
@@ -14,20 +11,9 @@ export const Route = createFileRoute("/")({
 });
 
 function IndexComponent() {
-  const {
-    data: posts,
-    isLoading: postsLoading,
-    isError: postsError,
-  } = useQuery(getPostsQueryOptions());
-  const {
-    data: votes,
-    isLoading: votesLoading,
-    isError: votesError,
-  } = useQuery(getVotesQueryOptions());
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>("Popular");
   const menuRef = useRef<HTMLDivElement | null>(null);
-  const { searchContent } = usePostStore();
 
   function handleClickOutside(event: MouseEvent) {
     if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -84,65 +70,7 @@ function IndexComponent() {
             )}
           </div>
         </div>
-        {postsError ? (
-          <div className="mx-auto w-full lg:w-[50%]">Error fetching posts</div>
-        ) : postsLoading ? (
-          <div className="mx-auto w-full lg:w-[50%]">Loading...</div>
-        ) : posts ? (
-          sortMode === "Popular" ? (
-            votesError ? (
-              <div className="mx-auto w-full lg:w-[50%]">
-                Error fetching votes
-              </div>
-            ) : votesLoading ? (
-              <div className="mx-auto w-full lg:w-[50%]">Loading...</div>
-            ) : votes ? (
-              posts
-                .sort((a, b) => {
-                  const aVotes =
-                    votes.filter((v) => v.postId === a.postId).length || 0;
-                  const bVotes =
-                    votes.filter((v) => v.postId === b.postId).length || 0;
-                  return bVotes - aVotes;
-                })
-                .map((post) =>
-                  searchContent === "" ? (
-                    <PostThumbnail post={post} key={post.postId} />
-                  ) : post.title
-                      .toLowerCase()
-                      .includes(searchContent.toLowerCase()) ||
-                    post.content
-                      .toLowerCase()
-                      .includes(searchContent.toLowerCase()) ? (
-                    <PostThumbnail post={post} key={post.postId} />
-                  ) : (
-                    ""
-                  )
-                )
-            ) : (
-              <div>An unexpected error has occured</div>
-            )
-          ) : (
-            posts
-              .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-              .map((post) =>
-                searchContent === "" ? (
-                  <PostThumbnail post={post} key={post.postId} />
-                ) : post.title
-                    .toLowerCase()
-                    .includes(searchContent.toLowerCase()) ||
-                  post.content
-                    .toLowerCase()
-                    .includes(searchContent.toLowerCase()) ? (
-                  <PostThumbnail post={post} key={post.postId} />
-                ) : (
-                  ""
-                )
-              )
-          )
-        ) : (
-          <div>No posts! Be the first to create one.</div>
-        )}
+        {sortMode === "Popular" ? <PostsByPopular /> : <PostsByNew />}
       </div>
     </div>
   );

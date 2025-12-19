@@ -35,7 +35,10 @@ export function VotesComponent(props: { post: Post }) {
     e.stopPropagation();
     if (createVotePending || updateVotePending) return;
     const vote =
-      votes && votes.find((vote) => user && vote.userId === user.userId);
+      votes &&
+      votes.find(
+        (vote) => vote.commentId === null && user && vote.userId === user.userId
+      );
     if (user && vote) {
       updateVote({ voteId: vote.voteId, value });
     } else if (user) {

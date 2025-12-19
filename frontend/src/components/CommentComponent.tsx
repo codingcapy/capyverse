@@ -10,7 +10,7 @@ import {
   useUpdateCommentMutation,
 } from "../lib/api/comments";
 import { useNavigate } from "@tanstack/react-router";
-import { CommentNode, SerializedComment } from "../routes/posts/$postId";
+import { CommentNode } from "../routes/posts/$postId";
 import { FaEllipsis } from "react-icons/fa6";
 import { CommentMenu } from "./CommentMenu";
 import usePostStore from "../store/PostStore";
@@ -93,7 +93,15 @@ export function CommentComponent(props: { comment: CommentNode; post: Post }) {
       />
       <div className="ml-4 pl-5 border-l border-[#555555] w-full">
         <div className="flex text-[#bdbdbd] text-sm">
-          <div className="font-bold">{props.comment.username}</div>
+          {commenterLoading ? (
+            <div>Loading...</div>
+          ) : commenterError ? (
+            <div>Unknown author</div>
+          ) : commenter ? (
+            <div className="font-bold">{commenter.username}</div>
+          ) : (
+            <div>Unknown author</div>
+          )}
           <div className="px-1">•</div>
           <div>{displayDate(props.post.createdAt)}</div>
         </div>

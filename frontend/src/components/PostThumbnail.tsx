@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { FaEllipsis } from "react-icons/fa6";
 import { VotesComponent } from "./VotesComponent";
 import { displayDate } from "../lib/utils";
-import { PostWithUser, useDeletePostMutation } from "../lib/api/posts";
+import { useDeletePostMutation } from "../lib/api/posts";
 import { useState } from "react";
 import useAuthStore from "../store/AuthStore";
 import { Menu } from "./Menu";
@@ -12,16 +12,19 @@ import { getUserByIdQueryOptions } from "../lib/api/users";
 import { getCommentsByPostIdQueryOptions } from "../lib/api/comments";
 import { IoChatbubbleOutline } from "react-icons/io5";
 import { getImagesByPostIdQueryOptions } from "../lib/api/images";
+import { Post } from "../../../schemas/posts";
 
-export function PostThumbnail(props: { post: PostWithUser }) {
+export function PostThumbnail(props: { post: Post }) {
   const [showMenu, setShowMenu] = useState(false);
   const [deleteMode, setDeleteMode] = useState(false);
   const { mutate: deletePost, isPending: deletePostPending } =
     useDeletePostMutation();
   const { user } = useAuthStore();
-  const { data: poster, isLoading: posterLoading } = useQuery(
-    getUserByIdQueryOptions(props.post.userId)
-  );
+  const {
+    data: poster,
+    isLoading: posterLoading,
+    error: posterError,
+  } = useQuery(getUserByIdQueryOptions(props.post.userId));
   const {
     data: comments,
     isLoading: commentsLoading,
@@ -47,7 +50,7 @@ export function PostThumbnail(props: { post: PostWithUser }) {
             <div className="flex text-[#bdbdbd] text-sm">
               <img
                 src={
-                  !posterLoading
+                  !posterLoading || posterError
                     ? poster
                       ? poster.profilePic
                         ? poster.profilePic
@@ -58,7 +61,15 @@ export function PostThumbnail(props: { post: PostWithUser }) {
                 alt=""
                 className="w-6 h-6 rounded-full"
               />
-              <div className="font-bold ml-2">{props.post.username}</div>
+              {posterLoading ? (
+                <div>Loading...</div>
+              ) : posterError ? (
+                <div>Unknown author</div>
+              ) : poster ? (
+                <div className="font-bold ml-2">{poster.username}</div>
+              ) : (
+                <div>Unknown author</div>
+              )}
               <div className="px-1">•</div>
               <div>{displayDate(props.post.createdAt)}</div>
             </div>

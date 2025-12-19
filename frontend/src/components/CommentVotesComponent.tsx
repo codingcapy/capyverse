@@ -34,7 +34,13 @@ export function CommentVotesComponent(props: { comment: Comment }) {
     e.stopPropagation();
     if (createVotePending || updateVotePending) return;
     const vote =
-      votes && votes.find((vote) => user && vote.userId === user.userId);
+      votes &&
+      votes.find(
+        (vote) =>
+          vote.commentId === props.comment.commentId &&
+          user &&
+          vote.userId === user.userId
+      );
     if (user && vote) {
       updateVote({ voteId: vote.voteId, value });
     } else if (user) {
@@ -58,7 +64,11 @@ export function CommentVotesComponent(props: { comment: Comment }) {
       ) : votes ? (
         <div className="flex w-fit rounded-full py-1 justify-center">
           {votes.filter(
-            (vote) => user && vote.userId === user.userId && vote.value === 1
+            (vote) =>
+              vote.commentId === props.comment.commentId &&
+              user &&
+              vote.userId === user.userId &&
+              vote.value === 1
           ).length > 0 ? (
             <div
               onClick={(e) => {
@@ -67,7 +77,7 @@ export function CommentVotesComponent(props: { comment: Comment }) {
                 updateVote({
                   voteId: votes.find(
                     (vote) =>
-                      vote.postId === props.comment.postId &&
+                      vote.commentId === props.comment.commentId &&
                       user &&
                       vote.userId === user.userId &&
                       vote.value === 1
@@ -91,11 +101,15 @@ export function CommentVotesComponent(props: { comment: Comment }) {
           )}
           <div className="">
             {votes
-              .filter((vote) => vote.postId === props.comment.postId)
+              .filter((vote) => vote.commentId === props.comment.commentId)
               .reduce((acc, vote) => acc + vote.value!, 0)}
           </div>
           {votes.filter(
-            (vote) => user && vote.userId === user.userId && vote.value === -1
+            (vote) =>
+              vote.commentId === props.comment.commentId &&
+              user &&
+              vote.userId === user.userId &&
+              vote.value === -1
           ).length > 0 ? (
             <div
               onClick={(e) => {
@@ -104,7 +118,7 @@ export function CommentVotesComponent(props: { comment: Comment }) {
                 updateVote({
                   voteId: votes.find(
                     (vote) =>
-                      vote.postId === props.comment.postId &&
+                      vote.commentId === props.comment.commentId &&
                       user &&
                       vote.userId === user.userId &&
                       vote.value === -1

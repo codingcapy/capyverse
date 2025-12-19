@@ -4,12 +4,14 @@ import { Hono } from "hono";
 import { posts as postsTable } from "../schemas/posts";
 import { users as usersTable } from "../schemas/users";
 import { images as imagesTable } from "../schemas/images";
+import { votes as votesTable } from "../schemas/votes";
 import { mightFail, mightFailSync } from "might-fail";
 import { db } from "../db";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import { deleteImageFromS3 } from "./images";
+import { savedPosts as savedPostsTable } from "../schemas/savedPosts";
 
 const deletePostSchema = z.object({
   postId: z.number(),
@@ -18,6 +20,11 @@ const deletePostSchema = z.object({
 const updatePostSchema = z.object({
   postId: z.number(),
   content: z.string(),
+});
+
+const savePostSchema = z.object({
+  userId: z.string(),
+  postId: z.number(),
 });
 
 export function assertIsParsableInt(id: string): number {
@@ -83,52 +90,105 @@ export const postsRouter = new Hono()
     }
   )
   .get("/", async (c) => {
-    const { result: postsQueryResult, error: postsQueryError } =
-      await mightFail(
-        db
-          .select({
-            postId: postsTable.postId,
-            userId: postsTable.userId,
-            communityId: postsTable.communityId,
-            title: postsTable.title,
-            content: postsTable.content,
-            status: postsTable.status,
-            createdAt: postsTable.createdAt,
-            username: usersTable.username,
-          })
-          .from(postsTable)
-          .innerJoin(usersTable, eq(postsTable.userId, usersTable.userId))
-          .orderBy(desc(postsTable.createdAt))
-          .limit(100)
-      );
-    if (postsQueryError) {
+    const limit = Number(c.req.query("limit") ?? 10);
+    const cursorPostId = c.req.query("cursorPostId");
+    const cursorWhere = cursorPostId
+      ? sql`${postsTable.postId} < ${Number(cursorPostId)}`
+      : undefined;
+    const { result, error } = await mightFail(
+      db
+        .select()
+        .from(postsTable)
+        .where(cursorWhere)
+        .orderBy(desc(postsTable.postId)) // newest first
+        .limit(limit + 1)
+    );
+    if (error) {
       throw new HTTPException(500, {
         message: "Error occurred when fetching posts",
-        cause: postsQueryError,
+        cause: error,
       });
     }
+    const hasNextPage = result.length > limit;
+    const pageItems = hasNextPage ? result.slice(0, limit) : result;
+    const last = pageItems.at(-1);
     return c.json({
-      posts: postsQueryResult,
+      posts: pageItems,
+      nextCursor: hasNextPage ? { postId: last!.postId } : null,
+    });
+  })
+  .get("/popular", async (c) => {
+    const limit = Number(c.req.query("limit") ?? 10);
+    const cursorScore = c.req.query("cursorScore");
+    const cursorCreatedAt = c.req.query("cursorCreatedAt");
+    const cursorPostId = c.req.query("cursorPostId");
+    const scoreSubquery = db
+      .select({
+        postId: votesTable.postId,
+        score: sql<number>`coalesce(sum(${votesTable.value}), 0)`.as("score"),
+      })
+      .from(votesTable)
+      .where(
+        and(sql`${votesTable.value} != 0`, sql`${votesTable.commentId} IS NULL`)
+      )
+      .groupBy(votesTable.postId)
+      .as("scores");
+    const cursorWhere =
+      cursorScore && cursorPostId
+        ? sql`
+        (
+          coalesce(${scoreSubquery.score}, 0) < ${Number(cursorScore)}
+        )
+        OR (
+          coalesce(${scoreSubquery.score}, 0) = ${Number(cursorScore)}
+          AND ${postsTable.postId} < ${Number(cursorPostId)}
+        )
+      `
+        : undefined;
+    const { result, error } = await mightFail(
+      db
+        .select({
+          post: postsTable,
+          score: sql<number>`coalesce(${scoreSubquery.score}, 0)`.as("score"),
+        })
+        .from(postsTable)
+        .leftJoin(scoreSubquery, eq(scoreSubquery.postId, postsTable.postId))
+        .where(cursorWhere)
+        .orderBy(
+          desc(sql`coalesce(${scoreSubquery.score}, 0)`),
+          desc(postsTable.postId)
+        )
+        .limit(limit + 1) // fetch one extra to detect next page
+    );
+    if (error) {
+      throw new HTTPException(500, {
+        message: "Error occurred when fetching popular posts",
+        cause: error,
+      });
+    }
+    const hasNextPage = result.length > limit;
+    const pageItems = hasNextPage ? result.slice(0, limit) : result;
+    const last = pageItems.at(-1);
+    console.log({
+      returned: pageItems.length,
+      hasNextPage,
+    });
+    return c.json({
+      posts: pageItems.map((r) => r.post),
+      nextCursor: hasNextPage
+        ? {
+            score: last!.score,
+            createdAt: last!.post.createdAt,
+            postId: last!.post.postId,
+          }
+        : null,
     });
   })
   .get("/user/:userId", async (c) => {
     const userId = c.req.param("userId");
     const { result: postsQueryResult, error: postsQueryError } =
       await mightFail(
-        db
-          .select({
-            postId: postsTable.postId,
-            userId: postsTable.userId,
-            communityId: postsTable.communityId,
-            title: postsTable.title,
-            content: postsTable.content,
-            status: postsTable.status,
-            createdAt: postsTable.createdAt,
-            username: usersTable.username,
-          })
-          .from(postsTable)
-          .innerJoin(usersTable, eq(postsTable.userId, usersTable.userId))
-          .where(eq(postsTable.userId, userId))
+        db.select().from(postsTable).where(eq(postsTable.userId, userId))
       );
     if (postsQueryError) {
       throw new HTTPException(500, {
@@ -158,13 +218,13 @@ export const postsRouter = new Hono()
     });
   })
   .post("/post/delete", zValidator("json", deletePostSchema), async (c) => {
-    const insertValues = c.req.valid("json");
+    const deleteValues = c.req.valid("json");
     const { error: postDeleteError, result: postDeleteResult } =
       await mightFail(
         db
           .update(postsTable)
           .set({ content: "[This post has been deleted by the user]" })
-          .where(eq(postsTable.postId, insertValues.postId))
+          .where(eq(postsTable.postId, deleteValues.postId))
           .returning()
       );
     if (postDeleteError) {
@@ -179,7 +239,7 @@ export const postsRouter = new Hono()
       await mightFail(
         db
           .delete(imagesTable)
-          .where(and(eq(imagesTable.postId, insertValues.postId)))
+          .where(and(eq(imagesTable.postId, deleteValues.postId)))
           .returning()
       );
     if (imageDeleteError) {
@@ -193,13 +253,13 @@ export const postsRouter = new Hono()
     return c.json({ postResult: postDeleteResult[0] }, 200);
   })
   .post("/post/update", zValidator("json", updatePostSchema), async (c) => {
-    const insertValues = c.req.valid("json");
+    const updateValues = c.req.valid("json");
     const { error: postUpdateError, result: postUpdateResult } =
       await mightFail(
         db
           .update(postsTable)
-          .set({ content: insertValues.content })
-          .where(eq(postsTable.postId, insertValues.postId))
+          .set({ content: updateValues.content })
+          .where(eq(postsTable.postId, updateValues.postId))
           .returning()
       );
     if (postUpdateError) {
@@ -211,4 +271,92 @@ export const postsRouter = new Hono()
       });
     }
     return c.json({ postResult: postUpdateResult[0] }, 200);
+  })
+  .post("/save", zValidator("json", savePostSchema), async (c) => {
+    const saveValues = c.req.valid("json");
+    const { result: savedPostQueryResult, error: savedPostsQueryError } =
+      await mightFail(
+        db
+          .select()
+          .from(savedPostsTable)
+          .where(
+            and(
+              eq(savedPostsTable.userId, saveValues.userId),
+              eq(savedPostsTable.postId, saveValues.postId)
+            )
+          )
+      );
+    if (savedPostsQueryError) {
+      throw new HTTPException(500, {
+        message: "Error occurred when fetching saved post",
+        cause: savedPostsQueryError,
+      });
+    }
+    if (savedPostQueryResult.length > 0) {
+      throw new HTTPException(500, {
+        message: "Saved post already exists",
+        cause: savedPostsQueryError,
+      });
+    }
+    const { error: postSaveError, result: postSaveResult } = await mightFail(
+      db.insert(savedPostsTable).values(saveValues).returning()
+    );
+    if (postSaveError) {
+      console.log("Error while creating post");
+      console.log(postSaveError);
+      throw new HTTPException(500, {
+        message: "Error while creating post",
+        cause: postSaveError,
+      });
+    }
+    return c.json({ postResult: postSaveResult[0] }, 200);
+  })
+  .get("/saved/:userId", async (c) => {
+    const userId = c.req.param("userId");
+    const { result: savedPostsResult, error: savedPostsError } =
+      await mightFail(
+        db
+          .select({
+            postId: postsTable.postId,
+            userId: postsTable.userId,
+            communityId: postsTable.communityId,
+            title: postsTable.title,
+            content: postsTable.content,
+            status: postsTable.status,
+            createdAt: postsTable.createdAt,
+          })
+          .from(savedPostsTable)
+          .innerJoin(postsTable, eq(savedPostsTable.postId, postsTable.postId))
+          .innerJoin(usersTable, eq(postsTable.userId, usersTable.userId))
+          .where(eq(savedPostsTable.userId, userId))
+          .orderBy(desc(savedPostsTable.createdAt)) // optional but recommended
+      );
+    if (savedPostsError) {
+      throw new HTTPException(500, {
+        message: "Error occurred when fetching saved posts",
+        cause: savedPostsError,
+      });
+    }
+    return c.json({
+      posts: savedPostsResult,
+    });
+  })
+  .post("/unsave", zValidator("json", savePostSchema), async (c) => {
+    const saveValues = c.req.valid("json");
+    const { error: postUnsaveError, result: postUnsaveResult } =
+      await mightFail(
+        db
+          .delete(savedPostsTable)
+          .where(eq(savedPostsTable.postId, saveValues.postId))
+          .returning()
+      );
+    if (postUnsaveError) {
+      console.log("Error while creating post");
+      console.log(postUnsaveError);
+      throw new HTTPException(500, {
+        message: "Error while creating post",
+        cause: postUnsaveError,
+      });
+    }
+    return c.json({ postResult: postUnsaveResult[0] }, 200);
   });

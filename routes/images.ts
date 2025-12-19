@@ -139,7 +139,6 @@ export const imagesRouter = new Hono()
     }
   )
   .get("/:postId", async (c) => {
-    console.log("get images by post id");
     const postId = c.req.param("postId");
     if (!postId) {
       return c.json({ error: "postId parameter is required." }, 400);

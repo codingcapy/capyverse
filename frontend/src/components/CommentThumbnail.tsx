@@ -7,20 +7,9 @@ import { CommentVotesComponent } from "./CommentVotesComponent";
 import { useState } from "react";
 import { CommentMenu } from "./CommentMenu";
 import { useDeleteCommentMutation } from "../lib/api/comments";
+import { Comment } from "../../../schemas/comments";
 
-export function CommentThumbnail(props: {
-  comment: {
-    createdAt: Date;
-    commentId: number;
-    userId: string;
-    postId: number;
-    parentCommentId: number | null;
-    level: number;
-    content: string | null;
-    status: string;
-    username: string | null;
-  };
-}) {
+export function CommentThumbnail(props: { comment: Comment }) {
   const { user } = useAuthStore();
   const [showMenu, setShowMenu] = useState(false);
   const [deleteMode, setDeleteMode] = useState(false);

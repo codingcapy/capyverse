@@ -28,20 +28,9 @@ import defaultProfile from "/capypaul01.jpg";
 import { getImagesByPostIdQueryOptions } from "../../lib/api/images";
 import { PiCaretRightBold } from "react-icons/pi";
 import { PiCaretLeftBold } from "react-icons/pi";
+import { Comment } from "../../../../schemas/comments";
 
-export type SerializedComment = {
-  createdAt: Date;
-  commentId: number;
-  userId: string;
-  postId: number;
-  parentCommentId: number | null;
-  level: number;
-  content: string | null;
-  status: string;
-  username: string | null;
-};
-
-export type CommentNode = SerializedComment & {
+export type CommentNode = Comment & {
   children: CommentNode[];
 };
 
@@ -113,7 +102,7 @@ function PostComponent() {
   const activeImage = images && images[activeImageIndex];
 
   function buildCommentTree(
-    comments: SerializedComment[],
+    comments: Comment[],
     opts?: { sort?: "asc" | "desc" }
   ): CommentNode[] {
     const sort = opts?.sort ?? "desc";
