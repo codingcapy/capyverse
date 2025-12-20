@@ -77,6 +77,8 @@ function CreatePostPage() {
     };
   }, [imagePreview]);
 
+  useEffect(() => console.log(content), [content]);
+
   return (
     <div className="pt-20 w-[80%] lg:w-[50%] 2xl:w-[30%] mx-auto">
       <div className="text-center font-bold text-cyan-500 text-2xl mb-10">

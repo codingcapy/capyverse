@@ -5,6 +5,7 @@ import BulletList from "@tiptap/extension-bullet-list";
 import OrderedList from "@tiptap/extension-ordered-list";
 import ListItem from "@tiptap/extension-list-item";
 import Link from "@tiptap/extension-link";
+import Placeholder from "@tiptap/extension-placeholder";
 import { FaBold } from "react-icons/fa6";
 import { FaItalic } from "react-icons/fa6";
 import { FaUnderline } from "react-icons/fa6";
@@ -26,6 +27,11 @@ export function PostContentInput(props: {
       OrderedList,
       ListItem,
       Link.configure({ openOnClick: true }),
+      Placeholder.configure({
+        placeholder: "Content (optional)",
+        showOnlyWhenEditable: false,
+        showOnlyCurrent: false,
+      }),
     ],
     content,
     onUpdate: ({ editor }) => {
@@ -51,7 +57,7 @@ export function PostContentInput(props: {
 
   return (
     <div className="border border-[#c4c4c4] rounded-xl my-2">
-      <div className="p-2 mb-2 flex gap-2 text-white">
+      <div className="p-2 flex gap-2 text-white">
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleBold().run()}
@@ -102,7 +108,7 @@ export function PostContentInput(props: {
           <FaLink size={12} />
         </button>
       </div>
-      <div className="h-[200px] p-2 outline-none">
+      <div className="h-[200px] px-5 outline-none">
         <EditorContent
           editor={editor}
           className="content-input custom-editor outline-none h-[200px]"
