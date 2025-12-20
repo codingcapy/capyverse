@@ -44,7 +44,6 @@ function CreatePostPage() {
     e.preventDefault();
     if (!user) return "Error: no logged in user";
     const titleInput = (e.target as HTMLFormElement).titleinput.value;
-    const content = (e.target as HTMLFormElement).content.value;
     createPost(
       { userId: user.userId || "", title: titleInput, content },
       {
@@ -81,7 +80,7 @@ function CreatePostPage() {
 
   return (
     <div className="pt-20 w-[80%] lg:w-[50%] 2xl:w-[30%] mx-auto">
-      <div className="text-center font-bold text-cyan-500 text-2xl mb-10">
+      <div className="text-center font-bold text-cyan-500 text-2xl mb-5">
         Create Post
       </div>
       <form onSubmit={handleSubmit} className="flex flex-col mx-auto ">
@@ -208,12 +207,6 @@ function CreatePostPage() {
             />
           </div>
         </div>
-        <textarea
-          name="content"
-          id="content"
-          className="p-2 border border-[#c4c4c4] rounded-xl bg-[#414141] my-2 h-[200px]"
-          placeholder="Content (optional)"
-        />
         <PostContentInput content={content} onChange={(e) => setContent(e)} />
         <button className="bg-cyan-500 px-5 py-2 rounded-full font-bold my-5">
           {createPostPending ? "Loading..." : "POST"}

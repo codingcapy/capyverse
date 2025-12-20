@@ -29,6 +29,8 @@ import { getImagesByPostIdQueryOptions } from "../../lib/api/images";
 import { PiCaretRightBold } from "react-icons/pi";
 import { PiCaretLeftBold } from "react-icons/pi";
 import { Comment } from "../../../../schemas/comments";
+import DOMPurify from "dompurify";
+import { PostContentInput } from "../../components/PostContentInput";
 
 export type CommentNode = Comment & {
   children: CommentNode[];
@@ -273,14 +275,9 @@ function PostComponent() {
       </div>
       {editPostModePointer === post.postId ? (
         <div>
-          <textarea
-            name="content"
-            id="content"
-            required
-            className="p-2 border border-[#c4c4c4] rounded my-2 w-full h-[300px]"
-            placeholder="content"
-            value={editContent}
-            onChange={(e) => setEditContent(e.target.value)}
+          <PostContentInput
+            content={editContent}
+            onChange={(e) => setEditContent(e)}
           />
           <div className="flex justify-end">
             <div
@@ -316,7 +313,28 @@ function PostComponent() {
         </div>
       ) : (
         <div className="mb-5">
-          <div>{post.content}</div>
+          <div
+            className=""
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(post.content, {
+                ALLOWED_TAGS: [
+                  "b",
+                  "i",
+                  "u",
+                  "s",
+                  "strong",
+                  "em",
+                  "ul",
+                  "ol",
+                  "li",
+                  "p",
+                  "a",
+                ],
+                ALLOWED_ATTR: ["href", "target", "rel"],
+                FORBID_ATTR: ["style"],
+              }),
+            }}
+          ></div>
         </div>
       )}
       <VotesComponent post={post} />

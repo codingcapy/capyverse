@@ -108,10 +108,10 @@ export function PostContentInput(props: {
           <FaLink size={12} />
         </button>
       </div>
-      <div className="h-[200px] px-5 outline-none">
+      <div className="min-h-[200px] px-5 outline-none">
         <EditorContent
           editor={editor}
-          className="content-input custom-editor outline-none h-[200px]"
+          className="content-input custom-editor outline-none min-h-[200px]"
           placeholder="Content (optional)"
         />
       </div>

@@ -13,6 +13,7 @@ import { getCommentsByPostIdQueryOptions } from "../lib/api/comments";
 import { IoChatbubbleOutline } from "react-icons/io5";
 import { getImagesByPostIdQueryOptions } from "../lib/api/images";
 import { Post } from "../../../schemas/posts";
+import DOMPurify from "dompurify";
 
 export function PostThumbnail(props: { post: Post }) {
   const [showMenu, setShowMenu] = useState(false);
@@ -110,7 +111,30 @@ export function PostThumbnail(props: { post: Post }) {
           ) : (
             <div>An unexpected error has occured</div>
           )}
-          <div className="my-2">{props.post.content}</div>
+          <div className="my-2">
+            <div
+              className=""
+              dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(props.post.content, {
+                  ALLOWED_TAGS: [
+                    "b",
+                    "i",
+                    "u",
+                    "s",
+                    "strong",
+                    "em",
+                    "ul",
+                    "ol",
+                    "li",
+                    "p",
+                    "a",
+                  ],
+                  ALLOWED_ATTR: ["href", "target", "rel"],
+                  FORBID_ATTR: ["style"],
+                }),
+              }}
+            ></div>
+          </div>
           <div className="flex">
             <VotesComponent post={props.post} />
             <div className="flex bg-[#3e3e3e] w-fit rounded-full py-1 justify-center ml-2 hover:text-cyan-500 transition-all ease-in-out duration-300">
