@@ -43,7 +43,13 @@ function CreatePostPage() {
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!user) return "Error: no logged in user";
+    if (content.length > 10000)
+      return setNotification(
+        "Post content length max character limit is 10,000"
+      );
     const titleInput = (e.target as HTMLFormElement).titleinput.value;
+    if (titleInput.length > 400)
+      return setNotification("Title content length max character limit is 400");
     createPost(
       { userId: user.userId || "", title: titleInput, content },
       {

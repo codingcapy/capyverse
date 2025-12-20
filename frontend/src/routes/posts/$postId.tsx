@@ -102,6 +102,7 @@ function PostComponent() {
   } = useQuery(getImagesByPostIdQueryOptions(post.postId));
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const activeImage = images && images[activeImageIndex];
+  const [notification, setNotification] = useState("");
 
   function buildCommentTree(
     comments: Comment[],
@@ -143,6 +144,10 @@ function PostComponent() {
   function handleCreateComment(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (createCommentPending) return;
+    if (commentContent.length > 10000)
+      return setNotification(
+        "Comment content length max character limit is 10,000"
+      );
     if (!user) return navigate({ to: "/login" });
     const userId = user.userId;
     createComment(
@@ -292,6 +297,10 @@ function PostComponent() {
             <button
               onClick={() => {
                 if (updatePostPending) return;
+                if (editContent.length > 10000)
+                  return setNotification(
+                    "Post content length max character limit is 10,000"
+                  );
                 updatePost(
                   {
                     postId: post.postId,

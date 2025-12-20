@@ -53,6 +53,16 @@ export const postsRouter = new Hono()
     ),
     async (c) => {
       const insertValues = c.req.valid("json");
+      if (insertValues.content && insertValues.content.length > 10000)
+        throw new HTTPException(401, {
+          message: "Post content length exceeds max char limit",
+          cause: Error(),
+        });
+      if (insertValues.title && insertValues.title.length > 400)
+        throw new HTTPException(401, {
+          message: "Post title length exceeds max char limit",
+          cause: Error(),
+        });
       const { error: postInsertError, result: postInsertResult } =
         await mightFail(db.insert(postsTable).values(insertValues).returning());
       if (postInsertError) {
