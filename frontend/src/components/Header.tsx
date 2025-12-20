@@ -5,6 +5,7 @@ import { CgProfile } from "react-icons/cg";
 import { IoSearch } from "react-icons/io5";
 import { FaArrowLeft } from "react-icons/fa";
 import usePostStore from "../store/PostStore";
+import defaultProfile from "/capypaul01.jpg";
 
 export function Header() {
   const { user } = useAuthStore();
@@ -75,13 +76,22 @@ export function Header() {
               >
                 + Create
               </Link>
-              <div
-                onClick={() => setShowMenu(!showMenu)}
-                className="flex cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300"
-              >
-                <CgProfile size={25} />
-                <div className="ml-1">{user.username}</div>
-              </div>
+              {window.innerWidth > 500 ? (
+                <div
+                  onClick={() => setShowMenu(!showMenu)}
+                  className="flex cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300"
+                >
+                  <CgProfile size={25} />
+                  <div className="ml-1">{user.username}</div>
+                </div>
+              ) : (
+                <img
+                  src={user.profilePic ? user.profilePic : defaultProfile}
+                  alt="User Profile"
+                  onClick={() => setShowMenu(!showMenu)}
+                  className="w-8 h-8 rounded-full cursor-pointer"
+                />
+              )}
             </div>
           ) : (
             <Link
