@@ -113,7 +113,7 @@ export function PostThumbnail(props: { post: Post }) {
           )}
           <div className="my-2">
             <div
-              className=""
+              className="line-clamp-4"
               dangerouslySetInnerHTML={{
                 __html: DOMPurify.sanitize(props.post.content, {
                   ALLOWED_TAGS: [
