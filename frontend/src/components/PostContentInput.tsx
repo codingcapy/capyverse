@@ -61,49 +61,49 @@ export function PostContentInput(props: {
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleBold().run()}
-          className={`p-4 rounded-full hover:bg-[#383838] ${editor.isActive("bold") ? "bg-[#383838]" : ""} cursor-pointer`}
+          className={`p-2 sm:p-4 rounded-full hover:bg-[#383838] ${editor.isActive("bold") ? "bg-[#383838]" : ""} cursor-pointer`}
         >
           <FaBold size={12} />
         </button>
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleItalic().run()}
-          className={`px-4 rounded-full hover:bg-[#383838] ${editor.isActive("italic") ? "bg-[#383838]" : ""} cursor-pointer`}
+          className={`p-2 sm:p-4 rounded-full hover:bg-[#383838] ${editor.isActive("italic") ? "bg-[#383838]" : ""} cursor-pointer`}
         >
           <FaItalic size={12} />
         </button>
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleUnderline().run()}
-          className={`px-4 rounded-full hover:bg-[#383838] ${editor.isActive("underline") ? "bg-[#383838]" : ""} cursor-pointer`}
+          className={`p-2 sm:p-4 rounded-full hover:bg-[#383838] ${editor.isActive("underline") ? "bg-[#383838]" : ""} cursor-pointer`}
         >
           <FaUnderline size={12} />
         </button>
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleStrike().run()}
-          className={`px-4 rounded-full hover:bg-[#383838] ${editor.isActive("strike") ? "bg-[#383838]" : ""} cursor-pointer`}
+          className={`p-2 sm:p-4 rounded-full hover:bg-[#383838] ${editor.isActive("strike") ? "bg-[#383838]" : ""} cursor-pointer`}
         >
           <FaStrikethrough size={12} />
         </button>
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleBulletList().run()}
-          className={`px-4 rounded-full hover:bg-[#383838] ${editor.isActive("bulletList") ? "bg-[#383838]" : ""} cursor-pointer`}
+          className={`p-2 sm:p-4 rounded-full hover:bg-[#383838] ${editor.isActive("bulletList") ? "bg-[#383838]" : ""} cursor-pointer`}
         >
           <FaList size={12} />
         </button>
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          className={`px-4 rounded-full hover:bg-[#383838] ${editor.isActive("orderedList") ? "bg-[#383838]" : ""} cursor-pointer`}
+          className={`p-2 sm:p-4 rounded-full hover:bg-[#383838] ${editor.isActive("orderedList") ? "bg-[#383838]" : ""} cursor-pointer`}
         >
           <FaListOl size={12} />
         </button>
         <button
           type="button"
           onClick={handleLink}
-          className={`px-4 rounded-full hover:bg-[#383838] ${editor.isActive("link") ? "bg-[#383838]" : ""} cursor-pointer`}
+          className={`p-2 sm:p-4 rounded-full hover:bg-[#383838] ${editor.isActive("link") ? "bg-[#383838]" : ""} cursor-pointer`}
         >
           <FaLink size={12} />
         </button>
