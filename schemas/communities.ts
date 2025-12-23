@@ -1,8 +1,14 @@
-import { pgTable, varchar, timestamp, boolean } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  varchar,
+  timestamp,
+  boolean,
+  serial,
+} from "drizzle-orm/pg-core";
 import type { InferSelectModel } from "drizzle-orm";
 
 export const communities = pgTable("communities", {
-  communityId: varchar("community_id").primaryKey(),
+  communityId: serial("community_id").primaryKey(),
   title: varchar("title").notNull(),
   description: varchar("description").notNull().unique(),
   category: varchar("category").default("technology").notNull(),
