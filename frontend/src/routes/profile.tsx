@@ -77,7 +77,7 @@ function ProfilePage() {
   useEffect(() => console.log(savedPosts), [savedPosts]);
 
   return (
-    <div className="pt-[70px] max-w-[1000px] mx-auto">
+    <div className="pt-[70px] 2xl:mx-auto">
       <div className="flex text-2xl font-bold">
         <div
           className="relative cursor-pointer"
@@ -151,7 +151,7 @@ function ProfilePage() {
           + Create Post
         </Link>
       </div>
-      <div className="my-10">
+      <div className="my-10 w-full">
         {(profileMode === "Overview" || profileMode === "Posts") &&
         postsError ? (
           <div className="mx-auto w-full md:w-[50%] 2xl:w-[750px] border-t border-[#636363]">
