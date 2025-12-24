@@ -18,4 +18,4 @@ export const communities = pgTable("communities", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export type Posts = InferSelectModel<typeof communities>;
+export type Community = InferSelectModel<typeof communities>;

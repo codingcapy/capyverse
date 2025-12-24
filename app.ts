@@ -9,6 +9,7 @@ import { postsRouter } from "./routes/posts";
 import { commentsRouter } from "./routes/comments";
 import { votesRouter } from "./routes/votes";
 import { imagesRouter } from "./routes/images";
+import { communitiesRouter } from "./routes/communities";
 
 const app = new Hono();
 
@@ -24,7 +25,8 @@ const apiRoutes = app
   .route("/posts", postsRouter)
   .route("/votes", votesRouter)
   .route("/comments", commentsRouter)
-  .route("/images", imagesRouter);
+  .route("/images", imagesRouter)
+  .route("/communities", communitiesRouter);
 
 export type ApiRoutes = typeof apiRoutes;
 export default app;
