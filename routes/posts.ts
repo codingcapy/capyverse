@@ -227,6 +227,26 @@ export const postsRouter = new Hono()
       post: postsQueryResult[0],
     });
   })
+  .get("/community/:communityId", async (c) => {
+    const { communityId: communityIdString } = c.req.param();
+    const communityId = assertIsParsableInt(communityIdString);
+    const { result: postsQueryResult, error: postsQueryError } =
+      await mightFail(
+        db
+          .select()
+          .from(postsTable)
+          .where(eq(postsTable.communityId, communityId))
+      );
+    if (postsQueryError) {
+      throw new HTTPException(500, {
+        message: "Error occurred when fetching post",
+        cause: postsQueryError,
+      });
+    }
+    return c.json({
+      posts: postsQueryResult,
+    });
+  })
   .post("/post/delete", zValidator("json", deletePostSchema), async (c) => {
     const deleteValues = c.req.valid("json");
     const { error: postDeleteError, result: postDeleteResult } =
