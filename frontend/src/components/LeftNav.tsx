@@ -35,14 +35,20 @@ export function LeftNav() {
             </div>
           </div>
           <div className="border-b border-[#808080] pb-3 pt-3">
-            <div className="flex py-2 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300">
+            <Link
+              to="/policies/privacypolicy"
+              className="flex py-2 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300"
+            >
               <IoDocumentTextOutline size={20} />
               <div className="ml-3">Privacy Policy</div>
-            </div>
-            <div className="flex py-2 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300">
+            </Link>
+            <Link
+              to="/policies/useragreement"
+              className="flex py-2 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300"
+            >
               <IoDocumentTextOutline size={20} />
               <div className="ml-3">User Agreement</div>
-            </div>
+            </Link>
           </div>
         </div>
       )}

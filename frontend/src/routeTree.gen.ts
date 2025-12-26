@@ -15,6 +15,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as CreatepostRouteImport } from './routes/createpost'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PostsPostIdRouteImport } from './routes/posts/$postId'
+import { Route as PoliciesUseragreementRouteImport } from './routes/policies/useragreement'
 import { Route as PoliciesPrivacypolicyRouteImport } from './routes/policies/privacypolicy'
 
 const SignupRoute = SignupRouteImport.update({
@@ -47,6 +48,11 @@ const PostsPostIdRoute = PostsPostIdRouteImport.update({
   path: '/posts/$postId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PoliciesUseragreementRoute = PoliciesUseragreementRouteImport.update({
+  id: '/policies/useragreement',
+  path: '/policies/useragreement',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PoliciesPrivacypolicyRoute = PoliciesPrivacypolicyRouteImport.update({
   id: '/policies/privacypolicy',
   path: '/policies/privacypolicy',
@@ -60,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
   '/policies/privacypolicy': typeof PoliciesPrivacypolicyRoute
+  '/policies/useragreement': typeof PoliciesUseragreementRoute
   '/posts/$postId': typeof PostsPostIdRoute
 }
 export interface FileRoutesByTo {
@@ -69,6 +76,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
   '/policies/privacypolicy': typeof PoliciesPrivacypolicyRoute
+  '/policies/useragreement': typeof PoliciesUseragreementRoute
   '/posts/$postId': typeof PostsPostIdRoute
 }
 export interface FileRoutesById {
@@ -79,6 +87,7 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
   '/policies/privacypolicy': typeof PoliciesPrivacypolicyRoute
+  '/policies/useragreement': typeof PoliciesUseragreementRoute
   '/posts/$postId': typeof PostsPostIdRoute
 }
 export interface FileRouteTypes {
@@ -90,6 +99,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/signup'
     | '/policies/privacypolicy'
+    | '/policies/useragreement'
     | '/posts/$postId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -99,6 +109,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/signup'
     | '/policies/privacypolicy'
+    | '/policies/useragreement'
     | '/posts/$postId'
   id:
     | '__root__'
@@ -108,6 +119,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/signup'
     | '/policies/privacypolicy'
+    | '/policies/useragreement'
     | '/posts/$postId'
   fileRoutesById: FileRoutesById
 }
@@ -118,6 +130,7 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   SignupRoute: typeof SignupRoute
   PoliciesPrivacypolicyRoute: typeof PoliciesPrivacypolicyRoute
+  PoliciesUseragreementRoute: typeof PoliciesUseragreementRoute
   PostsPostIdRoute: typeof PostsPostIdRoute
 }
 
@@ -165,6 +178,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PostsPostIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/policies/useragreement': {
+      id: '/policies/useragreement'
+      path: '/policies/useragreement'
+      fullPath: '/policies/useragreement'
+      preLoaderRoute: typeof PoliciesUseragreementRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/policies/privacypolicy': {
       id: '/policies/privacypolicy'
       path: '/policies/privacypolicy'
@@ -182,6 +202,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   SignupRoute: SignupRoute,
   PoliciesPrivacypolicyRoute: PoliciesPrivacypolicyRoute,
+  PoliciesUseragreementRoute: PoliciesUseragreementRoute,
   PostsPostIdRoute: PostsPostIdRoute,
 }
 export const routeTree = rootRouteImport
