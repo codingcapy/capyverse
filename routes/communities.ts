@@ -33,7 +33,7 @@ export const communitiesRouter = new Hono()
           cause: communitiesQueryError,
         });
       }
-      if (communitiesQueryResult.length < 1)
+      if (communitiesQueryResult.length > 0)
         throw new HTTPException(401, {
           message: "Community ID already exists",
           cause: Error(),

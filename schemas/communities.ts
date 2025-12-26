@@ -14,6 +14,8 @@ export const communities = pgTable("communities", {
   category: varchar("category").default("technology").notNull(),
   visibility: varchar("visibility").default("private").notNull(),
   mature: boolean().default(false),
+  icon: varchar(),
+  banner: varchar(),
   status: varchar("status").default("active").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
