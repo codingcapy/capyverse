@@ -51,7 +51,7 @@ export function Header() {
       ) : (
         <header
           ref={menuRef}
-          className="fixed top-0 left-0 px-2 pt-2 md:px-5 md:py-2 z-80 flex justify-between w-screen bg-[#222222] border-b border-[#808080]"
+          className="fixed top-0 left-0 p-2 md:px-5 md:py-2 z-80 flex justify-between w-screen bg-[#222222] border-b border-[#808080]"
         >
           {window.innerWidth < 1100 && (
             <div onClick={() => setShowLeftNav(!showLeftNav)} className="py-2">
@@ -69,38 +69,29 @@ export function Header() {
               onChange={(e) => setSearchContent(e.target.value)}
             />
           )}
+          {window.innerWidth < 501 && (
+            <div
+              onClick={() => setSearchMode(true)}
+              className="pt-2 md:py-2 cursor-pointer"
+            >
+              <IoSearch size={25} />
+            </div>
+          )}
           {user ? (
-            <div className="flex px-5 py-2 font-bold">
-              {window.innerWidth < 501 && (
-                <div
-                  onClick={() => setSearchMode(true)}
-                  className="cursor-pointer"
-                >
-                  <IoSearch size={25} />
-                </div>
-              )}
+            <div className="flex sm:px-5 pt-2 md:py-2 font-bold">
               <Link
                 to="/createpost"
-                className="px-5 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300"
+                className="sm:px-5 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300"
               >
                 + Create
               </Link>
-              {window.innerWidth > 500 ? (
-                <div
-                  onClick={() => setShowMenu(!showMenu)}
-                  className="flex cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300"
-                >
-                  <CgProfile size={25} />
-                  <div className="ml-1">{user.username}</div>
-                </div>
-              ) : (
-                <img
-                  src={user.profilePic ? user.profilePic : defaultProfile}
-                  alt="User Profile"
-                  onClick={() => setShowMenu(!showMenu)}
-                  className="w-8 h-8 rounded-full cursor-pointer"
-                />
-              )}
+              <div
+                onClick={() => setShowMenu(!showMenu)}
+                className="hidden sm:flex cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300"
+              >
+                <CgProfile size={25} />
+                <div className="ml-1">{user.username}</div>
+              </div>
             </div>
           ) : (
             <Link
@@ -109,6 +100,16 @@ export function Header() {
             >
               Login
             </Link>
+          )}
+          {user && (
+            <div className="sm:hidden pt-1">
+              <img
+                src={user.profilePic ? user.profilePic : defaultProfile}
+                alt="User Profile"
+                onClick={() => setShowMenu(!showMenu)}
+                className="w-8 h-8 rounded-full cursor-pointer"
+              />
+            </div>
           )}
           {showMenu && (
             <div className="absolute top-[60px] right-[15px] bg-[#444444] shadow-[0_0_15px_rgba(0,0,0,0.7)]">
