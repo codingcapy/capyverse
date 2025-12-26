@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import { getPopularPostsPage } from "../lib/api/posts";
 import usePostStore from "../store/PostStore";
 import { PostThumbnail } from "./PostThumbnail";
+import Sidebar from "./Sidebar";
 
 export function PostsByPopular() {
   const { searchContent } = usePostStore();
@@ -38,24 +39,6 @@ export function PostsByPopular() {
     return () => observer.disconnect();
   }, [fetchNextPage, hasNextPage]);
 
-  //   useEffect(() => {
-  //     function onScroll() {
-  //       const scrollTop = window.scrollY;
-  //       const viewportHeight = window.innerHeight;
-  //       const fullHeight = document.documentElement.scrollHeight;
-
-  //       console.log({
-  //         scrollTop,
-  //         viewportHeight,
-  //         fullHeight,
-  //         distanceFromBottom: fullHeight - (scrollTop + viewportHeight),
-  //       });
-  //     }
-
-  //     window.addEventListener("scroll", onScroll);
-  //     return () => window.removeEventListener("scroll", onScroll);
-  //   }, []);
-
   if (error) {
     return (
       <div className="mx-auto w-full lg:w-[50%]">Error fetching posts</div>
@@ -67,28 +50,25 @@ export function PostsByPopular() {
   }
 
   return (
-    <div>
-      {posts
-        .filter(
-          (post) =>
-            searchContent === "" ||
-            post.title.toLowerCase().includes(searchContent.toLowerCase()) ||
-            post.content.toLowerCase().includes(searchContent.toLowerCase())
-        )
-        .map((post) => (
-          <PostThumbnail key={post.postId} post={post} />
-        ))}
-      <div
-        ref={loadMoreRef}
-        style={{
-          height: "40px",
-          background: "#444444",
-        }}
-      />
-      {isFetchingNextPage && <div>Loading more…</div>}
-      {!hasNextPage && (
-        <div className="text-4xl text-center py-10">No more posts!</div>
-      )}
+    <div className="mx-auto flex pl-80">
+      <div>
+        {posts
+          .filter(
+            (post) =>
+              searchContent === "" ||
+              post.title.toLowerCase().includes(searchContent.toLowerCase()) ||
+              post.content.toLowerCase().includes(searchContent.toLowerCase())
+          )
+          .map((post) => (
+            <PostThumbnail key={post.postId} post={post} />
+          ))}
+        <div ref={loadMoreRef} className="h-10 bg-[#444444]" />
+        {isFetchingNextPage && <div>Loading more…</div>}
+        {!hasNextPage && (
+          <div className="text-4xl text-center py-10">No more posts!</div>
+        )}
+      </div>
+      <Sidebar />
     </div>
   );
 }

@@ -210,6 +210,21 @@ export const postsRouter = new Hono()
       posts: postsQueryResult,
     });
   })
+  .get("/recent", async (c) => {
+    const { result: postsQueryResult, error: postsQueryError } =
+      await mightFail(
+        db.select().from(postsTable).orderBy(desc(postsTable.postId)).limit(10)
+      );
+    if (postsQueryError) {
+      throw new HTTPException(500, {
+        message: "Error occurred when fetching recent posts",
+        cause: postsQueryError,
+      });
+    }
+    return c.json({
+      posts: postsQueryResult,
+    });
+  })
   .get("/:postId", async (c) => {
     const { postId: postIdString } = c.req.param();
     const postId = assertIsParsableInt(postIdString);

@@ -344,3 +344,18 @@ export const useUnsavePostMutation = (onError?: (message: string) => void) => {
     },
   });
 };
+
+async function getRecentPosts() {
+  const res = await client.api.v0.posts.recent.$get();
+  if (!res.ok) {
+    throw new Error("Error getting posts");
+  }
+  const { posts } = await res.json();
+  return posts.map(mapSerializedPostToSchema);
+}
+
+export const getRecentPostsQueryOptions = () =>
+  queryOptions({
+    queryKey: ["recent-posts"],
+    queryFn: () => getRecentPosts(),
+  });
