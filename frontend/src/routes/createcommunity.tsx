@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { PostContentInput } from "../components/PostContentInput";
 import useAuthStore from "../store/AuthStore";
+import { useCreateCommunityMutation } from "../lib/api/communities";
 
 export const Route = createFileRoute("/createcommunity")({
   component: CreateCommunityPage,
@@ -14,9 +15,17 @@ function CreateCommunityPage() {
   const [notification, setNotification] = useState("");
   const navigate = useNavigate();
   const { user } = useAuthStore();
+  const [title, setTitle] = useState("");
+  const { mutate: createCommunity, isPending: createCommunityPending } =
+    useCreateCommunityMutation();
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (createCommunityPending) return;
+    createCommunity(
+      { communityId: title, title, description: content },
+      { onSuccess: () => navigate({ to: `/c/${title}` }) }
+    );
   }
 
   useEffect(() => {
@@ -29,14 +38,22 @@ function CreateCommunityPage() {
         Create Community
       </div>
       <form onSubmit={handleSubmit} className="flex flex-col mx-auto ">
-        <input
-          type="text"
-          name="titleinput"
-          id="title"
-          required
-          className="p-2 border border-[#c4c4c4] rounded-xl my-2"
-          placeholder="Community name "
-        />
+        <div className="p-2 border border-[#c4c4c4] rounded-xl my-2 flex">
+          <div className="text-[#919191]">c/</div>
+          <input
+            type="text"
+            name="titleinput"
+            id="title"
+            required
+            value={title}
+            onChange={(e) => {
+              const noWhitespace = e.target.value.replace(/\s+/g, "");
+              setTitle(noWhitespace);
+            }}
+            className="w-full outline-none"
+            placeholder="Community name "
+          />
+        </div>
         <div
           onDragEnter={(e) => {
             e.preventDefault();
@@ -78,7 +95,7 @@ function CreateCommunityPage() {
           contentPlaceholder="Description"
         />
         <button className="bg-cyan-600 px-5 py-2 rounded-full font-bold my-5 cursor-pointer hover:bg-cyan-500 transition-all ease-in-out duration-300">
-          Create Community
+          {createCommunityPending ? "Creating..." : "Create Community"}
         </button>
       </form>
       <div>{notification}</div>

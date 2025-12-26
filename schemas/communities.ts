@@ -8,7 +8,7 @@ import {
 import type { InferSelectModel } from "drizzle-orm";
 
 export const communities = pgTable("communities", {
-  communityId: serial("community_id").primaryKey(),
+  communityId: varchar("community_id").primaryKey(),
   title: varchar("title").notNull(),
   description: varchar("description").notNull().unique(),
   category: varchar("category").default("technology").notNull(),

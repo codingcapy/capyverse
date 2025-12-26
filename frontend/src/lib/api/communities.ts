@@ -80,3 +80,20 @@ export const getCommunitiesQueryOptions = () =>
     queryKey: ["communities"],
     queryFn: () => getCommunities(),
   });
+
+async function getCommunityById(communityId: string) {
+  const res = await client.api.v0.communities[":communityId"].$get({
+    param: { communityId: communityId.toString() },
+  });
+  if (!res.ok) {
+    throw new Error("Error getting community by id");
+  }
+  const { community } = await res.json();
+  return mapSerializedCommunityToSchema(community as SerializeCommunity);
+}
+
+export const getCommunityByIdQueryOptions = (communityId: string) =>
+  queryOptions({
+    queryKey: ["commmunities", communityId],
+    queryFn: () => getCommunityById(communityId),
+  });

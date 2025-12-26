@@ -219,7 +219,7 @@ function CreatePostPage() {
           contentPlaceholder="Content (optional)"
         />
         <button className="bg-cyan-600 px-5 py-2 rounded-full font-bold my-5 cursor-pointer hover:bg-cyan-500 transition-all ease-in-out duration-300">
-          {createPostPending ? "Loading..." : "POST"}
+          {createPostPending ? "Posting..." : "POST"}
         </button>
       </form>
       <div>{notification}</div>
