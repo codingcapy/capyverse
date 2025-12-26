@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { getRecentPostsQueryOptions } from "../lib/api/posts";
+import { PostThumbnailSimple } from "./PostThumbnailSimple";
 
 export default function Sidebar() {
   const {
@@ -19,10 +20,7 @@ export default function Sidebar() {
           </div>
         ) : recentPosts ? (
           recentPosts.map((post) => (
-            <div className="px-5 border-b border-[#222222] py-3">
-              <div>{`${post.createdAt}`}</div>
-              <div className="my-2 font-bold">{post.title}</div>
-            </div>
+            <PostThumbnailSimple post={post} key={post.postId} />
           ))
         ) : (
           <div></div>

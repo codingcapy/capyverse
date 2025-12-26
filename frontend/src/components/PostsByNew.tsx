@@ -48,7 +48,7 @@ export function PostsByNew() {
   }
 
   return (
-    <div className="mx-auto flex pl-80">
+    <div className="mx-auto flex 2xl:pl-80">
       <div>
         {posts
           .filter(
