@@ -22,17 +22,23 @@ export function LeftNav() {
               <FaHome size={20} />
               <div className="ml-3">Home</div>
             </Link>
-            <div className="flex py-2 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300">
+            <Link
+              to="/createcommunity"
+              className="flex py-2 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300"
+            >
               <FaPlus size={20} />
               <div className="ml-3">Start a Community</div>
-            </div>
+            </Link>
           </div>
           <div className="border-b border-[#808080] pb-3">
             <div className="pb-3 pt-7 text-[#808080]">COMMUNITIES</div>
-            <div className="flex py-2 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300">
+            <Link
+              to="/communities"
+              className="flex py-2 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300"
+            >
               <IoSettingsOutline size={20} />
               <div className="ml-3">Manage Communities</div>
-            </div>
+            </Link>
           </div>
           <div className="border-b border-[#808080] pb-3 pt-3">
             <Link

@@ -95,7 +95,7 @@ function CreatePostPage() {
           name="titleinput"
           id="title"
           required
-          className="p-2 border border-[#c4c4c4] rounded-xl bg-[#414141] my-2"
+          className="p-2 border border-[#c4c4c4] rounded-xl my-2"
           placeholder="Title"
         />
         <div
@@ -213,8 +213,12 @@ function CreatePostPage() {
             />
           </div>
         </div>
-        <PostContentInput content={content} onChange={(e) => setContent(e)} />
-        <button className="bg-cyan-500 px-5 py-2 rounded-full font-bold my-5">
+        <PostContentInput
+          content={content}
+          onChange={(e) => setContent(e)}
+          contentPlaceholder="Content (optional)"
+        />
+        <button className="bg-cyan-600 px-5 py-2 rounded-full font-bold my-5 cursor-pointer hover:bg-cyan-500 transition-all ease-in-out duration-300">
           {createPostPending ? "Loading..." : "POST"}
         </button>
       </form>

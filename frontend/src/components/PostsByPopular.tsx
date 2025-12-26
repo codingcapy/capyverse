@@ -86,7 +86,9 @@ export function PostsByPopular() {
         }}
       />
       {isFetchingNextPage && <div>Loading more…</div>}
-      {!hasNextPage && <div>No more posts</div>}
+      {!hasNextPage && (
+        <div className="text-4xl text-center py-10">No more posts!</div>
+      )}
     </div>
   );
 }

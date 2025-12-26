@@ -13,6 +13,8 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as CreatepostRouteImport } from './routes/createpost'
+import { Route as CreatecommunityRouteImport } from './routes/createcommunity'
+import { Route as CommunitiesRouteImport } from './routes/communities'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PostsPostIdRouteImport } from './routes/posts/$postId'
 import { Route as PoliciesUseragreementRouteImport } from './routes/policies/useragreement'
@@ -38,6 +40,16 @@ const CreatepostRoute = CreatepostRouteImport.update({
   path: '/createpost',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CreatecommunityRoute = CreatecommunityRouteImport.update({
+  id: '/createcommunity',
+  path: '/createcommunity',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CommunitiesRoute = CommunitiesRouteImport.update({
+  id: '/communities',
+  path: '/communities',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -61,6 +73,8 @@ const PoliciesPrivacypolicyRoute = PoliciesPrivacypolicyRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/communities': typeof CommunitiesRoute
+  '/createcommunity': typeof CreatecommunityRoute
   '/createpost': typeof CreatepostRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
@@ -71,6 +85,8 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/communities': typeof CommunitiesRoute
+  '/createcommunity': typeof CreatecommunityRoute
   '/createpost': typeof CreatepostRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
@@ -82,6 +98,8 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/communities': typeof CommunitiesRoute
+  '/createcommunity': typeof CreatecommunityRoute
   '/createpost': typeof CreatepostRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
@@ -94,6 +112,8 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/communities'
+    | '/createcommunity'
     | '/createpost'
     | '/login'
     | '/profile'
@@ -104,6 +124,8 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/communities'
+    | '/createcommunity'
     | '/createpost'
     | '/login'
     | '/profile'
@@ -114,6 +136,8 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/communities'
+    | '/createcommunity'
     | '/createpost'
     | '/login'
     | '/profile'
@@ -125,6 +149,8 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CommunitiesRoute: typeof CommunitiesRoute
+  CreatecommunityRoute: typeof CreatecommunityRoute
   CreatepostRoute: typeof CreatepostRoute
   LoginRoute: typeof LoginRoute
   ProfileRoute: typeof ProfileRoute
@@ -164,6 +190,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CreatepostRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/createcommunity': {
+      id: '/createcommunity'
+      path: '/createcommunity'
+      fullPath: '/createcommunity'
+      preLoaderRoute: typeof CreatecommunityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/communities': {
+      id: '/communities'
+      path: '/communities'
+      fullPath: '/communities'
+      preLoaderRoute: typeof CommunitiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -197,6 +237,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CommunitiesRoute: CommunitiesRoute,
+  CreatecommunityRoute: CreatecommunityRoute,
   CreatepostRoute: CreatepostRoute,
   LoginRoute: LoginRoute,
   ProfileRoute: ProfileRoute,

@@ -17,6 +17,7 @@ import { FaLink } from "react-icons/fa6";
 export function PostContentInput(props: {
   content: string;
   onChange: (value: string) => void;
+  contentPlaceholder: string;
 }) {
   const content = props.content;
   const editor = useEditor({
@@ -28,7 +29,7 @@ export function PostContentInput(props: {
       ListItem,
       Link.configure({ openOnClick: true }),
       Placeholder.configure({
-        placeholder: "Content (optional)",
+        placeholder: props.contentPlaceholder,
         showOnlyWhenEditable: false,
         showOnlyCurrent: false,
       }),

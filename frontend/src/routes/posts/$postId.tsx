@@ -283,6 +283,7 @@ function PostComponent() {
           <PostContentInput
             content={editContent}
             onChange={(e) => setEditContent(e)}
+            contentPlaceholder="Content (optional)"
           />
           <div className="flex justify-end">
             <div

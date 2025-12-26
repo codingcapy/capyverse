@@ -72,12 +72,12 @@ function ProfilePage() {
 
   useEffect(() => {
     if (!user) navigate({ to: "/" });
-  }, []);
+  }, [user]);
 
   useEffect(() => console.log(savedPosts), [savedPosts]);
 
   return (
-    <div className="pt-[70px] 2xl:mx-auto">
+    <div className="pt-[70px] mx-auto">
       <div className="flex text-2xl font-bold">
         <div
           className="relative cursor-pointer"
@@ -165,9 +165,13 @@ function ProfilePage() {
         ) : (profileMode === "Overview" || profileMode === "Posts") && posts ? (
           posts.map((post) => <PostThumbnail post={post} key={post.postId} />)
         ) : savedPostsError ? (
-          <div>Error loading saved posts</div>
+          <div className="mx-auto w-full md:w-[50%] 2xl:w-[750px] border-t border-[#636363]">
+            Error loading saved posts
+          </div>
         ) : savedPostsLoading ? (
-          <div>Loading...</div>
+          <div className="mx-auto w-full md:w-[50%] 2xl:w-[750px] border-t border-[#636363]">
+            Loading...
+          </div>
         ) : savedPosts ? (
           profileMode === "Saved" &&
           savedPosts.map((post) => (
@@ -204,9 +208,7 @@ function ProfilePage() {
             profileMode === "Comments" ||
             profileMode === "Saved") && (
             <div className="mx-auto w-full md:w-[50%] 2xl:w-[750px] border-t border-[#636363]">
-              <div className="relative my-1 rounded py-2 px-4">
-                No comments yet!
-              </div>
+              <div className="relative my-1 rounded py-2 px-4"></div>
             </div>
           )
         )}
