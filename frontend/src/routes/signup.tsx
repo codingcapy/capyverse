@@ -70,14 +70,17 @@ function SignupComponent() {
         />
         <button
           disabled={createUserPending}
-          className="bg-cyan-500 px-5 py-2 rounded-full font-bold my-5"
+          className="bg-cyan-600 px-5 py-2 rounded-full font-bold my-5 cursor-pointer hover:bg-cyan-500 transition-all ease-in-out duration-300"
         >
           {createUserPending ? "Signing up..." : "SIGN UP"}
         </button>
       </form>
       <div>
         Already have an account?{" "}
-        <Link to="/login" className="text-cyan-500 font-bold">
+        <Link
+          to="/login"
+          className="text-cyan-500 font-bold cursor-pointer hover:text-cyan-400 transition-all ease-in-out duration-300"
+        >
           Login
         </Link>
       </div>

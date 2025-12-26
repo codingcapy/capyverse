@@ -73,8 +73,8 @@ function CreatePostPage() {
   }
 
   useEffect(() => {
-    if (!user) navigate({ to: "/" });
-  }, []);
+    if (!user) navigate({ to: "/login" });
+  }, [user]);
 
   useEffect(() => {
     return () => {

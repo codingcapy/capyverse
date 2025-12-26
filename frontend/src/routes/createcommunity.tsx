@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
 import { PostContentInput } from "../components/PostContentInput";
+import useAuthStore from "../store/AuthStore";
 
 export const Route = createFileRoute("/createcommunity")({
   component: CreateCommunityPage,
@@ -11,10 +12,16 @@ function CreateCommunityPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [content, setContent] = useState("");
   const [notification, setNotification] = useState("");
+  const navigate = useNavigate();
+  const { user } = useAuthStore();
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
   }
+
+  useEffect(() => {
+    if (!user) navigate({ to: "/login" });
+  }, [user]);
 
   return (
     <div className="pt-20 w-[80%] lg:w-[50%] 2xl:w-[30%] mx-auto">

@@ -50,13 +50,16 @@ function LoginComponent() {
           className="p-2 border border-[#c4c4c4] rounded bg-[#414141] my-2"
           placeholder="password"
         />
-        <button className="bg-cyan-500 px-5 py-2 rounded-full font-bold my-5">
+        <button className="bg-cyan-600 px-5 py-2 rounded-full font-bold my-5 cursor-pointer hover:bg-cyan-500 transition-all ease-in-out duration-300">
           LOGIN
         </button>
       </form>
       <div>
         Don't have an account?{" "}
-        <Link to="/signup" className="text-cyan-500 font-bold">
+        <Link
+          to="/signup"
+          className="text-cyan-500 font-bold cursor-pointer hover:text-cyan-400 transition-all ease-in-out duration-300"
+        >
           Signup
         </Link>
       </div>

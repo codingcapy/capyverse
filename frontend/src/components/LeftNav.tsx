@@ -4,11 +4,13 @@ import { FaHome } from "react-icons/fa";
 import { FaPlus } from "react-icons/fa";
 import { IoSettingsOutline } from "react-icons/io5";
 import { IoDocumentTextOutline } from "react-icons/io5";
+import useAuthStore from "../store/AuthStore";
 
 export function LeftNav() {
   const [showLeftNav, setShowLeftNav] = useState(
     window.innerWidth > 900 ? true : false
   );
+  const { user } = useAuthStore();
 
   return (
     <div>
@@ -30,16 +32,18 @@ export function LeftNav() {
               <div className="ml-3">Start a Community</div>
             </Link>
           </div>
-          <div className="border-b border-[#808080] pb-3">
-            <div className="pb-3 pt-7 text-[#808080]">COMMUNITIES</div>
-            <Link
-              to="/communities"
-              className="flex py-2 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300"
-            >
-              <IoSettingsOutline size={20} />
-              <div className="ml-3">Manage Communities</div>
-            </Link>
-          </div>
+          {user && (
+            <div className="border-b border-[#808080] pb-3">
+              <div className="pb-3 pt-7 text-[#808080]">COMMUNITIES</div>
+              <Link
+                to="/communities"
+                className="flex py-2 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300"
+              >
+                <IoSettingsOutline size={20} />
+                <div className="ml-3">Manage Communities</div>
+              </Link>
+            </div>
+          )}
           <div className="border-b border-[#808080] pb-3 pt-3">
             <Link
               to="/policies/privacypolicy"

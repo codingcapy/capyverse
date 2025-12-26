@@ -96,7 +96,7 @@ export function Header() {
           ) : (
             <Link
               to="/login"
-              className="bg-cyan-500 px-5 py-2 rounded-full font-bold"
+              className="bg-cyan-600 px-5 py-2 rounded-full font-bold cursor-pointer hover:bg-cyan-500 transition-all ease-in-out duration-300"
             >
               Login
             </Link>

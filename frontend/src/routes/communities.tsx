@@ -1,10 +1,19 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import useAuthStore from "../store/AuthStore";
+import { useEffect } from "react";
 
 export const Route = createFileRoute("/communities")({
-  component: RouteComponent,
+  component: CommunitiesPage,
 });
 
-function RouteComponent() {
+function CommunitiesPage() {
+  const { user } = useAuthStore();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!user) navigate({ to: "/login" });
+  }, [user]);
+
   return (
     <div className="pt-[88px] px-2 md:px-0 mx-auto w-full md:w-[50%] 2xl:w-[40%]">
       <div className="text-xl md:text-3xl font-bold">Manage Communities</div>
