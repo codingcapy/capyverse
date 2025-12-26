@@ -19,6 +19,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as PostsPostIdRouteImport } from './routes/posts/$postId'
 import { Route as PoliciesUseragreementRouteImport } from './routes/policies/useragreement'
 import { Route as PoliciesPrivacypolicyRouteImport } from './routes/policies/privacypolicy'
+import { Route as CommunitiesCommunityIdRouteImport } from './routes/communities/$communityId'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -70,27 +71,34 @@ const PoliciesPrivacypolicyRoute = PoliciesPrivacypolicyRouteImport.update({
   path: '/policies/privacypolicy',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CommunitiesCommunityIdRoute = CommunitiesCommunityIdRouteImport.update({
+  id: '/$communityId',
+  path: '/$communityId',
+  getParentRoute: () => CommunitiesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/communities': typeof CommunitiesRoute
+  '/communities': typeof CommunitiesRouteWithChildren
   '/createcommunity': typeof CreatecommunityRoute
   '/createpost': typeof CreatepostRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
+  '/communities/$communityId': typeof CommunitiesCommunityIdRoute
   '/policies/privacypolicy': typeof PoliciesPrivacypolicyRoute
   '/policies/useragreement': typeof PoliciesUseragreementRoute
   '/posts/$postId': typeof PostsPostIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/communities': typeof CommunitiesRoute
+  '/communities': typeof CommunitiesRouteWithChildren
   '/createcommunity': typeof CreatecommunityRoute
   '/createpost': typeof CreatepostRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
+  '/communities/$communityId': typeof CommunitiesCommunityIdRoute
   '/policies/privacypolicy': typeof PoliciesPrivacypolicyRoute
   '/policies/useragreement': typeof PoliciesUseragreementRoute
   '/posts/$postId': typeof PostsPostIdRoute
@@ -98,12 +106,13 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/communities': typeof CommunitiesRoute
+  '/communities': typeof CommunitiesRouteWithChildren
   '/createcommunity': typeof CreatecommunityRoute
   '/createpost': typeof CreatepostRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
+  '/communities/$communityId': typeof CommunitiesCommunityIdRoute
   '/policies/privacypolicy': typeof PoliciesPrivacypolicyRoute
   '/policies/useragreement': typeof PoliciesUseragreementRoute
   '/posts/$postId': typeof PostsPostIdRoute
@@ -118,6 +127,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/profile'
     | '/signup'
+    | '/communities/$communityId'
     | '/policies/privacypolicy'
     | '/policies/useragreement'
     | '/posts/$postId'
@@ -130,6 +140,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/profile'
     | '/signup'
+    | '/communities/$communityId'
     | '/policies/privacypolicy'
     | '/policies/useragreement'
     | '/posts/$postId'
@@ -142,6 +153,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/profile'
     | '/signup'
+    | '/communities/$communityId'
     | '/policies/privacypolicy'
     | '/policies/useragreement'
     | '/posts/$postId'
@@ -149,7 +161,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  CommunitiesRoute: typeof CommunitiesRoute
+  CommunitiesRoute: typeof CommunitiesRouteWithChildren
   CreatecommunityRoute: typeof CreatecommunityRoute
   CreatepostRoute: typeof CreatepostRoute
   LoginRoute: typeof LoginRoute
@@ -232,12 +244,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PoliciesPrivacypolicyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/communities/$communityId': {
+      id: '/communities/$communityId'
+      path: '/$communityId'
+      fullPath: '/communities/$communityId'
+      preLoaderRoute: typeof CommunitiesCommunityIdRouteImport
+      parentRoute: typeof CommunitiesRoute
+    }
   }
 }
 
+interface CommunitiesRouteChildren {
+  CommunitiesCommunityIdRoute: typeof CommunitiesCommunityIdRoute
+}
+
+const CommunitiesRouteChildren: CommunitiesRouteChildren = {
+  CommunitiesCommunityIdRoute: CommunitiesCommunityIdRoute,
+}
+
+const CommunitiesRouteWithChildren = CommunitiesRoute._addFileChildren(
+  CommunitiesRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  CommunitiesRoute: CommunitiesRoute,
+  CommunitiesRoute: CommunitiesRouteWithChildren,
   CreatecommunityRoute: CreatecommunityRoute,
   CreatepostRoute: CreatepostRoute,
   LoginRoute: LoginRoute,

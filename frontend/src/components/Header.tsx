@@ -51,7 +51,7 @@ export function Header() {
       ) : (
         <header
           ref={menuRef}
-          className="fixed top-0 left-0 p-2 md:px-5 md:py-2 z-80 flex justify-between w-screen bg-[#222222] border-b border-[#808080]"
+          className="fixed top-0 left-0 px-2 pt-2 md:px-5 md:py-2 z-80 flex justify-between w-screen bg-[#222222] border-b border-[#808080]"
         >
           {window.innerWidth < 1100 && (
             <div onClick={() => setShowLeftNav(!showLeftNav)} className="py-2">
@@ -113,7 +113,9 @@ export function Header() {
           {showMenu && (
             <div className="absolute top-[60px] right-[15px] bg-[#444444] shadow-[0_0_15px_rgba(0,0,0,0.7)]">
               <div className="px-4 pt-3 pb-1 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300">
-                <Link to="/profile">View Profile</Link>
+                <Link to="/profile" onClick={() => setShowMenu(false)}>
+                  View Profile
+                </Link>
               </div>
               <div
                 onClick={() => {
