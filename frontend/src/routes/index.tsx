@@ -3,6 +3,7 @@ import { PiCaretDownBold } from "react-icons/pi";
 import { useEffect, useRef, useState } from "react";
 import { PostsByNew } from "../components/PostsByNew";
 import { PostsByPopular } from "../components/PostsByPopular";
+import useNavStore from "../store/NavStore";
 
 type SortMode = "Popular" | "New";
 

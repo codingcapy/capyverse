@@ -5,11 +5,10 @@ import { FaPlus } from "react-icons/fa";
 import { IoSettingsOutline } from "react-icons/io5";
 import { IoDocumentTextOutline } from "react-icons/io5";
 import useAuthStore from "../store/AuthStore";
+import useNavStore from "../store/NavStore";
 
 export function LeftNav() {
-  const [showLeftNav, setShowLeftNav] = useState(
-    window.innerWidth > 900 ? true : false
-  );
+  const { showLeftNav, setShowLeftNav } = useNavStore();
   const { user } = useAuthStore();
 
   return (
@@ -19,6 +18,7 @@ export function LeftNav() {
           <div className="border-b border-[#808080] pb-3">
             <Link
               to="/"
+              onClick={() => window.innerWidth < 1100 && setShowLeftNav(false)}
               className="flex py-2 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300"
             >
               <FaHome size={20} />
@@ -26,6 +26,7 @@ export function LeftNav() {
             </Link>
             <Link
               to="/createcommunity"
+              onClick={() => window.innerWidth < 1100 && setShowLeftNav(false)}
               className="flex py-2 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300"
             >
               <FaPlus size={20} />
@@ -37,6 +38,9 @@ export function LeftNav() {
               <div className="pb-3 pt-7 text-[#808080]">COMMUNITIES</div>
               <Link
                 to="/communities"
+                onClick={() =>
+                  window.innerWidth < 1100 && setShowLeftNav(false)
+                }
                 className="flex py-2 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300"
               >
                 <IoSettingsOutline size={20} />
@@ -47,6 +51,7 @@ export function LeftNav() {
           <div className="border-b border-[#808080] pb-3 pt-3">
             <Link
               to="/policies/privacypolicy"
+              onClick={() => window.innerWidth < 1100 && setShowLeftNav(false)}
               className="flex py-2 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300"
             >
               <IoDocumentTextOutline size={20} />
@@ -54,6 +59,7 @@ export function LeftNav() {
             </Link>
             <Link
               to="/policies/useragreement"
+              onClick={() => window.innerWidth < 1100 && setShowLeftNav(false)}
               className="flex py-2 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300"
             >
               <IoDocumentTextOutline size={20} />

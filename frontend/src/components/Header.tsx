@@ -6,6 +6,9 @@ import { IoSearch } from "react-icons/io5";
 import { FaArrowLeft } from "react-icons/fa";
 import usePostStore from "../store/PostStore";
 import defaultProfile from "/capypaul01.jpg";
+import { FaHamburger } from "react-icons/fa";
+import { GiHamburgerMenu } from "react-icons/gi";
+import useNavStore from "../store/NavStore";
 
 export function Header() {
   const { user } = useAuthStore();
@@ -15,6 +18,7 @@ export function Header() {
   const { setSearchContent } = usePostStore();
   const menuRef = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
+  const { showLeftNav, setShowLeftNav } = useNavStore();
 
   function handleClickOutside(event: MouseEvent) {
     if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -49,6 +53,11 @@ export function Header() {
           ref={menuRef}
           className="fixed top-0 left-0 p-2 md:px-5 md:py-2 z-80 flex justify-between w-screen bg-[#222222] border-b border-[#808080]"
         >
+          {window.innerWidth < 1100 && (
+            <div onClick={() => setShowLeftNav(!showLeftNav)} className="py-2">
+              <GiHamburgerMenu size={25} />
+            </div>
+          )}
           <Link to="/" className="text-2xl text-cyan-500 font-bold">
             Capyverse
           </Link>
