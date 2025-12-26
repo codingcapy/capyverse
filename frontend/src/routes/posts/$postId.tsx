@@ -162,7 +162,7 @@ function PostComponent() {
   }
 
   return (
-    <div className="pt-[88px] px-2 md:px-0 mx-auto w-full md:w-[50%] 2xl:w-[40%]">
+    <div className="pt-[88px] pb-[140px] px-2 md:px-0 mx-auto w-full md:w-[50%] 2xl:w-[40%]">
       <div className="relative flex justify-between">
         <div className="flex text-[#bdbdbd] text-sm">
           <img

@@ -243,8 +243,7 @@ export const postsRouter = new Hono()
     });
   })
   .get("/community/:communityId", async (c) => {
-    const { communityId: communityIdString } = c.req.param();
-    const communityId = assertIsParsableInt(communityIdString);
+    const { communityId } = c.req.param();
     const { result: postsQueryResult, error: postsQueryError } =
       await mightFail(
         db

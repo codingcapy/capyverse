@@ -359,3 +359,21 @@ export const getRecentPostsQueryOptions = () =>
     queryKey: ["recent-posts"],
     queryFn: () => getRecentPosts(),
   });
+
+async function getPostsByCommunityId(communityId: string) {
+  const res = await client.api.v0.posts.community[":communityId"].$get({
+    param: { communityId: communityId.toString() },
+  });
+
+  if (!res.ok) {
+    throw new Error("Error getting posts by community id");
+  }
+  const { posts } = await res.json();
+  return posts.map(mapSerializedPostToSchema);
+}
+
+export const getPostsByCommunityIdQueryOptions = (communityId: string) =>
+  queryOptions({
+    queryKey: ["community-posts", communityId],
+    queryFn: () => getPostsByCommunityId(communityId),
+  });

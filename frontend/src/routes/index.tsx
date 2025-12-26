@@ -5,7 +5,7 @@ import { PostsByNew } from "../components/PostsByNew";
 import { PostsByPopular } from "../components/PostsByPopular";
 import useNavStore from "../store/NavStore";
 
-type SortMode = "Popular" | "New";
+export type SortMode = "Popular" | "New";
 
 export const Route = createFileRoute("/")({
   component: IndexComponent,
