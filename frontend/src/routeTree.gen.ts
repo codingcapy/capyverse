@@ -15,6 +15,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as CreatepostRouteImport } from './routes/createpost'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PostsPostIdRouteImport } from './routes/posts/$postId'
+import { Route as PoliciesPrivacypolicyRouteImport } from './routes/policies/privacypolicy'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -46,6 +47,11 @@ const PostsPostIdRoute = PostsPostIdRouteImport.update({
   path: '/posts/$postId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PoliciesPrivacypolicyRoute = PoliciesPrivacypolicyRouteImport.update({
+  id: '/policies/privacypolicy',
+  path: '/policies/privacypolicy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -53,6 +59,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
+  '/policies/privacypolicy': typeof PoliciesPrivacypolicyRoute
   '/posts/$postId': typeof PostsPostIdRoute
 }
 export interface FileRoutesByTo {
@@ -61,6 +68,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
+  '/policies/privacypolicy': typeof PoliciesPrivacypolicyRoute
   '/posts/$postId': typeof PostsPostIdRoute
 }
 export interface FileRoutesById {
@@ -70,6 +78,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
+  '/policies/privacypolicy': typeof PoliciesPrivacypolicyRoute
   '/posts/$postId': typeof PostsPostIdRoute
 }
 export interface FileRouteTypes {
@@ -80,9 +89,17 @@ export interface FileRouteTypes {
     | '/login'
     | '/profile'
     | '/signup'
+    | '/policies/privacypolicy'
     | '/posts/$postId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/createpost' | '/login' | '/profile' | '/signup' | '/posts/$postId'
+  to:
+    | '/'
+    | '/createpost'
+    | '/login'
+    | '/profile'
+    | '/signup'
+    | '/policies/privacypolicy'
+    | '/posts/$postId'
   id:
     | '__root__'
     | '/'
@@ -90,6 +107,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/profile'
     | '/signup'
+    | '/policies/privacypolicy'
     | '/posts/$postId'
   fileRoutesById: FileRoutesById
 }
@@ -99,6 +117,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ProfileRoute: typeof ProfileRoute
   SignupRoute: typeof SignupRoute
+  PoliciesPrivacypolicyRoute: typeof PoliciesPrivacypolicyRoute
   PostsPostIdRoute: typeof PostsPostIdRoute
 }
 
@@ -146,6 +165,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PostsPostIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/policies/privacypolicy': {
+      id: '/policies/privacypolicy'
+      path: '/policies/privacypolicy'
+      fullPath: '/policies/privacypolicy'
+      preLoaderRoute: typeof PoliciesPrivacypolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -155,6 +181,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ProfileRoute: ProfileRoute,
   SignupRoute: SignupRoute,
+  PoliciesPrivacypolicyRoute: PoliciesPrivacypolicyRoute,
   PostsPostIdRoute: PostsPostIdRoute,
 }
 export const routeTree = rootRouteImport
