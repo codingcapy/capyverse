@@ -7,6 +7,7 @@ import {
 import { Header } from "../components/Header";
 import { QueryClient } from "@tanstack/react-query";
 import { ScrollToTop } from "../ScrollToTop";
+import { LeftNav } from "../components/LeftNav";
 
 interface RouterContext {
   queryClient: QueryClient;
@@ -21,6 +22,7 @@ function RootComponent() {
     <React.Fragment>
       <div className="flex flex-col min-h-screen bg-[#222222] text-[#dddddd]">
         <ScrollToTop />
+        <LeftNav />
         <Header />
         <Outlet />
       </div>
