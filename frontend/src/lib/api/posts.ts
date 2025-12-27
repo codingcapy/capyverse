@@ -298,7 +298,6 @@ async function getSavedPostsByUserId(userId: string) {
     throw new Error("Error getting saved posts by user id");
   }
   const { posts } = await res.json();
-  console.log(posts);
   return posts.map(mapSerializedPostToSchema);
 }
 

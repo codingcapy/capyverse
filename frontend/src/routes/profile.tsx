@@ -74,8 +74,6 @@ function ProfilePage() {
     if (!user) navigate({ to: "/" });
   }, [user]);
 
-  useEffect(() => console.log(savedPosts), [savedPosts]);
-
   return (
     <div className="pt-[70px] mx-auto">
       <div className="flex text-2xl font-bold">

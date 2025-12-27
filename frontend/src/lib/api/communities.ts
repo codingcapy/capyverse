@@ -112,6 +112,6 @@ async function getCommunitiesByUserId(userId: string) {
 
 export const getCommunitiesByUserIdQueryOptions = (userId: string) =>
   queryOptions({
-    queryKey: ["saved-posts", userId],
+    queryKey: ["user-communities", userId],
     queryFn: () => getCommunitiesByUserId(userId),
   });

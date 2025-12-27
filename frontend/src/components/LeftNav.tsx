@@ -63,7 +63,7 @@ export function LeftNav() {
                   <Link
                     to="/c/$communityId"
                     params={{
-                      communityId: community.communityId.toString(),
+                      communityId: community.communityId,
                     }}
                     key={community.communityId}
                   >
