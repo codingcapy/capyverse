@@ -6,10 +6,18 @@ import { IoSettingsOutline } from "react-icons/io5";
 import { IoDocumentTextOutline } from "react-icons/io5";
 import useAuthStore from "../store/AuthStore";
 import useNavStore from "../store/NavStore";
+import { useQuery } from "@tanstack/react-query";
+import { getCommunitiesByUserIdQueryOptions } from "../lib/api/communities";
+import defaultProfile from "/capypaul01.jpg";
 
 export function LeftNav() {
   const { showLeftNav, setShowLeftNav } = useNavStore();
   const { user } = useAuthStore();
+  const {
+    data: communities,
+    isLoading: communitiesLoading,
+    error: communitiesError,
+  } = useQuery(getCommunitiesByUserIdQueryOptions((user && user.userId) || ""));
 
   return (
     <div>
@@ -46,6 +54,32 @@ export function LeftNav() {
                 <IoSettingsOutline size={20} />
                 <div className="ml-3">Manage Communities</div>
               </Link>
+              {communitiesLoading ? (
+                <div>Loading...</div>
+              ) : communitiesError ? (
+                <div>Error loading communities</div>
+              ) : communities ? (
+                communities.map((community) => (
+                  <Link
+                    to="/c/$communityId"
+                    params={{
+                      communityId: community.communityId.toString(),
+                    }}
+                    key={community.communityId}
+                  >
+                    <div className="flex hover:text-cyan-500 transition-all ease-in-out duration-300">
+                      <img
+                        src={defaultProfile}
+                        alt=""
+                        className="rounded-full w-[30px] h-[30px]"
+                      />
+                      <div className="ml-1 pt-1">c/{community.communityId}</div>
+                    </div>
+                  </Link>
+                ))
+              ) : (
+                <div></div>
+              )}
             </div>
           )}
           <div className="border-b border-[#808080] pb-3 pt-3">

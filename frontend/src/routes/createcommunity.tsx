@@ -23,7 +23,11 @@ function CreateCommunityPage() {
     e.preventDefault();
     if (createCommunityPending) return;
     createCommunity(
-      { communityId: title, title, description: content },
+      {
+        communityId: title,
+        description: content,
+        userId: (user && user.userId) || "",
+      },
       { onSuccess: () => navigate({ to: `/c/${title}` }) }
     );
   }

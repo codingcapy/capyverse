@@ -6,7 +6,7 @@ import { mightFail } from "might-fail";
 import { db } from "../db";
 import { HTTPException } from "hono/http-exception";
 import { assertIsParsableInt } from "./posts";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { communityUsers as communityUsersTable } from "../schemas/communityusers";
 import z from "zod";
 
@@ -99,6 +99,36 @@ export const communitiesRouter = new Hono()
     }
     return c.json({
       communities: communitiesQueryResult,
+    });
+  })
+  .get("/user/:userId", async (c) => {
+    const userId = c.req.param("userId");
+    const { result: userCommunitiesResult, error: suserCommunitiesError } =
+      await mightFail(
+        db
+          .select({
+            communityId: communitiesTable.communityId,
+            icon: communitiesTable.icon,
+            description: communitiesTable.description,
+            status: communitiesTable.status,
+            createdAt: communitiesTable.createdAt,
+          })
+          .from(communityUsersTable)
+          .innerJoin(
+            communitiesTable,
+            eq(communityUsersTable.communityId, communitiesTable.communityId)
+          )
+          .where(eq(communityUsersTable.userId, userId))
+          .orderBy(desc(communityUsersTable.createdAt))
+      );
+    if (suserCommunitiesError) {
+      throw new HTTPException(500, {
+        message: "Error occurred when fetching saved posts",
+        cause: suserCommunitiesError,
+      });
+    }
+    return c.json({
+      communities: userCommunitiesResult,
     });
   })
   .get("/:communityId", async (c) => {

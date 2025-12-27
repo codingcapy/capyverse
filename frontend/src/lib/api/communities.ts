@@ -97,3 +97,21 @@ export const getCommunityByIdQueryOptions = (communityId: string) =>
     queryKey: ["commmunities", communityId],
     queryFn: () => getCommunityById(communityId),
   });
+
+async function getCommunitiesByUserId(userId: string) {
+  const res = await client.api.v0.communities.user[":userId"].$get({
+    param: { userId: userId.toString() },
+  });
+
+  if (!res.ok) {
+    throw new Error("Error getting saved posts by user id");
+  }
+  const { communities } = await res.json();
+  return communities;
+}
+
+export const getCommunitiesByUserIdQueryOptions = (userId: string) =>
+  queryOptions({
+    queryKey: ["saved-posts", userId],
+    queryFn: () => getCommunitiesByUserId(userId),
+  });
