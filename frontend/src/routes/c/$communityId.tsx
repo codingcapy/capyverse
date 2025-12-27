@@ -70,7 +70,7 @@ function CommunityPage() {
               />
             </div>
             <div className="text-4xl font-bold pt-20 ml-2">
-              c/{community.title}
+              c/{community.communityId}
             </div>
           </div>
           <div

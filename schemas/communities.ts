@@ -9,7 +9,6 @@ import type { InferSelectModel } from "drizzle-orm";
 
 export const communities = pgTable("communities", {
   communityId: varchar("community_id").primaryKey(),
-  title: varchar("title").notNull(),
   description: varchar("description").notNull().unique(),
   category: varchar("category").default("technology").notNull(),
   visibility: varchar("visibility").default("private").notNull(),
