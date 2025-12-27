@@ -10,6 +10,8 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { FaTrashCan } from "react-icons/fa6";
 import { PostContentInput } from "../components/PostContentInput";
+import { getCommunitiesByUserIdQueryOptions } from "../lib/api/communities";
+import { PiCaretDown } from "react-icons/pi";
 
 export const Route = createFileRoute("/createpost")({
   component: CreatePostPage,
@@ -34,11 +36,17 @@ function CreatePostPage() {
     isLoading: imagesByUserLoading,
     error: imagesByUserError,
   } = useQuery(getImagesByUserIdQueryOptions((user && user.userId) || ""));
-  const [imageUploadNotification, setImageUploadNotification] = useState("");
   const { mutate: deleteImage } = useDeleteImageMutation();
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const activeImage = imagesByUser && imagesByUser[activeImageIndex];
   const [content, setContent] = useState("");
+  const {
+    data: communities,
+    isLoading: communitiesLoading,
+    error: communitiesError,
+  } = useQuery(getCommunitiesByUserIdQueryOptions((user && user.userId) || ""));
+  const [showCommunities, setShowCommunities] = useState(false);
+  const [community, setCommunity] = useState("Select a community");
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -51,7 +59,12 @@ function CreatePostPage() {
     if (titleInput.length > 400)
       return setNotification("Title content length max character limit is 400");
     createPost(
-      { userId: user.userId || "", title: titleInput, content },
+      {
+        userId: user.userId || "",
+        title: titleInput,
+        content,
+        communityId: community === "Select a community" ? "" : community,
+      },
       {
         onSuccess: () => navigate({ to: "/" }),
         onError: (e) => setNotification(e.toString()),
@@ -82,7 +95,7 @@ function CreatePostPage() {
     };
   }, [imagePreview]);
 
-  useEffect(() => console.log(content), [content]);
+  useEffect(() => console.log(communities), [communities]);
 
   return (
     <div className="pt-20 w-[80%] lg:w-[50%] 2xl:w-[30%] mx-auto">
@@ -90,6 +103,51 @@ function CreatePostPage() {
         Create Post
       </div>
       <form onSubmit={handleSubmit} className="flex flex-col mx-auto ">
+        <div className="relative w-fit">
+          <div
+            onClick={() => setShowCommunities(!showCommunities)}
+            className="cursor-pointer rounded-full px-5 py-3 bg-[#333333] w-[207px] flex mb-5 justify-between"
+          >
+            <div
+              className={`mr-2 ${community === "Select a community" ? "" : "font-bold"}`}
+            >
+              {community === "Select a community"
+                ? community
+                : `c/${community}`}
+            </div>
+            <div className="pt-0.5">
+              <PiCaretDown size={20} />
+            </div>
+          </div>
+          {showCommunities && (
+            <div className="absolute top-14 right-2 bg-[#333333] py-1 min-h-[50px] min-w-[190px] rounded-lg">
+              {communitiesLoading ? (
+                <div>Loading...</div>
+              ) : communitiesError ? (
+                <div>Error loading communities</div>
+              ) : communities ? (
+                communities.length > 0 ? (
+                  communities.map((c) => (
+                    <div
+                      onClick={() => {
+                        setCommunity(c.communityId);
+                        setShowCommunities(false);
+                      }}
+                      className="px-3 py-2 cursor-pointer font-bold hover:text-cyan-500 transition-all ease-in-out duration-300"
+                      key={c.communityId}
+                    >
+                      c/{c.communityId}
+                    </div>
+                  ))
+                ) : (
+                  <div className="my-3 p-2 "></div>
+                )
+              ) : (
+                <div className="my-3 p-2 "></div>
+              )}
+            </div>
+          )}
+        </div>
         <input
           type="text"
           name="titleinput"
