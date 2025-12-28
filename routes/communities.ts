@@ -6,7 +6,7 @@ import { mightFail } from "might-fail";
 import { db } from "../db";
 import { HTTPException } from "hono/http-exception";
 import { assertIsParsableInt } from "./posts";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { communityUsers as communityUsersTable } from "../schemas/communityusers";
 import z from "zod";
 
@@ -19,6 +19,11 @@ const createCommunitySchema = z.object({
   mature: z.boolean().optional(),
   icon: z.string().optional(),
   banner: z.string().optional(),
+});
+
+const joinCommunitySchema = z.object({
+  communityId: z.string(),
+  userId: z.string(),
 });
 
 export const communitiesRouter = new Hono()
@@ -149,4 +154,71 @@ export const communitiesRouter = new Hono()
     return c.json({
       community: communitiesQueryResult[0],
     });
+  })
+  .post("/join", zValidator("json", joinCommunitySchema), async (c) => {
+    const insertValues = c.req.valid("json");
+    const { result: communitiesQueryResult, error: communitiesQueryError } =
+      await mightFail(
+        db
+          .select()
+          .from(communityUsersTable)
+          .where(
+            and(
+              eq(communityUsersTable.communityId, insertValues.communityId),
+              eq(communityUsersTable.userId, insertValues.userId)
+            )
+          )
+      );
+    if (communitiesQueryError) {
+      throw new HTTPException(500, {
+        message: "Error occurred when fetching community user",
+        cause: communitiesQueryError,
+      });
+    }
+    if (communitiesQueryResult.length > 0)
+      throw new HTTPException(401, {
+        message: "User is already in community",
+        cause: Error(),
+      });
+    const {
+      error: communityUserInsertError,
+      result: communityUserInsertResult,
+    } = await mightFail(
+      db.insert(communityUsersTable).values(insertValues).returning()
+    );
+    if (communityUserInsertError) {
+      console.log("Error while creating community user");
+      console.log(communityUserInsertResult);
+      throw new HTTPException(500, {
+        message: "Error while creating community user",
+        cause: communityUserInsertResult,
+      });
+    }
+    return c.json({ communityResult: communityUserInsertResult[0] }, 200);
+  })
+  .post("/delete", zValidator("json", joinCommunitySchema), async (c) => {
+    const insertValues = c.req.valid("json");
+    const {
+      error: communityUserDeleteError,
+      result: communityUserDeleteResult,
+    } = await mightFail(
+      db
+        .delete(communityUsersTable)
+        .where(
+          and(
+            eq(communityUsersTable.communityId, insertValues.communityId),
+            eq(communityUsersTable.userId, insertValues.userId)
+          )
+        )
+        .returning()
+    );
+    if (communityUserDeleteError) {
+      console.log("Error while creating community user");
+      console.log(communityUserDeleteError);
+      throw new HTTPException(500, {
+        message: "Error while creating community user",
+        cause: communityUserDeleteError,
+      });
+    }
+    return c.json({ communityResult: communityUserDeleteResult[0] }, 200);
   });
