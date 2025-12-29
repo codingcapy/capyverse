@@ -4,7 +4,8 @@ import { getUserByIdQueryOptions } from "../lib/api/users";
 import defaultProfile from "/capypaul01.jpg";
 import { displayDate } from "../lib/utils";
 import { Link } from "@tanstack/react-router";
-import { getCommentsByPostIdQueryOptions } from "../lib/api/comments";
+import { getCommentsLengthByPostIdQueryOptions } from "../lib/api/comments";
+import { getVotesByPostIdQueryOptions } from "../lib/api/votes";
 
 export function PostThumbnailSimple(props: { post: Post }) {
   const {
@@ -13,10 +14,15 @@ export function PostThumbnailSimple(props: { post: Post }) {
     error: posterError,
   } = useQuery(getUserByIdQueryOptions(props.post.userId));
   const {
-    data: comments,
-    isLoading: commentsLoading,
-    error: commentsError,
-  } = useQuery(getCommentsByPostIdQueryOptions(props.post.postId));
+    data: commentsLength,
+    isLoading: commentsLengthLoading,
+    error: commentsLengthError,
+  } = useQuery(getCommentsLengthByPostIdQueryOptions(props.post.postId));
+  const {
+    data: votes,
+    isLoading: votesLoading,
+    isError: votesError,
+  } = useQuery(getVotesByPostIdQueryOptions(props.post.postId));
 
   return (
     <div className="px-5 border-b border-[#222222] py-3">
@@ -55,15 +61,28 @@ export function PostThumbnailSimple(props: { post: Post }) {
       >
         <div className="my-2">{props.post.title}</div>
       </Link>
-      {commentsLoading ? (
-        <div className="pr-3">Loading...</div>
-      ) : commentsError ? (
-        <div className="pr-3">Error fetching comments</div>
-      ) : comments ? (
-        <div className="text-sm">{comments.length} comments</div>
-      ) : (
-        <div className="pr-3"></div>
-      )}
+      <div className="flex">
+        <div className="text-sm mr-2">
+          {votesLoading
+            ? "Loading..."
+            : votesError
+              ? "error"
+              : votes !== undefined
+                ? votes
+                    .filter((vote) => vote.commentId === null)
+                    .reduce((acc, vote) => acc + vote.value!, 0)
+                : "error"}{" "}
+          votes
+        </div>
+        <div className="text-sm">
+          {commentsLengthLoading
+            ? "Loading..."
+            : commentsLengthError
+              ? "error"
+              : commentsLength}{" "}
+          comments
+        </div>
+      </div>
     </div>
   );
 }
