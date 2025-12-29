@@ -182,3 +182,20 @@ export const getCommentsByUserIdQueryOptions = (userId: string) =>
     queryKey: ["comments", userId],
     queryFn: () => getCommentsByUserId(userId),
   });
+
+async function getCommentsLengthByPostId(postId: number) {
+  const res = await client.api.v0.comments.post.count[":postId"].$get({
+    param: { postId: postId.toString() },
+  });
+  if (!res.ok) {
+    throw new Error("Error getting comments by id");
+  }
+  const { commentsLength } = await res.json();
+  return commentsLength;
+}
+
+export const getCommentsLengthByPostIdQueryOptions = (postId: number) =>
+  queryOptions({
+    queryKey: ["comments-length", postId],
+    queryFn: () => getCommentsLengthByPostId(postId),
+  });

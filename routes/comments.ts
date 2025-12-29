@@ -138,6 +138,21 @@ export const commentsRouter = new Hono()
       comments: commentsQueryResult,
     });
   })
+  .get("/post/count/:postId", async (c) => {
+    const { postId: postIdString } = c.req.param();
+    const postId = assertIsParsableInt(postIdString);
+    const { result: commentsQueryResult, error: commentsQueryError } =
+      await mightFail(
+        db.select().from(commentsTable).where(eq(commentsTable.postId, postId))
+      );
+    if (commentsQueryError)
+      throw new HTTPException(500, {
+        message: "error querying comments",
+        cause: commentsQueryError,
+      });
+    const commentsCount = commentsQueryResult.length;
+    return c.json({ commentsLength: commentsCount });
+  })
   .post("/save", zValidator("json", saveCommentSchema), async (c) => {
     const saveValues = c.req.valid("json");
     const { result: savedCommentQueryResult, error: savedCommentsQueryError } =

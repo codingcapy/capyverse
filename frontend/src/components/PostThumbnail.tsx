@@ -9,7 +9,7 @@ import { Menu } from "./Menu";
 import defaultProfile from "/capypaul01.jpg";
 import { useQuery } from "@tanstack/react-query";
 import { getUserByIdQueryOptions } from "../lib/api/users";
-import { getCommentsByPostIdQueryOptions } from "../lib/api/comments";
+import { getCommentsLengthByPostIdQueryOptions } from "../lib/api/comments";
 import { IoChatbubbleOutline } from "react-icons/io5";
 import { getImagesByPostIdQueryOptions } from "../lib/api/images";
 import { Post } from "../../../schemas/posts";
@@ -27,15 +27,15 @@ export function PostThumbnail(props: { post: Post }) {
     error: posterError,
   } = useQuery(getUserByIdQueryOptions(props.post.userId));
   const {
-    data: comments,
-    isLoading: commentsLoading,
-    error: commentsError,
-  } = useQuery(getCommentsByPostIdQueryOptions(props.post.postId));
-  const {
     data: images,
     isLoading: imagesLoading,
     error: imagesError,
   } = useQuery(getImagesByPostIdQueryOptions(props.post.postId));
+  const {
+    data: commentsLength,
+    isLoading: commentsLengthLoading,
+    error: commentsLengthError,
+  } = useQuery(getCommentsLengthByPostIdQueryOptions(props.post.postId));
 
   return (
     <div className="mx-auto w-full md:w-[50%] 2xl:w-[750px] border-t border-[#636363]">
@@ -141,15 +141,15 @@ export function PostThumbnail(props: { post: Post }) {
               <div className="pl-3 pr-1">
                 <IoChatbubbleOutline size={20} />
               </div>
-              {commentsLoading ? (
-                <div className="pr-3">Loading...</div>
-              ) : commentsError ? (
-                <div className="pr-3">Error fetching comments</div>
-              ) : comments ? (
-                <div className="pr-3 font-semibold">{comments.length}</div>
-              ) : (
-                <div className="pr-3">An unexpected error has occured</div>
-              )}
+              {
+                <div className="pr-3 font-semibold">
+                  {commentsLengthLoading
+                    ? "Loading..."
+                    : commentsLengthError
+                      ? "Error loading comments"
+                      : (commentsLength ?? 0)}
+                </div>
+              }
             </div>
           </div>
           {showMenu && (
