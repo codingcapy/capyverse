@@ -196,7 +196,7 @@ export const communitiesRouter = new Hono()
     }
     return c.json({ communityResult: communityUserInsertResult[0] }, 200);
   })
-  .post("/delete", zValidator("json", joinCommunitySchema), async (c) => {
+  .post("/leave", zValidator("json", joinCommunitySchema), async (c) => {
     const insertValues = c.req.valid("json");
     const {
       error: communityUserDeleteError,

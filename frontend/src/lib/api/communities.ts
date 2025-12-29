@@ -10,6 +10,14 @@ type CreateCommunityArgs = ArgumentTypes<
   typeof client.api.v0.communities.$post
 >[0]["json"];
 
+type JoinCommunityArgs = ArgumentTypes<
+  typeof client.api.v0.communities.join.$post
+>[0]["json"];
+
+type LeaveCommunityArgs = ArgumentTypes<
+  typeof client.api.v0.communities.leave.$post
+>[0]["json"];
+
 type SerializeCommunity = ExtractData<
   Awaited<ReturnType<typeof client.api.v0.communities.$get>>
 >["communities"][number];
@@ -115,3 +123,95 @@ export const getCommunitiesByUserIdQueryOptions = (userId: string) =>
     queryKey: ["user-communities", userId],
     queryFn: () => getCommunitiesByUserId(userId),
   });
+
+async function joinCommunity(args: JoinCommunityArgs) {
+  const res = await client.api.v0.communities.join.$post({ json: args });
+  if (!res.ok) {
+    let errorMessage =
+      "There was an issue joining the community :( We'll look into it ASAP!";
+    try {
+      const errorResponse = await res.json();
+      if (
+        errorResponse &&
+        typeof errorResponse === "object" &&
+        "message" in errorResponse
+      ) {
+        errorMessage = String(errorResponse.message);
+      }
+    } catch (error) {
+      console.error("Failed to parse error response:", error);
+    }
+    throw new Error(errorMessage);
+  }
+  const result = await res.json();
+  if (!result.communityResult) {
+    throw new Error("Invalid response from server");
+  }
+  return result.communityResult;
+}
+
+export const useJoinCommunityMutation = (
+  onError?: (message: string) => void
+) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: joinCommunity,
+    onSettled: (args) => {
+      queryClient.invalidateQueries({ queryKey: ["commmunities"] });
+      queryClient.invalidateQueries({
+        queryKey: ["commmunities", args?.communityId],
+      });
+    },
+    onError: (error) => {
+      if (onError) {
+        onError(error.message);
+      }
+    },
+  });
+};
+
+async function leaveCommunity(args: LeaveCommunityArgs) {
+  const res = await client.api.v0.communities.leave.$post({ json: args });
+  if (!res.ok) {
+    let errorMessage =
+      "There was an issue leaving the community :( We'll look into it ASAP!";
+    try {
+      const errorResponse = await res.json();
+      if (
+        errorResponse &&
+        typeof errorResponse === "object" &&
+        "message" in errorResponse
+      ) {
+        errorMessage = String(errorResponse.message);
+      }
+    } catch (error) {
+      console.error("Failed to parse error response:", error);
+    }
+    throw new Error(errorMessage);
+  }
+  const result = await res.json();
+  if (!result.communityResult) {
+    throw new Error("Invalid response from server");
+  }
+  return result.communityResult;
+}
+
+export const useLeaveCommunityMutation = (
+  onError?: (message: string) => void
+) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: leaveCommunity,
+    onSettled: (args) => {
+      queryClient.invalidateQueries({ queryKey: ["commmunities"] });
+      queryClient.invalidateQueries({
+        queryKey: ["commmunities", args?.communityId],
+      });
+    },
+    onError: (error) => {
+      if (onError) {
+        onError(error.message);
+      }
+    },
+  });
+};
