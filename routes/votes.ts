@@ -5,7 +5,7 @@ import { votes as votesTable } from "../schemas/votes";
 import { mightFail } from "might-fail";
 import { db } from "../db";
 import { HTTPException } from "hono/http-exception";
-import { and, eq, isNotNull, isNull } from "drizzle-orm";
+import { and, eq, isNotNull, isNull, sql } from "drizzle-orm";
 import z from "zod";
 import { assertIsParsableInt } from "./posts";
 
@@ -161,5 +161,62 @@ export const votesRouter = new Hono()
     }
     return c.json({
       votes: commentVotesQueryResult,
+    });
+  })
+  .get("/post/summary/:postId", async (c) => {
+    const postId = assertIsParsableInt(c.req.param("postId"));
+    const { result, error } = await mightFail(
+      db
+        .select({
+          upvotes: sql<number>`SUM(CASE WHEN ${votesTable.value} = 1 THEN 1 ELSE 0 END)`,
+          downvotes: sql<number>`SUM(CASE WHEN ${votesTable.value} = -1 THEN 1 ELSE 0 END)`,
+          score: sql<number>`COALESCE(SUM(${votesTable.value}), 0)`,
+        })
+        .from(votesTable)
+        .where(and(eq(votesTable.postId, postId), isNull(votesTable.commentId)))
+    );
+    if (error) {
+      throw new HTTPException(500, {
+        message: "Error fetching vote summary",
+        cause: error,
+      });
+    }
+    return c.json(
+      result[0] ?? {
+        upvotes: 0,
+        downvotes: 0,
+        score: 0,
+      }
+    );
+  })
+  .get("/post/user/:postId/:userId", async (c) => {
+    const postId = assertIsParsableInt(c.req.param("postId"));
+    const userId = c.req.param("userId");
+    const { result, error } = await mightFail(
+      db
+        .select({
+          voteId: votesTable.voteId,
+          value: votesTable.value,
+        })
+        .from(votesTable)
+        .where(
+          and(
+            eq(votesTable.postId, postId),
+            eq(votesTable.userId, userId),
+            isNull(votesTable.commentId)
+          )
+        )
+        .limit(1)
+    );
+    if (error) {
+      throw new HTTPException(500, {
+        message: "Error fetching user vote",
+        cause: error,
+      });
+    }
+    return c.json({
+      voted: result.length > 0,
+      value: result[0]?.value ?? null, // 1 | -1 | null
+      voteId: result[0]?.voteId ?? null,
     });
   });
