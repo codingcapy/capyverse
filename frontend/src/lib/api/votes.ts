@@ -147,3 +147,40 @@ export const getVotesByCommentIdQueryOptions = (commentId: number) =>
     queryKey: ["votes", commentId],
     queryFn: () => getVotesByCommentId(commentId),
   });
+
+async function getVotesSummaryByPostId(postId: number) {
+  const res = await client.api.v0.votes.post.summary[":postId"].$get({
+    param: { postId: postId.toString() },
+  });
+  if (!res.ok) {
+    throw new Error("Error getting votes by postId");
+  }
+  const votes = await res.json();
+  return votes;
+}
+
+export const getVotesSummaryByPostIdQueryOptions = (postId: number) =>
+  queryOptions({
+    queryKey: ["votes-summary", postId],
+    queryFn: () => getVotesSummaryByPostId(postId),
+  });
+
+async function getUserVoteByPostId(postId: number, userId: string) {
+  const res = await client.api.v0.votes.post.user[":postId"][":userId"].$get({
+    param: { postId: postId.toString(), userId: userId.toString() },
+  });
+  if (!res.ok) {
+    throw new Error("Error getting user vote by postId");
+  }
+  const votes = await res.json();
+  return votes;
+}
+
+export const getUserVoteByPostIdQueryOptions = (
+  postId: number,
+  userId: string
+) =>
+  queryOptions({
+    queryKey: ["user-vote", postId, userId],
+    queryFn: () => getUserVoteByPostId(postId, userId),
+  });
