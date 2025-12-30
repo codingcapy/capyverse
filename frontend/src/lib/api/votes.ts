@@ -124,7 +124,9 @@ export const useUpdateVoteMutation = (onError?: (message: string) => void) => {
   return useMutation({
     mutationFn: updateVote,
     onSuccess: (data) => {
-      console.log(data);
+      queryClient.invalidateQueries({
+        queryKey: ["comment-votes", data.commentId],
+      });
       queryClient.invalidateQueries({
         queryKey: ["user-vote", data.postId, data.userId],
       });
