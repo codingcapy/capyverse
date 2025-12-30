@@ -55,8 +55,13 @@ export const useCreateVoteMutation = (onError?: (message: string) => void) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: createVote,
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["votes"] });
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({
+        queryKey: ["user-vote", data.postId, data.userId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["votes-summary", data.postId],
+      });
     },
     onError: (error) => {
       if (onError) {
@@ -94,7 +99,7 @@ async function getVotesByPostId(postId: number) {
 
 export const getVotesByPostIdQueryOptions = (postId: number) =>
   queryOptions({
-    queryKey: ["votes", postId],
+    queryKey: ["post-votes", postId],
     queryFn: () => getVotesByPostId(postId),
   });
 
@@ -110,17 +115,21 @@ async function updateVote(args: UpdateVoteArgs) {
     }
     throw new Error(errorMessage);
   }
-  const result = await res.json();
-  return result;
+  const { vote } = await res.json();
+  return vote;
 }
 
 export const useUpdateVoteMutation = (onError?: (message: string) => void) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: updateVote,
-    onSettled: (_data, _error) => {
+    onSuccess: (data) => {
+      console.log(data);
       queryClient.invalidateQueries({
-        queryKey: ["votes"],
+        queryKey: ["user-vote", data.postId, data.userId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["votes-summary", data.postId],
       });
     },
     onError: (error) => {
@@ -144,7 +153,7 @@ async function getVotesByCommentId(commentId: number) {
 
 export const getVotesByCommentIdQueryOptions = (commentId: number) =>
   queryOptions({
-    queryKey: ["votes", commentId],
+    queryKey: ["comment-votes", commentId],
     queryFn: () => getVotesByCommentId(commentId),
   });
 

@@ -127,7 +127,8 @@ export const votesRouter = new Hono()
         cause: voteUpdateError,
       });
     }
-    return c.json({ request: voteUpdateResult[0] }, 200);
+    console.log("update result:", voteUpdateResult);
+    return c.json({ vote: voteUpdateResult[0] }, 200);
   })
   .get("/:postId", async (c) => {
     const { postId: postIdString } = c.req.param();
