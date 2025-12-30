@@ -3,6 +3,8 @@ import {
   getCommunitiesByUserIdQueryOptions,
   getCommunitiesQueryOptions,
   getCommunityByIdQueryOptions,
+  useJoinCommunityMutation,
+  useLeaveCommunityMutation,
 } from "../../lib/api/communities";
 import defaultProfile from "/capypaul01.jpg";
 import { PiCaretDownBold } from "react-icons/pi";
@@ -57,6 +59,10 @@ function CommunityPage() {
     isLoading: communitiesLoading,
     error: communitiesError,
   } = useQuery(getCommunitiesByUserIdQueryOptions((user && user.userId) || ""));
+  const { mutate: joinCommunity, isPending: joinCommunityPending } =
+    useJoinCommunityMutation();
+  const { mutate: leaveCommunity, isPending: leaveCommunityPending } =
+    useLeaveCommunityMutation();
 
   function handleClickOutside(event: MouseEvent) {
     if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -133,12 +139,30 @@ function CommunityPage() {
               communities.some(
                 (c) => c.communityId === community.communityId
               ) ? (
-                <div className="px-5 py-3 rounded-full border cursor-pointer hover:bg-[#333333] transition-all ease-in-out duration-300">
-                  Joined
+                <div
+                  onClick={() => {
+                    if (leaveCommunityPending) return;
+                    leaveCommunity({
+                      communityId: (community && community.communityId) || "",
+                      userId: (user && user.userId) || "",
+                    });
+                  }}
+                  className="px-5 py-3 rounded-full border cursor-pointer hover:bg-[#333333] transition-all ease-in-out duration-300"
+                >
+                  {leaveCommunityPending ? "Leaving..." : "Joined"}
                 </div>
               ) : (
-                <div className="px-5 py-3 rounded-full bg-cyan-700 cursor-pointer hover:bg-cyan-500 transition-all ease-in-out duration-300">
-                  Join
+                <div
+                  onClick={() => {
+                    if (joinCommunityPending) return;
+                    joinCommunity({
+                      communityId: (community && community.communityId) || "",
+                      userId: (user && user.userId) || "",
+                    });
+                  }}
+                  className="px-5 py-3 rounded-full bg-cyan-700 cursor-pointer hover:bg-cyan-500 transition-all ease-in-out duration-300"
+                >
+                  {joinCommunityPending ? "Joining..." : "Join"}
                 </div>
               )
             ) : (

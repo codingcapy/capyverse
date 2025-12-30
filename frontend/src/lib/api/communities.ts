@@ -157,7 +157,9 @@ export const useJoinCommunityMutation = (
   return useMutation({
     mutationFn: joinCommunity,
     onSettled: (args) => {
-      queryClient.invalidateQueries({ queryKey: ["commmunities"] });
+      queryClient.invalidateQueries({
+        queryKey: ["user-communities", args?.userId],
+      });
       queryClient.invalidateQueries({
         queryKey: ["commmunities", args?.communityId],
       });
@@ -203,7 +205,9 @@ export const useLeaveCommunityMutation = (
   return useMutation({
     mutationFn: leaveCommunity,
     onSettled: (args) => {
-      queryClient.invalidateQueries({ queryKey: ["commmunities"] });
+      queryClient.invalidateQueries({
+        queryKey: ["user-communities", args?.userId],
+      });
       queryClient.invalidateQueries({
         queryKey: ["commmunities", args?.communityId],
       });
