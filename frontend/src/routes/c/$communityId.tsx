@@ -1,4 +1,4 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import {
   getCommunitiesByUserIdQueryOptions,
   getCommunitiesQueryOptions,
@@ -63,6 +63,7 @@ function CommunityPage() {
     useJoinCommunityMutation();
   const { mutate: leaveCommunity, isPending: leaveCommunityPending } =
     useLeaveCommunityMutation();
+  const navigate = useNavigate();
 
   function handleClickOutside(event: MouseEvent) {
     if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -131,42 +132,53 @@ function CommunityPage() {
                 </div>
               )}
             </div>
-            {communitiesLoading ? (
-              <div>Loading...</div>
-            ) : communitiesError ? (
-              <div>Error loading communities</div>
-            ) : communities ? (
-              communities.some(
-                (c) => c.communityId === community.communityId
-              ) ? (
-                <div
-                  onClick={() => {
-                    if (leaveCommunityPending) return;
-                    leaveCommunity({
-                      communityId: (community && community.communityId) || "",
-                      userId: (user && user.userId) || "",
-                    });
-                  }}
-                  className="px-5 py-3 rounded-full border cursor-pointer hover:bg-[#333333] transition-all ease-in-out duration-300"
-                >
-                  {leaveCommunityPending ? "Leaving..." : "Joined"}
-                </div>
+            {user ? (
+              communitiesLoading ? (
+                <div>Loading...</div>
+              ) : communitiesError ? (
+                <div>Error loading communities</div>
+              ) : communities ? (
+                communities.some(
+                  (c) => c.communityId === community.communityId
+                ) ? (
+                  <div
+                    onClick={() => {
+                      if (leaveCommunityPending) return;
+                      leaveCommunity({
+                        communityId: (community && community.communityId) || "",
+                        userId: (user && user.userId) || "",
+                      });
+                    }}
+                    className="px-5 py-3 rounded-full border cursor-pointer hover:bg-[#333333] transition-all ease-in-out duration-300"
+                  >
+                    {leaveCommunityPending ? "Leaving..." : "Joined"}
+                  </div>
+                ) : (
+                  <div
+                    onClick={() => {
+                      if (joinCommunityPending) return;
+                      joinCommunity({
+                        communityId: (community && community.communityId) || "",
+                        userId: (user && user.userId) || "",
+                      });
+                    }}
+                    className="px-5 py-3 rounded-full bg-cyan-700 cursor-pointer hover:bg-cyan-500 transition-all ease-in-out duration-300"
+                  >
+                    {joinCommunityPending ? "Joining..." : "Join"}
+                  </div>
+                )
               ) : (
-                <div
-                  onClick={() => {
-                    if (joinCommunityPending) return;
-                    joinCommunity({
-                      communityId: (community && community.communityId) || "",
-                      userId: (user && user.userId) || "",
-                    });
-                  }}
-                  className="px-5 py-3 rounded-full bg-cyan-700 cursor-pointer hover:bg-cyan-500 transition-all ease-in-out duration-300"
-                >
-                  {joinCommunityPending ? "Joining..." : "Join"}
+                <div className="px-5 py-3 rounded-full bg-cyan-700 cursor-pointer hover:bg-cyan-500 transition-all ease-in-out duration-300">
+                  Join
                 </div>
               )
             ) : (
-              <div></div>
+              <div
+                onClick={() => navigate({ to: "/login" })}
+                className="px-5 py-3 rounded-full bg-cyan-700 cursor-pointer hover:bg-cyan-500 transition-all ease-in-out duration-300"
+              >
+                Join
+              </div>
             )}
           </div>
         </div>
