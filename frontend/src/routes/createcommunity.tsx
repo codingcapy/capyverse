@@ -100,13 +100,35 @@ function CreateCommunityPage() {
           onChange={(e) => setContent(e)}
           contentPlaceholder="Description"
         />
+        <div className="my-2">
+          <div className="py-2">
+            <div>Public</div>
+            <div className="text-sm">
+              Anyone can view, post and comment to this community
+            </div>
+          </div>
+          <div className="py-2">
+            <div>Restricted</div>
+            <div className="text-sm">
+              Anyone can view, but only approved users can contribute
+            </div>
+          </div>
+          <div className="py-2">
+            <div>Private</div>
+            <div className="text-sm">
+              Only approved users can view and contribute
+            </div>
+          </div>
+        </div>
         <div className="my-3">
           <div>Mature (18+)</div>
           <div className="text-sm">
             Users must be over 18 to view and contribute
           </div>
           <div className="mt-2">
-            <div className="inline-flex items-center justify-center gap-0 mb-2 bg-cyan-500 rounded-full shadow-[inset_-1px_0px_4.8px_rgba(0,0,0,0.5)]">
+            <div
+              className={`inline-flex items-center justify-center gap-0 mb-2 ${matureContent ? "bg-[#666666]" : "bg-cyan-500"} rounded-full shadow-[inset_-1px_0px_4.8px_rgba(0,0,0,0.5)]`}
+            >
               <button
                 className={`h-[25px] w-[25px] rounded-full font-bold text-lg tracking-wide transition-all duration-300 ease-in-out ${
                   matureContent ? "bg-white" : "bg-transparent"
