@@ -18,6 +18,7 @@ function CreateCommunityPage() {
   const [title, setTitle] = useState("");
   const { mutate: createCommunity, isPending: createCommunityPending } =
     useCreateCommunityMutation();
+  const [matureContent, setMatureContent] = useState(false);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -27,6 +28,7 @@ function CreateCommunityPage() {
         communityId: title,
         description: content,
         userId: (user && user.userId) || "",
+        mature: matureContent,
       },
       { onSuccess: () => navigate({ to: `/c/${title}` }) }
     );
@@ -98,6 +100,30 @@ function CreateCommunityPage() {
           onChange={(e) => setContent(e)}
           contentPlaceholder="Description"
         />
+        <div className="my-3">
+          <div>Mature (18+)</div>
+          <div className="text-sm">
+            Users must be over 18 to view and contribute
+          </div>
+          <div className="mt-2">
+            <div className="inline-flex items-center justify-center gap-0 mb-2 bg-cyan-500 rounded-full shadow-[inset_-1px_0px_4.8px_rgba(0,0,0,0.5)]">
+              <button
+                className={`h-[25px] w-[25px] rounded-full font-bold text-lg tracking-wide transition-all duration-300 ease-in-out ${
+                  matureContent ? "bg-white" : "bg-transparent"
+                }`}
+                style={{ fontFamily: "'Nunito Sans', sans-serif" }}
+                onClick={() => setMatureContent(true)}
+              ></button>
+              <button
+                className={`h-[25px] w-[25px] rounded-full font-bold text-lg tracking-wide transition-all duration-300 ease-in-out ${
+                  !matureContent ? "bg-white" : "bg-transparent"
+                }`}
+                style={{ fontFamily: "'Nunito Sans', sans-serif" }}
+                onClick={() => setMatureContent(false)}
+              ></button>
+            </div>
+          </div>
+        </div>
         <button className="bg-cyan-600 px-5 py-2 rounded-full font-bold my-5 cursor-pointer hover:bg-cyan-500 transition-all ease-in-out duration-300">
           {createCommunityPending ? "Creating..." : "Create Community"}
         </button>
