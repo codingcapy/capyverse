@@ -26,7 +26,10 @@ export function LeftNav() {
           <div className="border-b border-[#808080] pb-3">
             <Link
               to="/"
-              onClick={() => window.innerWidth < 1100 && setShowLeftNav(false)}
+              onClick={() => {
+                window.innerWidth < 1100 && setShowLeftNav(false);
+                window.scrollTo(0, 0);
+              }}
               className="flex py-2 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300"
             >
               <FaHome size={20} />

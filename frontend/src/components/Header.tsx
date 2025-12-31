@@ -58,7 +58,11 @@ export function Header() {
               <GiHamburgerMenu size={25} />
             </div>
           )}
-          <Link to="/" className="text-2xl text-cyan-500 font-bold">
+          <Link
+            to="/"
+            onClick={() => window.scrollTo(0, 0)}
+            className="text-2xl text-cyan-500 font-bold"
+          >
             Capyverse
           </Link>
           {window.innerWidth > 500 && (
