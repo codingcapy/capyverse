@@ -130,7 +130,6 @@ export const postsRouter = new Hono()
   .get("/popular", async (c) => {
     const limit = Number(c.req.query("limit") ?? 10);
     const cursorScore = c.req.query("cursorScore");
-    const cursorCreatedAt = c.req.query("cursorCreatedAt");
     const cursorPostId = c.req.query("cursorPostId");
     const scoreSubquery = db
       .select({
@@ -286,6 +285,7 @@ export const postsRouter = new Hono()
     zValidator(
       "query",
       z.object({
+        cursorScore: z.string().optional(),
         cursorPostId: z.string().optional(),
         limit: z.string().optional(),
       })
@@ -354,7 +354,6 @@ export const postsRouter = new Hono()
         nextCursor: hasNextPage
           ? {
               score: last!.score,
-              createdAt: last!.post.createdAt,
               postId: last!.post.postId,
             }
           : null,

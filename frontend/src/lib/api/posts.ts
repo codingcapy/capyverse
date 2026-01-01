@@ -69,6 +69,9 @@ export const useCreatePostMutation = (onError?: (message: string) => void) => {
     mutationFn: createPost,
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["posts"] });
+      queryClient.invalidateQueries({ queryKey: ["community-posts"] });
+      queryClient.invalidateQueries({ queryKey: ["community-popular-posts"] });
+      queryClient.invalidateQueries({ queryKey: ["popular-posts"] });
     },
     onError: (error) => {
       if (onError) {
@@ -138,7 +141,6 @@ export async function getNewCommunityPostsPage(ctx: QueryFunctionContext) {
 
 export type PopularPostsCursor = {
   score: number;
-  createdAt: string;
   postId: number;
 } | null;
 
@@ -151,7 +153,6 @@ export async function getPopularPostsPage({
     query: pageParam
       ? {
           cursorScore: String(pageParam.score),
-          cursorCreatedAt: pageParam.createdAt,
           cursorPostId: String(pageParam.postId),
         }
       : {},
@@ -169,16 +170,23 @@ export async function getPopularPostsPage({
 
 export async function getPopularCommunityPostsPage(ctx: QueryFunctionContext) {
   const { pageParam, queryKey } = ctx;
-  const [, communityId] = queryKey as ["community-posts", number];
+  const [, communityId] = queryKey as ["community-popular-posts", number];
   const cursor =
     pageParam && typeof pageParam === "object"
-      ? (pageParam as NewPostsCursor)
+      ? (pageParam as PopularPostsCursor)
       : null;
   const res = await client.api.v0.posts.community.popular[":communityId"].$get({
     param: { communityId: String(communityId) },
-    query: cursor ? { cursorPostId: String(cursor.postId) } : {},
+    query: cursor
+      ? {
+          cursorScore: String(cursor.score),
+          cursorPostId: String(cursor.postId),
+        }
+      : {},
   });
-  if (!res.ok) throw new Error("Error getting posts");
+  if (!res.ok) {
+    throw new Error("Error getting popular community posts");
+  }
   const { posts, nextCursor } = await res.json();
   return {
     posts: posts.map(mapSerializedPostToSchema),
