@@ -8,6 +8,8 @@ export const Route = createFileRoute("/createcommunity")({
   component: CreateCommunityPage,
 });
 
+type Visibility = "public" | "restricted" | "private";
+
 function CreateCommunityPage() {
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -19,6 +21,7 @@ function CreateCommunityPage() {
   const { mutate: createCommunity, isPending: createCommunityPending } =
     useCreateCommunityMutation();
   const [matureContent, setMatureContent] = useState(false);
+  const [visibility, setVisibility] = useState<Visibility>("public");
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -29,6 +32,7 @@ function CreateCommunityPage() {
         description: content,
         userId: (user && user.userId) || "",
         mature: matureContent,
+        visibility,
       },
       { onSuccess: () => navigate({ to: `/c/${title}` }) }
     );
@@ -101,19 +105,29 @@ function CreateCommunityPage() {
           contentPlaceholder="Description"
         />
         <div className="my-2">
-          <div className="py-2">
+          <div className="text-xl mb-2 font-semibold">Visibility</div>
+          <div
+            onClick={() => setVisibility("public")}
+            className={`p-2 cursor-pointer ${visibility === "public" && "bg-[#555555]"}`}
+          >
             <div>Public</div>
             <div className="text-sm">
               Anyone can view, post and comment to this community
             </div>
           </div>
-          <div className="py-2">
+          <div
+            onClick={() => setVisibility("restricted")}
+            className={`p-2 cursor-pointer ${visibility === "restricted" && "bg-[#555555]"}`}
+          >
             <div>Restricted</div>
             <div className="text-sm">
               Anyone can view, but only approved users can contribute
             </div>
           </div>
-          <div className="py-2">
+          <div
+            onClick={() => setVisibility("private")}
+            className={`p-2 cursor-pointer ${visibility === "private" && "bg-[#555555]"}`}
+          >
             <div>Private</div>
             <div className="text-sm">
               Only approved users can view and contribute
@@ -127,22 +141,22 @@ function CreateCommunityPage() {
           </div>
           <div className="mt-2">
             <div
-              className={`inline-flex items-center justify-center gap-0 mb-2 ${matureContent ? "bg-[#666666]" : "bg-cyan-500"} rounded-full shadow-[inset_-1px_0px_4.8px_rgba(0,0,0,0.5)]`}
+              className={`inline-flex items-center justify-center gap-0 mb-2 ${matureContent ? "bg-cyan-500" : "bg-[#666666]"} rounded-full shadow-[inset_-1px_0px_4.8px_rgba(0,0,0,0.5)]`}
             >
-              <button
-                className={`h-[25px] w-[25px] rounded-full font-bold text-lg tracking-wide transition-all duration-300 ease-in-out ${
-                  matureContent ? "bg-white" : "bg-transparent"
-                }`}
-                style={{ fontFamily: "'Nunito Sans', sans-serif" }}
-                onClick={() => setMatureContent(true)}
-              ></button>
-              <button
+              <div
                 className={`h-[25px] w-[25px] rounded-full font-bold text-lg tracking-wide transition-all duration-300 ease-in-out ${
                   !matureContent ? "bg-white" : "bg-transparent"
                 }`}
                 style={{ fontFamily: "'Nunito Sans', sans-serif" }}
                 onClick={() => setMatureContent(false)}
-              ></button>
+              ></div>
+              <div
+                className={`h-[25px] w-[25px] rounded-full font-bold text-lg tracking-wide transition-all duration-300 ease-in-out ${
+                  matureContent ? "bg-white" : "bg-transparent"
+                }`}
+                style={{ fontFamily: "'Nunito Sans', sans-serif" }}
+                onClick={() => setMatureContent(true)}
+              ></div>
             </div>
           </div>
         </div>
