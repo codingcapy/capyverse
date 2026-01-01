@@ -243,22 +243,32 @@ export const postsRouter = new Hono()
     });
   })
   .get("/community/:communityId", async (c) => {
+    const limit = Number(c.req.query("limit") ?? 10);
+    const cursorPostId = c.req.query("cursorPostId");
+    const cursorWhere = cursorPostId
+      ? sql`${postsTable.postId} < ${Number(cursorPostId)}`
+      : undefined;
     const { communityId } = c.req.param();
-    const { result: postsQueryResult, error: postsQueryError } =
-      await mightFail(
-        db
-          .select()
-          .from(postsTable)
-          .where(eq(postsTable.communityId, communityId))
-      );
-    if (postsQueryError) {
+    const { result, error } = await mightFail(
+      db
+        .select()
+        .from(postsTable)
+        .where(and(cursorWhere, eq(postsTable.communityId, communityId)))
+        .orderBy(desc(postsTable.postId)) // newest first
+        .limit(limit + 1)
+    );
+    if (error) {
       throw new HTTPException(500, {
-        message: "Error occurred when fetching post",
-        cause: postsQueryError,
+        message: "Error occurred when fetching posts",
+        cause: error,
       });
     }
+    const hasNextPage = result.length > limit;
+    const pageItems = hasNextPage ? result.slice(0, limit) : result;
+    const last = pageItems.at(-1);
     return c.json({
-      posts: postsQueryResult,
+      posts: pageItems,
+      nextCursor: hasNextPage ? { postId: last!.postId } : null,
     });
   })
   .post("/post/delete", zValidator("json", deletePostSchema), async (c) => {
