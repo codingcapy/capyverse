@@ -11,11 +11,11 @@ import { PiCaretDownBold } from "react-icons/pi";
 import { useEffect, useRef, useState } from "react";
 import { SortMode } from "..";
 import { useQuery } from "@tanstack/react-query";
-import { getPostsByCommunityIdQueryOptions } from "../../lib/api/posts";
 import { PostThumbnail } from "../../components/PostThumbnail";
 import usePostStore from "../../store/PostStore";
 import DOMPurify from "dompurify";
 import useAuthStore from "../../store/AuthStore";
+import { CommunityPostsByNew } from "../../components/CommunityPostsByNew";
 
 export const Route = createFileRoute("/c/$communityId")({
   beforeLoad: async ({ context, params }) => {
@@ -48,11 +48,6 @@ function CommunityPage() {
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>("Popular");
   const menuRef = useRef<HTMLDivElement | null>(null);
-  const {
-    data: posts,
-    isLoading: postsLoading,
-    error: postsError,
-  } = useQuery(getPostsByCommunityIdQueryOptions(community.communityId));
   const { searchContent } = usePostStore();
   const {
     data: communities,
@@ -183,90 +178,9 @@ function CommunityPage() {
           </div>
         </div>
         {sortMode === "Popular" ? (
-          // todo: implement get posts by community id sorted by popular and infinite scroll
-          <div className="mx-auto flex 2xl:pl-80">
-            <div>
-              {postsLoading ? (
-                <div className="mx-auto w-full md:w-[50%] 2xl:w-[750px] border-t border-[#636363]">
-                  Loading...
-                </div>
-              ) : postsError ? (
-                <div className="mx-auto w-full md:w-[50%] 2xl:w-[750px] border-t border-[#636363]">
-                  Error fetching posts
-                </div>
-              ) : posts ? (
-                posts.length > 0 ? (
-                  posts
-                    .filter(
-                      (post) =>
-                        searchContent === "" ||
-                        post.title
-                          .toLowerCase()
-                          .includes(searchContent.toLowerCase()) ||
-                        post.content
-                          .toLowerCase()
-                          .includes(searchContent.toLowerCase())
-                    )
-                    .map((post) => (
-                      <PostThumbnail key={post.postId} post={post} />
-                    ))
-                ) : (
-                  <div className="mx-auto w-full md:w-[50%] 2xl:w-[750px] border-t border-[#636363]"></div>
-                )
-              ) : (
-                <div className="mx-auto w-full md:w-[50%] 2xl:w-[750px] border-t border-[#636363]"></div>
-              )}
-            </div>
-            <aside className="hidden 2xl:block sticky top-[110px] h-[calc(100vh-150px)] w-[300px] ml-5 custom-scrollbar bg-[#111111] rounded-xl py-2 overflow-y-auto">
-              <div className="my-3 px-5 font-bold">{community.communityId}</div>
-              <div
-                className="px-5 line-clamp-4"
-                dangerouslySetInnerHTML={{
-                  __html: DOMPurify.sanitize(community.description, {
-                    ALLOWED_TAGS: [
-                      "b",
-                      "i",
-                      "u",
-                      "s",
-                      "strong",
-                      "em",
-                      "ul",
-                      "ol",
-                      "li",
-                      "p",
-                      "a",
-                    ],
-                    ALLOWED_ATTR: ["href", "target", "rel"],
-                    FORBID_ATTR: ["style"],
-                  }),
-                }}
-              ></div>
-            </aside>
-          </div>
+          <CommunityPostsByNew community={community} />
         ) : (
-          // todo: implement get posts by community id sorted by recent and infinite scroll
-          <div>
-            {postsLoading ? (
-              <div>Loading...</div>
-            ) : postsError ? (
-              <div>Error fetching posts</div>
-            ) : posts ? (
-              posts
-                .filter(
-                  (post) =>
-                    searchContent === "" ||
-                    post.title
-                      .toLowerCase()
-                      .includes(searchContent.toLowerCase()) ||
-                    post.content
-                      .toLowerCase()
-                      .includes(searchContent.toLowerCase())
-                )
-                .map((post) => <PostThumbnail key={post.postId} post={post} />)
-            ) : (
-              <div></div>
-            )}
-          </div>
+          <CommunityPostsByNew community={community} />
         )}
       </div>
     </div>

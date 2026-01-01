@@ -149,7 +149,7 @@ function ProfilePage() {
           + Create Post
         </Link>
       </div>
-      <div className="my-10 w-full">
+      <div className="my-10 w-full 2xl:min-w-[750px]">
         {(profileMode === "Overview" || profileMode === "Posts") &&
         postsError ? (
           <div className="mx-auto w-full md:w-[50%] 2xl:w-[750px] border-t border-[#636363]">

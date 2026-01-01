@@ -242,35 +242,125 @@ export const postsRouter = new Hono()
       post: postsQueryResult[0],
     });
   })
-  .get("/community/:communityId", async (c) => {
-    const limit = Number(c.req.query("limit") ?? 10);
-    const cursorPostId = c.req.query("cursorPostId");
-    const cursorWhere = cursorPostId
-      ? sql`${postsTable.postId} < ${Number(cursorPostId)}`
-      : undefined;
-    const { communityId } = c.req.param();
-    const { result, error } = await mightFail(
-      db
-        .select()
-        .from(postsTable)
-        .where(and(cursorWhere, eq(postsTable.communityId, communityId)))
-        .orderBy(desc(postsTable.postId)) // newest first
-        .limit(limit + 1)
-    );
-    if (error) {
-      throw new HTTPException(500, {
-        message: "Error occurred when fetching posts",
-        cause: error,
+  .get(
+    "/community/:communityId",
+    zValidator(
+      "query",
+      z.object({
+        cursorPostId: z.string().optional(),
+        limit: z.string().optional(),
+      })
+    ),
+    async (c) => {
+      const limit = Number(c.req.query("limit") ?? 10);
+      const cursorPostId = c.req.query("cursorPostId");
+      const cursorWhere = cursorPostId
+        ? sql`${postsTable.postId} < ${Number(cursorPostId)}`
+        : undefined;
+      const { communityId } = c.req.param();
+      const { result, error } = await mightFail(
+        db
+          .select()
+          .from(postsTable)
+          .where(and(cursorWhere, eq(postsTable.communityId, communityId)))
+          .orderBy(desc(postsTable.postId)) // newest first
+          .limit(limit + 1)
+      );
+      if (error) {
+        throw new HTTPException(500, {
+          message: "Error occurred when fetching posts",
+          cause: error,
+        });
+      }
+      const hasNextPage = result.length > limit;
+      const pageItems = hasNextPage ? result.slice(0, limit) : result;
+      const last = pageItems.at(-1);
+      return c.json({
+        posts: pageItems,
+        nextCursor: hasNextPage ? { postId: last!.postId } : null,
       });
     }
-    const hasNextPage = result.length > limit;
-    const pageItems = hasNextPage ? result.slice(0, limit) : result;
-    const last = pageItems.at(-1);
-    return c.json({
-      posts: pageItems,
-      nextCursor: hasNextPage ? { postId: last!.postId } : null,
-    });
-  })
+  )
+  .get(
+    "/community/popular/:communityId",
+    zValidator(
+      "query",
+      z.object({
+        cursorPostId: z.string().optional(),
+        limit: z.string().optional(),
+      })
+    ),
+    async (c) => {
+      const limit = Number(c.req.query("limit") ?? 10);
+      const cursorScore = c.req.query("cursorScore");
+      const { communityId } = c.req.param();
+      const cursorPostId = c.req.query("cursorPostId");
+      const scoreSubquery = db
+        .select({
+          postId: votesTable.postId,
+          score: sql<number>`coalesce(sum(${votesTable.value}), 0)`.as("score"),
+        })
+        .from(votesTable)
+        .where(
+          and(
+            sql`${votesTable.value} != 0`,
+            sql`${votesTable.commentId} IS NULL`
+          )
+        )
+        .groupBy(votesTable.postId)
+        .as("scores");
+      const cursorWhere =
+        cursorScore && cursorPostId
+          ? sql`
+        (
+          coalesce(${scoreSubquery.score}, 0) < ${Number(cursorScore)}
+        )
+        OR (
+          coalesce(${scoreSubquery.score}, 0) = ${Number(cursorScore)}
+          AND ${postsTable.postId} < ${Number(cursorPostId)}
+        )
+      `
+          : undefined;
+      const { result, error } = await mightFail(
+        db
+          .select({
+            post: postsTable,
+            score: sql<number>`coalesce(${scoreSubquery.score}, 0)`.as("score"),
+          })
+          .from(postsTable)
+          .leftJoin(scoreSubquery, eq(scoreSubquery.postId, postsTable.postId))
+          .where(and(cursorWhere, eq(postsTable.communityId, communityId)))
+          .orderBy(
+            desc(sql`coalesce(${scoreSubquery.score}, 0)`),
+            desc(postsTable.postId)
+          )
+          .limit(limit + 1) // fetch one extra to detect next page
+      );
+      if (error) {
+        throw new HTTPException(500, {
+          message: "Error occurred when fetching popular posts",
+          cause: error,
+        });
+      }
+      const hasNextPage = result.length > limit;
+      const pageItems = hasNextPage ? result.slice(0, limit) : result;
+      const last = pageItems.at(-1);
+      console.log({
+        returned: pageItems.length,
+        hasNextPage,
+      });
+      return c.json({
+        posts: pageItems.map((r) => r.post),
+        nextCursor: hasNextPage
+          ? {
+              score: last!.score,
+              createdAt: last!.post.createdAt,
+              postId: last!.post.postId,
+            }
+          : null,
+      });
+    }
+  )
   .post("/post/delete", zValidator("json", deletePostSchema), async (c) => {
     const deleteValues = c.req.valid("json");
     const { error: postDeleteError, result: postDeleteResult } =

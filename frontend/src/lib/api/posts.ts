@@ -115,6 +115,27 @@ export async function getNewPostsPage({
   };
 }
 
+import type { QueryFunctionContext } from "@tanstack/react-query";
+
+export async function getNewCommunityPostsPage(ctx: QueryFunctionContext) {
+  const { pageParam, queryKey } = ctx;
+  const [, communityId] = queryKey as ["community-posts", number];
+  const cursor =
+    pageParam && typeof pageParam === "object"
+      ? (pageParam as NewPostsCursor)
+      : null;
+  const res = await client.api.v0.posts.community[":communityId"].$get({
+    param: { communityId: String(communityId) },
+    query: cursor ? { cursorPostId: String(cursor.postId) } : {},
+  });
+  if (!res.ok) throw new Error("Error getting posts");
+  const { posts, nextCursor } = await res.json();
+  return {
+    posts: posts.map(mapSerializedPostToSchema),
+    nextCursor,
+  };
+}
+
 export type PopularPostsCursor = {
   score: number;
   createdAt: string;
@@ -139,6 +160,25 @@ export async function getPopularPostsPage({
   if (!res.ok) {
     throw new Error("Error getting popular posts");
   }
+  const { posts, nextCursor } = await res.json();
+  return {
+    posts: posts.map(mapSerializedPostToSchema),
+    nextCursor,
+  };
+}
+
+export async function getPopularCommunityPostsPage(ctx: QueryFunctionContext) {
+  const { pageParam, queryKey } = ctx;
+  const [, communityId] = queryKey as ["community-posts", number];
+  const cursor =
+    pageParam && typeof pageParam === "object"
+      ? (pageParam as NewPostsCursor)
+      : null;
+  const res = await client.api.v0.posts.community.popular[":communityId"].$get({
+    param: { communityId: String(communityId) },
+    query: cursor ? { cursorPostId: String(cursor.postId) } : {},
+  });
+  if (!res.ok) throw new Error("Error getting posts");
   const { posts, nextCursor } = await res.json();
   return {
     posts: posts.map(mapSerializedPostToSchema),
@@ -357,22 +397,4 @@ export const getRecentPostsQueryOptions = () =>
   queryOptions({
     queryKey: ["recent-posts"],
     queryFn: () => getRecentPosts(),
-  });
-
-async function getPostsByCommunityId(communityId: string) {
-  const res = await client.api.v0.posts.community[":communityId"].$get({
-    param: { communityId: communityId.toString() },
-  });
-
-  if (!res.ok) {
-    throw new Error("Error getting posts by community id");
-  }
-  const { posts } = await res.json();
-  return posts.map(mapSerializedPostToSchema);
-}
-
-export const getPostsByCommunityIdQueryOptions = (communityId: string) =>
-  queryOptions({
-    queryKey: ["community-posts", communityId],
-    queryFn: () => getPostsByCommunityId(communityId),
   });
