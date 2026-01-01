@@ -16,6 +16,7 @@ import usePostStore from "../../store/PostStore";
 import DOMPurify from "dompurify";
 import useAuthStore from "../../store/AuthStore";
 import { CommunityPostsByNew } from "../../components/CommunityPostsByNew";
+import { CommunityPostsByPopular } from "../../components/CommunityPostsByPopular";
 
 export const Route = createFileRoute("/c/$communityId")({
   beforeLoad: async ({ context, params }) => {
@@ -180,7 +181,7 @@ function CommunityPage() {
         {sortMode === "Popular" ? (
           <CommunityPostsByNew community={community} />
         ) : (
-          <CommunityPostsByNew community={community} />
+          <CommunityPostsByPopular community={community} />
         )}
       </div>
     </div>
