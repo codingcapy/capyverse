@@ -22,6 +22,7 @@ function CreateCommunityPage() {
     useCreateCommunityMutation();
   const [matureContent, setMatureContent] = useState(false);
   const [visibility, setVisibility] = useState<Visibility>("public");
+  const [iconContent, setIconContent] = useState("");
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -33,9 +34,25 @@ function CreateCommunityPage() {
         userId: (user && user.userId) || "",
         mature: matureContent,
         visibility,
+        icon: iconContent,
       },
       { onSuccess: () => navigate({ to: `/c/${title}` }) }
     );
+  }
+
+  function handleImageUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (file.size > 1024 * 1024) {
+      alert("File size exceeds 1MB. Please upload a smaller file.");
+      return;
+    }
+    const reader = new FileReader();
+    console.log(reader);
+    reader.onloadend = () => {
+      setIconContent(reader.result as string);
+    };
+    reader.readAsDataURL(file);
   }
 
   useEffect(() => {
@@ -64,41 +81,49 @@ function CreateCommunityPage() {
             placeholder="Community name "
           />
         </div>
-        <div
-          onDragEnter={(e) => {
-            e.preventDefault();
-            setIsDragOver(true);
-          }}
-          onDragOver={(e) => {
-            e.preventDefault();
-            setIsDragOver(true);
-          }}
-          onDragLeave={() => setIsDragOver(false)}
-          onDrop={(e) => {
-            e.preventDefault();
-            setIsDragOver(false);
-          }}
-          className={`my-5 border border-dashed w-full h-[150px] rounded-xl ${
-            isDragOver ? "bg-[#242424]" : ""
-          }`}
-        >
-          <input
-            ref={fileInputRef}
-            type="file"
-            className="hidden"
-            accept="image/png, image/jpeg, image/heic, image/webp"
-          />
-          <div className="relative w-full h-full">
-            <div className="text-center pt-[60px]">
-              Drag and drop or upload community icon
-            </div>
-            <input
-              type="file"
-              className="absolute top-0 left-0 w-full h-full py-2 opacity-0 cursor-pointer appearance-none file:hidden"
-              accept="image/png, image/jpeg, image/heic, image/webp"
-            />
+        {iconContent !== "" ? (
+          <div className="my-5">
+            <img src={iconContent} />
           </div>
-        </div>
+        ) : (
+          <div
+            onDragEnter={(e) => {
+              e.preventDefault();
+              setIsDragOver(true);
+            }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setIsDragOver(true);
+            }}
+            onDragLeave={() => setIsDragOver(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setIsDragOver(false);
+            }}
+            className={`my-5 border border-dashed w-full h-[150px] rounded-xl ${
+              isDragOver ? "bg-[#242424]" : ""
+            }`}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              accept="image/png, image/jpeg, image/heic, image/webp"
+              onChange={handleImageUpload}
+            />
+            <div className="relative w-full h-full">
+              <div className="text-center pt-[60px]">
+                Drag and drop or upload community icon
+              </div>
+              <input
+                type="file"
+                className="absolute top-0 left-0 w-full h-full py-2 opacity-0 cursor-pointer appearance-none file:hidden"
+                accept="image/png, image/jpeg, image/heic, image/webp"
+                onChange={handleImageUpload}
+              />
+            </div>
+          </div>
+        )}
         <PostContentInput
           content={content}
           onChange={(e) => setContent(e)}
