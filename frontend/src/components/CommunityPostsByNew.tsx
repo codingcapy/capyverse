@@ -5,6 +5,7 @@ import usePostStore from "../store/PostStore";
 import { PostThumbnail } from "./PostThumbnail";
 import Sidebar from "./Sidebar";
 import { Community } from "../../../schemas/communities";
+import { CommunitySidebar } from "./CommunitySidebar";
 
 export function CommunityPostsByNew(props: { community: Community }) {
   const { searchContent } = usePostStore();
@@ -73,7 +74,7 @@ export function CommunityPostsByNew(props: { community: Community }) {
           <div className="text-4xl text-center py-10">No more posts!</div>
         )}
       </div>
-      <Sidebar />
+      <CommunitySidebar community={props.community} />
     </div>
   );
 }
