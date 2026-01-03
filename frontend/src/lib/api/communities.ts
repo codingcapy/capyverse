@@ -219,3 +219,21 @@ export const useLeaveCommunityMutation = (
     },
   });
 };
+
+async function getModerators(communityId: string) {
+  const res = await client.api.v0.communities.moderators[":communityId"].$get({
+    param: { communityId: communityId.toString() },
+  });
+
+  if (!res.ok) {
+    throw new Error("Error getting moderators");
+  }
+  const { moderators } = await res.json();
+  return moderators;
+}
+
+export const getModeratorsQueryOptions = (communityId: string) =>
+  queryOptions({
+    queryKey: ["moderators"],
+    queryFn: () => getModerators(communityId),
+  });

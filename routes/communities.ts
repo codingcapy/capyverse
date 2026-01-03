@@ -136,6 +136,30 @@ export const communitiesRouter = new Hono()
       communities: userCommunitiesResult,
     });
   })
+  .get("/moderators/:communityId", async (c) => {
+    const { communityId } = c.req.param();
+    const { result: moderatorsQueryResult, error: moderatorsQueryError } =
+      await mightFail(
+        db
+          .select()
+          .from(communityUsersTable)
+          .where(
+            and(
+              eq(communityUsersTable.communityId, communityId),
+              eq(communityUsersTable.role, "moderator")
+            )
+          )
+      );
+    if (moderatorsQueryError) {
+      throw new HTTPException(500, {
+        message: "Error occurred when fetching moderators",
+        cause: moderatorsQueryError,
+      });
+    }
+    return c.json({
+      moderators: moderatorsQueryResult,
+    });
+  })
   .get("/:communityId", async (c) => {
     const { communityId } = c.req.param();
     const { result: communitiesQueryResult, error: communitiesQueryError } =

@@ -34,7 +34,6 @@ function ProfilePage() {
     isLoading: commentsLoading,
     error: commentsError,
   } = useQuery(getCommentsByUserIdQueryOptions((user && user.userId) || ""));
-  const [showMenu, setShowMenu] = useState(false);
   const navigate = useNavigate();
   const {
     data: savedPosts,
