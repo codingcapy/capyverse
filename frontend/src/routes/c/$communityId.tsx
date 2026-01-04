@@ -5,6 +5,7 @@ import {
   getModeratorsQueryOptions,
   useJoinCommunityMutation,
   useLeaveCommunityMutation,
+  useUpdateIconMutation,
 } from "../../lib/api/communities";
 import defaultProfile from "/capypaul01.jpg";
 import { PiCaretDownBold } from "react-icons/pi";
@@ -64,6 +65,8 @@ function CommunityPage() {
     isLoading: moderatorsLoading,
     error: moderatorsError,
   } = useQuery(getModeratorsQueryOptions(community.communityId));
+  const { mutate: updateIcon, isPending: updateIconPending } =
+    useUpdateIconMutation();
 
   function handleClickOutside(event: MouseEvent) {
     if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -71,7 +74,25 @@ function CommunityPage() {
     }
   }
 
-  function handleImageUpload() {}
+  function handleImageUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    if (updateIconPending) return;
+
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 1024 * 1024) {
+        alert("File size exceeds 1MB. Please upload a smaller file.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        updateIcon({
+          communityId: community.communityId,
+          icon: reader.result as string,
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  }
 
   useEffect(() => {
     document.addEventListener("click", handleClickOutside);
