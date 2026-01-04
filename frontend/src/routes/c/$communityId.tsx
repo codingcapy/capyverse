@@ -71,6 +71,8 @@ function CommunityPage() {
     }
   }
 
+  function handleImageUpload() {}
+
   useEffect(() => {
     document.addEventListener("click", handleClickOutside);
     return () => document.removeEventListener("click", handleClickOutside);
@@ -114,6 +116,13 @@ function CommunityPage() {
                           />
                         </svg>
                       )}
+                      <input
+                        id="imageUpload"
+                        type="file"
+                        accept="image/*"
+                        className="absolute top-0 left-0 z-10 h-[100px] w-[100px] opacity-0 cursor-pointer"
+                        onChange={handleImageUpload}
+                      />
                       {iconHovered && (
                         <div className="absolute rounded-full inset-0 bg-black opacity-50 z-0 cursor-pointer"></div>
                       )}
