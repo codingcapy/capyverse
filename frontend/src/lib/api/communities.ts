@@ -22,6 +22,10 @@ type SerializeCommunity = ExtractData<
   Awaited<ReturnType<typeof client.api.v0.communities.$get>>
 >["communities"][number];
 
+type UpdateIconArgs = ArgumentTypes<
+  typeof client.api.v0.communities.update.icon.$post
+>[0]["json"];
+
 export function mapSerializedCommunityToSchema(
   serialized: SerializeCommunity
 ): Community {
@@ -237,3 +241,28 @@ export const getModeratorsQueryOptions = (communityId: string) =>
     queryKey: ["moderators"],
     queryFn: () => getModerators(communityId),
   });
+
+async function updateIcon(args: UpdateIconArgs) {
+  const res = await client.api.v0.communities.update.icon.$post({
+    json: args,
+  });
+  if (!res.ok) {
+    throw new Error("Error updating community icon.");
+  }
+  const { newCommunity } = await res.json();
+  console.log(newCommunity);
+  return newCommunity;
+}
+
+export const useUpdateIconMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: updateIcon,
+    onSettled: (args) => {
+      if (!args) return;
+      queryClient.invalidateQueries({
+        queryKey: ["commmunities", args.communityId],
+      });
+    },
+  });
+};
