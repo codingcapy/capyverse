@@ -106,7 +106,7 @@ async function getCommunityById(communityId: string) {
 
 export const getCommunityByIdQueryOptions = (communityId: string) =>
   queryOptions({
-    queryKey: ["commmunities", communityId],
+    queryKey: ["community", communityId],
     queryFn: () => getCommunityById(communityId),
   });
 
@@ -259,9 +259,9 @@ export const useUpdateIconMutation = () => {
   return useMutation({
     mutationFn: updateIcon,
     onSettled: (args) => {
-      if (!args) return;
+      if (!args) return console.log("no args, returning");
       queryClient.invalidateQueries({
-        queryKey: ["commmunities", args.communityId],
+        queryKey: ["community", args.communityId],
       });
     },
   });
