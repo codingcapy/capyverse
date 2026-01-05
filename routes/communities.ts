@@ -26,6 +26,11 @@ const updateIconSchema = z.object({
   icon: z.string(),
 });
 
+const updateDescriptionSchema = z.object({
+  communityId: z.string(),
+  description: z.string(),
+});
+
 const joinCommunitySchema = z.object({
   communityId: z.string(),
   userId: z.string(),
@@ -201,6 +206,27 @@ export const communitiesRouter = new Hono()
     }
     return c.json({ newCommunity: newCommunityResult[0] }, 200);
   })
+  .post(
+    "/update/description",
+    zValidator("json", updateDescriptionSchema),
+    async (c) => {
+      const updateValues = c.req.valid("json");
+      const { error: queryError, result: newCommunityResult } = await mightFail(
+        db
+          .update(communitiesTable)
+          .set({ description: updateValues.description })
+          .where(eq(communitiesTable.communityId, updateValues.communityId))
+          .returning()
+      );
+      if (queryError) {
+        throw new HTTPException(500, {
+          message: "Error updating communities table",
+          cause: queryError,
+        });
+      }
+      return c.json({ newCommunity: newCommunityResult[0] }, 200);
+    }
+  )
   .post("/join", zValidator("json", joinCommunitySchema), async (c) => {
     const insertValues = c.req.valid("json");
     const { result: communitiesQueryResult, error: communitiesQueryError } =
