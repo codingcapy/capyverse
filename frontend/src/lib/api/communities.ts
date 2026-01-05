@@ -26,6 +26,10 @@ type UpdateIconArgs = ArgumentTypes<
   typeof client.api.v0.communities.update.icon.$post
 >[0]["json"];
 
+type UpdateDescriptionArgs = ArgumentTypes<
+  typeof client.api.v0.communities.update.description.$post
+>[0]["json"];
+
 export function mapSerializedCommunityToSchema(
   serialized: SerializeCommunity
 ): Community {
@@ -258,6 +262,31 @@ export const useUpdateIconMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: updateIcon,
+    onSettled: (args) => {
+      if (!args) return console.log("no args, returning");
+      queryClient.invalidateQueries({
+        queryKey: ["community", args.communityId],
+      });
+    },
+  });
+};
+
+async function updateDescription(args: UpdateDescriptionArgs) {
+  const res = await client.api.v0.communities.update.description.$post({
+    json: args,
+  });
+  if (!res.ok) {
+    throw new Error("Error updating community description.");
+  }
+  const { newCommunity } = await res.json();
+  console.log(newCommunity);
+  return newCommunity;
+}
+
+export const useUpdateDescriptionMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: updateDescription,
     onSettled: (args) => {
       if (!args) return console.log("no args, returning");
       queryClient.invalidateQueries({

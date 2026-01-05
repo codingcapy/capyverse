@@ -3,7 +3,6 @@ import { useEffect, useRef } from "react";
 import { getNewCommunityPostsPage, getNewPostsPage } from "../lib/api/posts";
 import usePostStore from "../store/PostStore";
 import { PostThumbnail } from "./PostThumbnail";
-import Sidebar from "./Sidebar";
 import { Community } from "../../../schemas/communities";
 import { CommunitySidebar } from "./CommunitySidebar";
 
