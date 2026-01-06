@@ -124,10 +124,11 @@ function CreateCommunityPage() {
             </div>
           </div>
         )}
-        <PostContentInput
+        <textarea
+          className="border border-[#c4c4c4] rounded-xl my-2 p-2 h-[200px]"
           content={content}
-          onChange={(e) => setContent(e)}
-          contentPlaceholder="Description"
+          onChange={(e) => setContent(e.target.value)}
+          placeholder="Description"
         />
         <div className="my-2">
           <div className="text-xl mb-2 font-semibold">Visibility</div>
