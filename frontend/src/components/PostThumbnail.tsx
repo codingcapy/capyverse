@@ -14,6 +14,7 @@ import { IoChatbubbleOutline } from "react-icons/io5";
 import { getImagesByPostIdQueryOptions } from "../lib/api/images";
 import { Post } from "../../../schemas/posts";
 import DOMPurify from "dompurify";
+import { getCommunityByIdQueryOptions } from "../lib/api/communities";
 
 export function PostThumbnail(props: { post: Post }) {
   const [showMenu, setShowMenu] = useState(false);
@@ -36,6 +37,15 @@ export function PostThumbnail(props: { post: Post }) {
     isLoading: commentsLengthLoading,
     error: commentsLengthError,
   } = useQuery(getCommentsLengthByPostIdQueryOptions(props.post.postId));
+  const {
+    data: community,
+    isLoading: communityLoading,
+    error: communityError,
+  } = useQuery(
+    getCommunityByIdQueryOptions(
+      (props.post.communityId && props.post.communityId) || ""
+    )
+  );
 
   return (
     <div className="mx-auto w-full md:w-[50%] 2xl:w-[750px] border-t border-[#636363]">
@@ -48,32 +58,61 @@ export function PostThumbnail(props: { post: Post }) {
       >
         <div className="relative my-1 rounded py-2 px-4 hover:bg-[#333333] transition-all ease-in-out duration-300">
           <div className="flex justify-between">
-            <div className="flex text-[#bdbdbd] text-sm">
-              <img
-                src={
-                  !posterLoading || posterError
-                    ? poster
-                      ? poster.profilePic
-                        ? poster.profilePic
+            {community ? (
+              <div className="flex text-[#bdbdbd] text-sm">
+                <img
+                  src={
+                    !communityLoading || communityError
+                      ? community
+                        ? community.icon
+                          ? community.icon
+                          : defaultProfile
                         : defaultProfile
                       : defaultProfile
-                    : defaultProfile
-                }
-                alt=""
-                className="w-6 h-6 rounded-full"
-              />
-              {posterLoading ? (
-                <div>Loading...</div>
-              ) : posterError ? (
-                <div>Unknown author</div>
-              ) : poster ? (
-                <div className="font-bold ml-2">{poster.username}</div>
-              ) : (
-                <div>Unknown author</div>
-              )}
-              <div className="px-1">•</div>
-              <div>{displayDate(props.post.createdAt)}</div>
-            </div>
+                  }
+                  alt=""
+                  className="w-6 h-6 rounded-full"
+                />
+                {communityLoading ? (
+                  <div>Loading...</div>
+                ) : communityError ? (
+                  <div>Unknown</div>
+                ) : poster ? (
+                  <div className="font-bold ml-2">
+                    c/{community.communityId}
+                  </div>
+                ) : (
+                  <div>Unknown</div>
+                )}
+              </div>
+            ) : (
+              <div className="flex text-[#bdbdbd] text-sm">
+                <img
+                  src={
+                    !posterLoading || posterError
+                      ? poster
+                        ? poster.profilePic
+                          ? poster.profilePic
+                          : defaultProfile
+                        : defaultProfile
+                      : defaultProfile
+                  }
+                  alt=""
+                  className="w-6 h-6 rounded-full"
+                />
+                {posterLoading ? (
+                  <div>Loading...</div>
+                ) : posterError ? (
+                  <div>Unknown author</div>
+                ) : poster ? (
+                  <div className="font-bold ml-2">u/{poster.username}</div>
+                ) : (
+                  <div>Unknown author</div>
+                )}
+                <div className="px-1">•</div>
+                <div>{displayDate(props.post.createdAt)}</div>
+              </div>
+            )}
             <div
               onClick={(e) => {
                 e.stopPropagation();
