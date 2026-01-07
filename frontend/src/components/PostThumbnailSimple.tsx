@@ -6,6 +6,7 @@ import { displayDate } from "../lib/utils";
 import { Link } from "@tanstack/react-router";
 import { getCommentsLengthByPostIdQueryOptions } from "../lib/api/comments";
 import { getVotesByPostIdQueryOptions } from "../lib/api/votes";
+import { getCommunityByIdQueryOptions } from "../lib/api/communities";
 
 export function PostThumbnailSimple(props: { post: Post }) {
   const {
@@ -23,35 +24,98 @@ export function PostThumbnailSimple(props: { post: Post }) {
     isLoading: votesLoading,
     isError: votesError,
   } = useQuery(getVotesByPostIdQueryOptions(props.post.postId));
+  const {
+    data: community,
+    isLoading: communityLoading,
+    error: communityError,
+  } = useQuery({
+    ...getCommunityByIdQueryOptions(props.post.communityId!),
+    enabled: !!props.post.communityId,
+  });
+  const isCommunity = !!props.post.communityId;
 
   return (
     <div className="px-5 border-b border-[#222222] py-3">
-      <div className="flex text-[#bdbdbd] text-sm">
-        <img
-          src={
-            !posterLoading || posterError
-              ? poster
-                ? poster.profilePic
+      {isCommunity ? (
+        communityLoading ? (
+          <div>Loading...</div>
+        ) : communityError ? (
+          <div>Error loading community</div>
+        ) : community ? (
+          <div className="flex text-[#bdbdbd] text-sm">
+            <img
+              src={
+                !communityLoading || communityError
+                  ? community
+                    ? community.icon
+                      ? community.icon
+                      : defaultProfile
+                    : defaultProfile
+                  : defaultProfile
+              }
+              alt=""
+              className="w-6 h-6 rounded-full"
+            />
+            <div className="font-bold ml-2">c/{community.communityId}</div>
+            <div className="px-1">•</div>
+            <div>{displayDate(props.post.createdAt)}</div>
+          </div>
+        ) : (
+          <div className="flex text-[#bdbdbd] text-sm">
+            <img
+              src={
+                !posterLoading || posterError
+                  ? poster
+                    ? poster.profilePic
+                      ? poster.profilePic
+                      : defaultProfile
+                    : defaultProfile
+                  : defaultProfile
+              }
+              alt=""
+              className="w-6 h-6 rounded-full"
+            />
+            {posterLoading ? (
+              <div>Loading...</div>
+            ) : posterError ? (
+              <div>Unknown author</div>
+            ) : poster ? (
+              <div className="font-bold ml-2">{poster.username}</div>
+            ) : (
+              <div>Unknown author</div>
+            )}
+            <div className="px-1">•</div>
+            <div>{displayDate(props.post.createdAt)}</div>
+          </div>
+        )
+      ) : (
+        <div className="flex text-[#bdbdbd] text-sm">
+          <img
+            src={
+              !posterLoading || posterError
+                ? poster
                   ? poster.profilePic
+                    ? poster.profilePic
+                    : defaultProfile
                   : defaultProfile
                 : defaultProfile
-              : defaultProfile
-          }
-          alt=""
-          className="w-6 h-6 rounded-full"
-        />
-        {posterLoading ? (
-          <div>Loading...</div>
-        ) : posterError ? (
-          <div>Unknown author</div>
-        ) : poster ? (
-          <div className="font-bold ml-2">{poster.username}</div>
-        ) : (
-          <div>Unknown author</div>
-        )}
-        <div className="px-1">•</div>
-        <div>{displayDate(props.post.createdAt)}</div>
-      </div>
+            }
+            alt=""
+            className="w-6 h-6 rounded-full"
+          />
+          {posterLoading ? (
+            <div>Loading...</div>
+          ) : posterError ? (
+            <div>Unknown author</div>
+          ) : poster ? (
+            <div className="font-bold ml-2">{poster.username}</div>
+          ) : (
+            <div>Unknown author</div>
+          )}
+          <div className="px-1">•</div>
+          <div>{displayDate(props.post.createdAt)}</div>
+        </div>
+      )}
       <Link
         to="/posts/$postId"
         params={{
