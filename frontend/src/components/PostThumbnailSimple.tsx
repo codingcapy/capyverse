@@ -44,15 +44,7 @@ export function PostThumbnailSimple(props: { post: Post }) {
         ) : community ? (
           <div className="flex text-[#bdbdbd] text-sm">
             <img
-              src={
-                !communityLoading || communityError
-                  ? community
-                    ? community.icon
-                      ? community.icon
-                      : defaultProfile
-                    : defaultProfile
-                  : defaultProfile
-              }
+              src={community.icon ? community.icon : defaultProfile}
               alt=""
               className="w-6 h-6 rounded-full"
             />

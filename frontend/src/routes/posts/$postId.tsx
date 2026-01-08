@@ -31,6 +31,7 @@ import { PiCaretLeftBold } from "react-icons/pi";
 import { Comment } from "../../../../schemas/comments";
 import DOMPurify from "dompurify";
 import { PostContentInput } from "../../components/PostContentInput";
+import { getCommunityByIdQueryOptions } from "../../lib/api/communities";
 
 export type CommentNode = Comment & {
   children: CommentNode[];
@@ -92,9 +93,6 @@ function PostComponent() {
     useUpdatePostMutation();
   const [editContent, setEditContent] = useState(post.content);
   const router = useRouter();
-  const { data: poster, isLoading: posterLoading } = useQuery(
-    getUserByIdQueryOptions(post.userId)
-  );
   const {
     data: images,
     isLoading: imagesLoading,
@@ -103,6 +101,14 @@ function PostComponent() {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const activeImage = images && images[activeImageIndex];
   const [notification, setNotification] = useState("");
+  const {
+    data: community,
+    isLoading: communityLoading,
+    error: communityError,
+  } = useQuery({
+    ...getCommunityByIdQueryOptions(post.communityId!),
+    enabled: !!post.communityId,
+  });
 
   function buildCommentTree(
     comments: Comment[],
@@ -164,32 +170,66 @@ function PostComponent() {
   return (
     <div className="pt-[88px] pb-[140px] px-2 md:px-0 mx-auto w-full md:w-[50%] 2xl:w-[40%]">
       <div className="relative flex justify-between">
-        <div className="flex text-[#bdbdbd] text-sm">
-          <img
-            src={
-              !posterLoading
-                ? poster
-                  ? poster.profilePic
-                    ? poster.profilePic
+        {communityLoading ? (
+          <div>Loading...</div>
+        ) : communityError ? (
+          <div>Error loading community</div>
+        ) : community ? (
+          <div>
+            <div className="flex text-[#bdbdbd] text-sm">
+              <img
+                src={community.icon ? community.icon : defaultProfile}
+                alt=""
+                className="w-8 h-8 rounded-full"
+              />
+              <div>
+                <div className="flex">
+                  <div className="font-bold ml-2">
+                    c/{community.communityId}
+                  </div>
+                  <div className="px-1">•</div>
+                  <div>{displayDate(post.createdAt)}</div>
+                </div>
+                {authorLoading ? (
+                  <div className="ml-2">Loading...</div>
+                ) : authorError ? (
+                  <div>Error loading author</div>
+                ) : author ? (
+                  <div className="ml-2">{author.username}</div>
+                ) : (
+                  <div className="ml-2">unknown author</div>
+                )}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="flex text-[#bdbdbd] text-sm">
+            <img
+              src={
+                !authorLoading
+                  ? author
+                    ? author.profilePic
+                      ? author.profilePic
+                      : defaultProfile
                     : defaultProfile
                   : defaultProfile
-                : defaultProfile
-            }
-            alt=""
-            className="w-8 h-8 rounded-full"
-          />
-          {authorLoading ? (
-            <div className="ml-2">Loading...</div>
-          ) : authorError ? (
-            <div>Error loading author</div>
-          ) : author ? (
-            <div className="font-bold ml-2">{author.username}</div>
-          ) : (
-            <div className="ml-2">unknown author</div>
-          )}
-          <div className="px-1">•</div>
-          <div>{displayDate(post.createdAt)}</div>
-        </div>
+              }
+              alt=""
+              className="w-8 h-8 rounded-full"
+            />
+            {authorLoading ? (
+              <div className="ml-2">Loading...</div>
+            ) : authorError ? (
+              <div>Error loading author</div>
+            ) : author ? (
+              <div className="font-bold ml-2">u/{author.username}</div>
+            ) : (
+              <div className="ml-2">unknown author</div>
+            )}
+            <div className="px-1">•</div>
+            <div>{displayDate(post.createdAt)}</div>
+          </div>
+        )}
         <div className="">
           <div
             onClick={(e) => {
