@@ -70,7 +70,7 @@ export function LeftNav() {
                     }}
                     key={community.communityId}
                   >
-                    <div className="flex hover:text-cyan-500 transition-all ease-in-out duration-300">
+                    <div className="flex hover:text-cyan-500 transition-all ease-in-out duration-300 my-3">
                       <img
                         src={defaultProfile}
                         alt=""

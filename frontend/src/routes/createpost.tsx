@@ -133,7 +133,7 @@ function CreatePostPage() {
                         setCommunity(c.communityId);
                         setShowCommunities(false);
                       }}
-                      className="px-3 py-2 cursor-pointer font-bold hover:text-cyan-500 transition-all ease-in-out duration-300"
+                      className="px-3 py-2 cursor-pointer font-bold hover:text-cyan-500 transition-all ease-in-out duration-300 z-50"
                       key={c.communityId}
                     >
                       c/{c.communityId}
@@ -180,7 +180,8 @@ function CreatePostPage() {
           }}
           className={`my-5 border border-dashed w-full h-[150px] rounded-xl ${
             isDragOver ? "bg-[#242424]" : ""
-          }`}
+          }
+          ${showCommunities ? "pointer-events-none" : ""}`}
         >
           <input
             ref={fileInputRef}
