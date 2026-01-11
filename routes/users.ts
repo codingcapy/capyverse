@@ -36,22 +36,41 @@ export const usersRouter = new Hono()
     ),
     async (c) => {
       const insertValues = c.req.valid("json");
-      const { error: unitQueryError, result: unitQueryResult } =
+      const { error: emailQueryError, result: emailQueryResult } =
         await mightFail(
           db
             .select()
             .from(usersTable)
             .where(eq(usersTable.email, insertValues.email))
         );
-      if (unitQueryError) {
+      if (emailQueryError) {
         throw new HTTPException(500, {
           message: "Error while fetching user",
-          cause: unitQueryError,
+          cause: emailQueryError,
         });
       }
-      if (unitQueryResult.length > 0) {
+      if (emailQueryResult.length > 0) {
         return c.json(
           { message: "An account with this email already exists" },
+          409
+        );
+      }
+      const { error: usernameQueryError, result: usernameQueryResult } =
+        await mightFail(
+          db
+            .select()
+            .from(usersTable)
+            .where(eq(usersTable.username, insertValues.username))
+        );
+      if (usernameQueryError) {
+        throw new HTTPException(500, {
+          message: "Error while fetching user",
+          cause: usernameQueryError,
+        });
+      }
+      if (usernameQueryResult.length > 0) {
+        return c.json(
+          { message: "An account with this username already exists" },
           409
         );
       }
@@ -89,6 +108,27 @@ export const usersRouter = new Hono()
         })
         .from(usersTable)
         .where(eq(usersTable.userId, userId))
+    );
+    if (userQueryError) {
+      throw new HTTPException(500, {
+        message: "Error occurred when fetching user",
+        cause: userQueryError,
+      });
+    }
+    return c.json({
+      userQuery: userQueryResult[0],
+    });
+  })
+  .get("/user/:username", async (c) => {
+    const { username } = c.req.param();
+    const { result: userQueryResult, error: userQueryError } = await mightFail(
+      db
+        .select({
+          username: usersTable.username,
+          profilePic: usersTable.profilePic,
+        })
+        .from(usersTable)
+        .where(eq(usersTable.username, username))
     );
     if (userQueryError) {
       throw new HTTPException(500, {

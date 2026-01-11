@@ -68,8 +68,26 @@ async function getUserById(userId: string) {
 
 export const getUserByIdQueryOptions = (userId: string) =>
   queryOptions({
-    queryKey: ["users", userId],
+    queryKey: ["user", userId],
     queryFn: () => getUserById(userId),
+  });
+
+async function getUserByUsername(username: string) {
+  const res = await client.api.v0.users.user[":username"].$get({
+    param: { username },
+  });
+
+  if (!res.ok) {
+    throw new Error("Error getting user by id");
+  }
+  const { userQuery } = await res.json();
+  return userQuery;
+}
+
+export const getUserByUsernameQueryOptions = (username: string) =>
+  queryOptions({
+    queryKey: ["user", username],
+    queryFn: () => getUserByUsername(username),
   });
 
 async function updateProfilePic(args: UpdateProfilePicArgs) {
