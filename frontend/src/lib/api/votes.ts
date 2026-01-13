@@ -62,6 +62,9 @@ export const useCreateVoteMutation = (onError?: (message: string) => void) => {
       queryClient.invalidateQueries({
         queryKey: ["votes-summary", data.postId],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["comment-votes", data.commentId],
+      });
     },
     onError: (error) => {
       if (onError) {
