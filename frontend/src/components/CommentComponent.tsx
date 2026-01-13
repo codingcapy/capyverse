@@ -103,7 +103,7 @@ export function CommentComponent(props: { comment: CommentNode; post: Post }) {
             <div>Unknown author</div>
           )}
           <div className="px-1">•</div>
-          <div>{displayDate(props.post.createdAt)}</div>
+          <div>{displayDate(props.comment.createdAt)}</div>
         </div>
         {editCommentModePointer === props.comment.commentId ? (
           <form

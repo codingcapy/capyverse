@@ -72,7 +72,7 @@ export function LeftNav() {
                   >
                     <div className="flex hover:text-cyan-500 transition-all ease-in-out duration-300 my-3">
                       <img
-                        src={defaultProfile}
+                        src={community.icon ? community.icon : defaultProfile}
                         alt=""
                         className="rounded-full w-[30px] h-[30px]"
                       />
