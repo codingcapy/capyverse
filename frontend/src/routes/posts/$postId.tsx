@@ -1,5 +1,6 @@
 import {
   createFileRoute,
+  Link,
   redirect,
   useNavigate,
   useRouter,
@@ -177,16 +178,30 @@ function PostComponent() {
         ) : community ? (
           <div>
             <div className="flex text-[#bdbdbd] text-sm">
-              <img
-                src={community.icon ? community.icon : defaultProfile}
-                alt=""
-                className="w-8 h-8 rounded-full"
-              />
+              <Link
+                to="/c/$communityId"
+                params={{
+                  communityId: community.communityId.toString(),
+                }}
+              >
+                <img
+                  src={community.icon ? community.icon : defaultProfile}
+                  alt=""
+                  className="w-8 h-8 rounded-full"
+                />
+              </Link>
               <div>
                 <div className="flex">
-                  <div className="font-bold ml-2">
-                    c/{community.communityId}
-                  </div>
+                  <Link
+                    to="/c/$communityId"
+                    params={{
+                      communityId: community.communityId.toString(),
+                    }}
+                  >
+                    <div className="font-bold ml-2 hover:text-cyan-500 transition-all ease-in-out duration-300">
+                      c/{community.communityId}
+                    </div>
+                  </Link>
                   <div className="px-1">•</div>
                   <div>{displayDate(post.createdAt)}</div>
                 </div>
@@ -195,37 +210,59 @@ function PostComponent() {
                 ) : authorError ? (
                   <div>Error loading author</div>
                 ) : author ? (
-                  <div className="ml-2">{author.username}</div>
+                  <Link
+                    to="/u/$username"
+                    params={{
+                      username: author.username.toString(),
+                    }}
+                  >
+                    <div className="ml-2 hover:text-cyan-500 transition-all ease-in-out duration-300">
+                      {author.username}
+                    </div>
+                  </Link>
                 ) : (
                   <div className="ml-2">unknown author</div>
                 )}
               </div>
             </div>
           </div>
+        ) : authorLoading ? (
+          <div className="ml-2">Loading...</div>
+        ) : authorError ? (
+          <div>Error loading author</div>
+        ) : author ? (
+          <div className="flex text-[#bdbdbd] text-sm">
+            <Link
+              to="/u/$username"
+              params={{
+                username: author.username.toString(),
+              }}
+            >
+              <img
+                src={author.profilePic ? author.profilePic : defaultProfile}
+                alt=""
+                className="w-8 h-8 rounded-full"
+              />
+            </Link>
+            <Link
+              to="/u/$username"
+              params={{
+                username: author.username.toString(),
+              }}
+            >
+              <div className="font-bold ml-2 hover:text-cyan-500 transition-all ease-in-out duration-300">
+                u/{author.username}
+              </div>
+            </Link>
+            <div className="px-1">•</div>
+            <div>{displayDate(post.createdAt)}</div>
+          </div>
         ) : (
           <div className="flex text-[#bdbdbd] text-sm">
-            <img
-              src={
-                !authorLoading
-                  ? author
-                    ? author.profilePic
-                      ? author.profilePic
-                      : defaultProfile
-                    : defaultProfile
-                  : defaultProfile
-              }
-              alt=""
-              className="w-8 h-8 rounded-full"
-            />
-            {authorLoading ? (
-              <div className="ml-2">Loading...</div>
-            ) : authorError ? (
-              <div>Error loading author</div>
-            ) : author ? (
-              <div className="font-bold ml-2">u/{author.username}</div>
-            ) : (
-              <div className="ml-2">unknown author</div>
-            )}
+            <img src={defaultProfile} alt="" className="w-8 h-8 rounded-full" />
+            <div className="font-bold ml-2 hover:text-cyan-500 transition-all ease-in-out duration-300">
+              unknown author
+            </div>
             <div className="px-1">•</div>
             <div>{displayDate(post.createdAt)}</div>
           </div>
