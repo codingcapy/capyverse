@@ -72,7 +72,7 @@ export function PostThumbnailSimple(props: { post: Post }) {
             ) : posterError ? (
               <div>Unknown author</div>
             ) : poster ? (
-              <div className="font-bold ml-2">{poster.username}</div>
+              <div className="font-bold ml-2">u/{poster.username}</div>
             ) : (
               <div>Unknown author</div>
             )}
@@ -100,7 +100,7 @@ export function PostThumbnailSimple(props: { post: Post }) {
           ) : posterError ? (
             <div>Unknown author</div>
           ) : poster ? (
-            <div className="font-bold ml-2">{poster.username}</div>
+            <div className="font-bold ml-2">u/{poster.username}</div>
           ) : (
             <div>Unknown author</div>
           )}

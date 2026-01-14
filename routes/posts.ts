@@ -209,6 +209,43 @@ export const postsRouter = new Hono()
       posts: postsQueryResult,
     });
   })
+  .get("/user/posts/:username", async (c) => {
+    const username = c.req.param("username");
+    const { result: users, error: userError } = await mightFail(
+      db
+        .select()
+        .from(usersTable)
+        .where(eq(usersTable.username, username))
+        .limit(1)
+    );
+    if (userError) {
+      throw new HTTPException(500, {
+        message: "Error fetching user by username",
+        cause: userError,
+      });
+    }
+    if (users.length === 0) {
+      throw new HTTPException(404, {
+        message: "User not found",
+      });
+    }
+    const user = users[0];
+    if (!user) {
+      throw new HTTPException(404, { message: "User not found" });
+    }
+    const { result: posts, error: postsError } = await mightFail(
+      db.select().from(postsTable).where(eq(postsTable.userId, user.userId))
+    );
+    if (postsError) {
+      throw new HTTPException(500, {
+        message: "Error occurred when fetching posts by user id",
+        cause: postsError,
+      });
+    }
+    return c.json({
+      posts,
+    });
+  })
   .get("/recent", async (c) => {
     const { result: postsQueryResult, error: postsQueryError } =
       await mightFail(
