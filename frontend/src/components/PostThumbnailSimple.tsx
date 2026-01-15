@@ -43,67 +43,104 @@ export function PostThumbnailSimple(props: { post: Post }) {
           <div>Error loading community</div>
         ) : community ? (
           <div className="flex text-[#bdbdbd] text-sm">
-            <img
-              src={community.icon ? community.icon : defaultProfile}
-              alt=""
-              className="w-6 h-6 rounded-full"
-            />
-            <div className="font-bold ml-2">c/{community.communityId}</div>
+            <Link
+              to="/c/$communityId"
+              params={{
+                communityId: community.communityId.toString(),
+              }}
+            >
+              <img
+                src={community.icon ? community.icon : defaultProfile}
+                alt=""
+                className="w-6 h-6 rounded-full"
+              />
+            </Link>
+            <Link
+              to="/c/$communityId"
+              params={{
+                communityId: community.communityId.toString(),
+              }}
+            >
+              <div className="font-bold ml-2 hover:underline">
+                c/{community.communityId}
+              </div>
+            </Link>
+            <div className="px-1">•</div>
+            <div>{displayDate(props.post.createdAt)}</div>
+          </div>
+        ) : posterLoading ? (
+          <div>Loading...</div>
+        ) : posterError ? (
+          <div>Error loading author</div>
+        ) : poster ? (
+          <div className="flex text-[#bdbdbd] text-sm">
+            <Link
+              to="/u/$username"
+              params={{
+                username: poster.username.toString(),
+              }}
+            >
+              <img
+                src={poster.profilePic ? poster.profilePic : defaultProfile}
+                alt=""
+                className="w-6 h-6 rounded-full"
+              />
+            </Link>
+            <Link
+              to="/u/$username"
+              params={{
+                username: poster.username.toString(),
+              }}
+            >
+              <div className="font-bold ml-2 hover:underline">
+                u/{poster.username}
+              </div>
+            </Link>
             <div className="px-1">•</div>
             <div>{displayDate(props.post.createdAt)}</div>
           </div>
         ) : (
           <div className="flex text-[#bdbdbd] text-sm">
-            <img
-              src={
-                !posterLoading || posterError
-                  ? poster
-                    ? poster.profilePic
-                      ? poster.profilePic
-                      : defaultProfile
-                    : defaultProfile
-                  : defaultProfile
-              }
-              alt=""
-              className="w-6 h-6 rounded-full"
-            />
-            {posterLoading ? (
-              <div>Loading...</div>
-            ) : posterError ? (
-              <div>Unknown author</div>
-            ) : poster ? (
-              <div className="font-bold ml-2">u/{poster.username}</div>
-            ) : (
-              <div>Unknown author</div>
-            )}
+            <div>Unknown author</div>
             <div className="px-1">•</div>
             <div>{displayDate(props.post.createdAt)}</div>
           </div>
         )
+      ) : posterLoading ? (
+        <div>Loading...</div>
+      ) : posterError ? (
+        <div>Error loading author</div>
+      ) : poster ? (
+        <div className="flex text-[#bdbdbd] text-sm">
+          <Link
+            to="/u/$username"
+            params={{
+              username: poster.username.toString(),
+            }}
+          >
+            <img
+              src={poster.profilePic ? poster.profilePic : defaultProfile}
+              alt=""
+              className="w-6 h-6 rounded-full"
+            />
+          </Link>
+          <Link
+            to="/u/$username"
+            params={{
+              username: poster.username.toString(),
+            }}
+          >
+            <div className="font-bold ml-2 hover:underline">
+              u/{poster.username}
+            </div>
+          </Link>
+          <div className="px-1">•</div>
+          <div>{displayDate(props.post.createdAt)}</div>
+        </div>
       ) : (
         <div className="flex text-[#bdbdbd] text-sm">
-          <img
-            src={
-              !posterLoading || posterError
-                ? poster
-                  ? poster.profilePic
-                    ? poster.profilePic
-                    : defaultProfile
-                  : defaultProfile
-                : defaultProfile
-            }
-            alt=""
-            className="w-6 h-6 rounded-full"
-          />
-          {posterLoading ? (
-            <div>Loading...</div>
-          ) : posterError ? (
-            <div>Unknown author</div>
-          ) : poster ? (
-            <div className="font-bold ml-2">u/{poster.username}</div>
-          ) : (
-            <div>Unknown author</div>
-          )}
+          <img src={defaultProfile} alt="" className="w-6 h-6 rounded-full" />
+          <div className="font-bold ml-2 hover:underline">Unknown author</div>
           <div className="px-1">•</div>
           <div>{displayDate(props.post.createdAt)}</div>
         </div>
