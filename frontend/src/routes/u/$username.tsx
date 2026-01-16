@@ -3,6 +3,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { getUserByUsernameQueryOptions } from "../../lib/api/users";
 import defaultProfile from "/capypaul01.jpg";
 import { useState } from "react";
+import { getPostsByUsernameQueryOptions } from "../../lib/api/posts";
+import { PostThumbnail } from "../../components/PostThumbnail";
 
 type ProfileMode = "Overview" | "Posts" | "Comments";
 
@@ -18,6 +20,11 @@ function UserProfilePage() {
     error: profileUserError,
   } = useQuery(getUserByUsernameQueryOptions(username));
   const [profileMode, setProfileMode] = useState<ProfileMode>("Overview");
+  const {
+    data: userPosts,
+    isLoading: userPostsLoading,
+    error: userPostsError,
+  } = useQuery(getPostsByUsernameQueryOptions(username));
 
   return (
     <div className="pt-[70px] mx-auto">
@@ -61,7 +68,26 @@ function UserProfilePage() {
           Comments
         </div>
       </div>
-      <div className="my-10 w-full 2xl:min-w-[750px]"></div>
+      <div className="my-10 w-full 2xl:min-w-[750px]">
+        {(profileMode === "Overview" || profileMode === "Posts") &&
+        userPostsError ? (
+          <div className="mx-auto w-full md:w-[50%] 2xl:w-[750px] border-t border-[#636363]">
+            Error loading posts
+          </div>
+        ) : (profileMode === "Overview" || profileMode === "Posts") &&
+          userPostsLoading ? (
+          <div className="mx-auto w-full md:w-[50%] 2xl:w-[750px] border-t border-[#636363]">
+            Loading...
+          </div>
+        ) : (profileMode === "Overview" || profileMode === "Posts") &&
+          userPosts ? (
+          userPosts.map((post) => (
+            <PostThumbnail post={post} key={post.postId} />
+          ))
+        ) : (
+          <div></div>
+        )}
+      </div>
     </div>
   );
 }

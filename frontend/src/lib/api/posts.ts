@@ -406,3 +406,21 @@ export const getRecentPostsQueryOptions = () =>
     queryKey: ["recent-posts"],
     queryFn: () => getRecentPosts(),
   });
+
+async function getPostsByUsername(username: string) {
+  const res = await client.api.v0.posts.user.posts[":username"].$get({
+    param: { username: username.toString() },
+  });
+
+  if (!res.ok) {
+    throw new Error("Error getting posts by user id");
+  }
+  const { posts } = await res.json();
+  return posts.map(mapSerializedPostToSchema);
+}
+
+export const getPostsByUsernameQueryOptions = (username: string) =>
+  queryOptions({
+    queryKey: ["user-posts", username],
+    queryFn: () => getPostsByUsername(username),
+  });

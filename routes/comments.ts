@@ -74,6 +74,46 @@ export const commentsRouter = new Hono()
       });
     return c.json({ comments: commentsQueryResult });
   })
+  .get("/user/comments/:username", async (c) => {
+    const username = c.req.param("username");
+    const { result: users, error: userError } = await mightFail(
+      db
+        .select()
+        .from(usersTable)
+        .where(eq(usersTable.username, username))
+        .limit(1)
+    );
+    if (userError) {
+      throw new HTTPException(500, {
+        message: "Error fetching user by username",
+        cause: userError,
+      });
+    }
+    if (users.length === 0) {
+      throw new HTTPException(404, {
+        message: "User not found",
+      });
+    }
+    const user = users[0];
+    if (!user) {
+      throw new HTTPException(404, { message: "User not found" });
+    }
+    const { result: comments, error: commentsError } = await mightFail(
+      db
+        .select()
+        .from(commentsTable)
+        .where(eq(commentsTable.userId, user.userId))
+    );
+    if (commentsError) {
+      throw new HTTPException(500, {
+        message: "Error occurred when fetching comments by user id",
+        cause: commentsError,
+      });
+    }
+    return c.json({
+      comments,
+    });
+  })
   .post(
     "/comment/delete",
     zValidator("json", deleteCommentSchema),

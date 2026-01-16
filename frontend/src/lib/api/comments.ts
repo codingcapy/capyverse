@@ -199,3 +199,21 @@ export const getCommentsLengthByPostIdQueryOptions = (postId: number) =>
     queryKey: ["comments-length", postId],
     queryFn: () => getCommentsLengthByPostId(postId),
   });
+
+async function getCommentsByUsername(username: string) {
+  const res = await client.api.v0.comments.user.comments[":username"].$get({
+    param: { username: username.toString() },
+  });
+
+  if (!res.ok) {
+    throw new Error("Error getting comments by username");
+  }
+  const { comments } = await res.json();
+  return comments.map(mapSerializedCommentToSchema);
+}
+
+export const getCommentsByUsernameQueryOptions = (username: string) =>
+  queryOptions({
+    queryKey: ["user-comments", username],
+    queryFn: () => getCommentsByUsername(username),
+  });
