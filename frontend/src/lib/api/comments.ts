@@ -22,7 +22,7 @@ export type SerializeComment = ExtractData<
 >["comments"][number];
 
 export function mapSerializedCommentToSchema(
-  SerializedComment: SerializeComment
+  SerializedComment: SerializeComment,
 ) {
   return {
     ...SerializedComment,
@@ -54,7 +54,7 @@ async function createComment(args: CreateCommentArgs) {
 }
 
 export const useCreateCommentMutation = (
-  onError?: (message: string) => void
+  onError?: (message: string) => void,
 ) => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -104,7 +104,7 @@ async function deleteComment(args: DeleteCommentArgs) {
 }
 
 export const useDeleteCommentMutation = (
-  onError?: (message: string) => void
+  onError?: (message: string) => void,
 ) => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -143,7 +143,7 @@ async function updateComment(args: UpdateCommentArgs) {
 }
 
 export const useUpdateCommentMutation = (
-  onError?: (message: string) => void
+  onError?: (message: string) => void,
 ) => {
   const queryClient = useQueryClient();
   return useMutation({

@@ -34,13 +34,13 @@ export const commentsRouter = new Hono()
         status: true,
         createdAt: true,
         commentId: true,
-      })
+      }),
     ),
     async (c) => {
       const insertValues = c.req.valid("json");
       const { error: commentInsertError, result: commentInsertResult } =
         await mightFail(
-          db.insert(commentsTable).values(insertValues).returning()
+          db.insert(commentsTable).values(insertValues).returning(),
         );
       if (commentInsertError)
         throw new HTTPException(500, {
@@ -48,7 +48,7 @@ export const commentsRouter = new Hono()
           cause: commentInsertError,
         });
       return c.json({ comment: commentInsertResult });
-    }
+    },
   )
   .get("/", async (c) => {
     const { result: commentsQueryResult, error: commentsQueryError } =
@@ -65,7 +65,7 @@ export const commentsRouter = new Hono()
     const postId = assertIsParsableInt(postIdString);
     const { result: commentsQueryResult, error: commentsQueryError } =
       await mightFail(
-        db.select().from(commentsTable).where(eq(commentsTable.postId, postId))
+        db.select().from(commentsTable).where(eq(commentsTable.postId, postId)),
       );
     if (commentsQueryError)
       throw new HTTPException(500, {
@@ -81,7 +81,7 @@ export const commentsRouter = new Hono()
         .select()
         .from(usersTable)
         .where(eq(usersTable.username, username))
-        .limit(1)
+        .limit(1),
     );
     if (userError) {
       throw new HTTPException(500, {
@@ -102,7 +102,7 @@ export const commentsRouter = new Hono()
       db
         .select()
         .from(commentsTable)
-        .where(eq(commentsTable.userId, user.userId))
+        .where(eq(commentsTable.userId, user.userId)),
     );
     if (commentsError) {
       throw new HTTPException(500, {
@@ -125,7 +125,7 @@ export const commentsRouter = new Hono()
             .update(commentsTable)
             .set({ content: "[This comment has been deleted by the user]" })
             .where(eq(commentsTable.commentId, insertValues.commentId))
-            .returning()
+            .returning(),
         );
       if (commentDeleteError) {
         console.log("Error while deleting comment");
@@ -136,7 +136,7 @@ export const commentsRouter = new Hono()
         });
       }
       return c.json({ commentResult: commentDeleteResult[0] }, 200);
-    }
+    },
   )
   .post(
     "/comment/update",
@@ -149,7 +149,7 @@ export const commentsRouter = new Hono()
             .update(commentsTable)
             .set({ content: insertValues.content })
             .where(eq(commentsTable.commentId, insertValues.commentId))
-            .returning()
+            .returning(),
         );
       if (commentEditError) {
         console.log("Error while editing comment");
@@ -160,13 +160,13 @@ export const commentsRouter = new Hono()
         });
       }
       return c.json({ commentResult: commentEditResult[0] }, 200);
-    }
+    },
   )
   .get("/user/:userId", async (c) => {
     const userId = c.req.param("userId");
     const { result: commentsQueryResult, error: commentsQueryError } =
       await mightFail(
-        db.select().from(commentsTable).where(eq(commentsTable.userId, userId))
+        db.select().from(commentsTable).where(eq(commentsTable.userId, userId)),
       );
     if (commentsQueryError) {
       throw new HTTPException(500, {
@@ -178,12 +178,52 @@ export const commentsRouter = new Hono()
       comments: commentsQueryResult,
     });
   })
+  .get("/user/comments/:username", async (c) => {
+    const username = c.req.param("username");
+    const { result: users, error: userError } = await mightFail(
+      db
+        .select()
+        .from(usersTable)
+        .where(eq(usersTable.username, username))
+        .limit(1),
+    );
+    if (userError) {
+      throw new HTTPException(500, {
+        message: "Error fetching user by username",
+        cause: userError,
+      });
+    }
+    if (users.length === 0) {
+      throw new HTTPException(404, {
+        message: "User not found",
+      });
+    }
+    const user = users[0];
+    if (!user) {
+      throw new HTTPException(404, { message: "User not found" });
+    }
+    const { result: comments, error: commentsError } = await mightFail(
+      db
+        .select()
+        .from(commentsTable)
+        .where(eq(commentsTable.userId, user.userId)),
+    );
+    if (commentsError) {
+      throw new HTTPException(500, {
+        message: "Error occurred when fetching comments by username",
+        cause: commentsError,
+      });
+    }
+    return c.json({
+      comments,
+    });
+  })
   .get("/post/count/:postId", async (c) => {
     const { postId: postIdString } = c.req.param();
     const postId = assertIsParsableInt(postIdString);
     const { result: commentsQueryResult, error: commentsQueryError } =
       await mightFail(
-        db.select().from(commentsTable).where(eq(commentsTable.postId, postId))
+        db.select().from(commentsTable).where(eq(commentsTable.postId, postId)),
       );
     if (commentsQueryError)
       throw new HTTPException(500, {
@@ -203,9 +243,9 @@ export const commentsRouter = new Hono()
           .where(
             and(
               eq(savedCommentsTable.userId, saveValues.userId),
-              eq(savedCommentsTable.commentId, saveValues.commentId)
-            )
-          )
+              eq(savedCommentsTable.commentId, saveValues.commentId),
+            ),
+          ),
       );
     if (savedCommentsQueryError) {
       throw new HTTPException(500, {
@@ -221,7 +261,7 @@ export const commentsRouter = new Hono()
     }
     const { error: commentSaveError, result: commentSaveResult } =
       await mightFail(
-        db.insert(savedCommentsTable).values(saveValues).returning()
+        db.insert(savedCommentsTable).values(saveValues).returning(),
       );
     if (commentSaveError) {
       console.log("Error while creating saved comment");
