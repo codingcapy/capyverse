@@ -5,6 +5,8 @@ import defaultProfile from "/capypaul01.jpg";
 import { useState } from "react";
 import { getPostsByUsernameQueryOptions } from "../../lib/api/posts";
 import { PostThumbnail } from "../../components/PostThumbnail";
+import { getCommentsByUsernameQueryOptions } from "../../lib/api/comments";
+import { CommentThumbnail } from "../../components/CommentThumbnail";
 
 type ProfileMode = "Overview" | "Posts" | "Comments";
 
@@ -25,6 +27,11 @@ function UserProfilePage() {
     isLoading: userPostsLoading,
     error: userPostsError,
   } = useQuery(getPostsByUsernameQueryOptions(username));
+  const {
+    data: userComments,
+    isLoading: userCommentsLoading,
+    error: userCommentsError,
+  } = useQuery(getCommentsByUsernameQueryOptions(username));
 
   return (
     <div className="pt-[70px] mx-auto">
@@ -86,6 +93,28 @@ function UserProfilePage() {
           ))
         ) : (
           <div></div>
+        )}
+        {(profileMode === "Overview" || profileMode === "Comments") &&
+        userCommentsError ? (
+          <div className="mx-auto w-full md:w-[50%] 2xl:w-[750px] border-t border-[#636363]">
+            Error loading comments
+          </div>
+        ) : (profileMode === "Overview" || profileMode === "Comments") &&
+          userCommentsLoading ? (
+          <div className="mx-auto w-full md:w-[50%] 2xl:w-[750px] border-t border-[#636363]">
+            Loading...
+          </div>
+        ) : (profileMode === "Overview" || profileMode === "Comments") &&
+          userComments ? (
+          userComments.map((comment) => (
+            <CommentThumbnail comment={comment} key={comment.commentId} />
+          ))
+        ) : (
+          (profileMode === "Overview" || profileMode === "Comments") && (
+            <div className="mx-auto w-full md:w-[50%] 2xl:w-[750px] border-t border-[#636363]">
+              <div className="relative my-1 rounded py-2 px-4"></div>
+            </div>
+          )
         )}
       </div>
     </div>
