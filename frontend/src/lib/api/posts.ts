@@ -37,8 +37,24 @@ export function mapSerializedPostToSchema(serialized: SerializePost): Post {
   };
 }
 
+const TOKEN_KEY = "jwt_access_token";
+
+export function getSession() {
+  return localStorage.getItem(TOKEN_KEY);
+}
+
 async function createPost(args: CreatePostArgs) {
-  const res = await client.api.v0.posts.$post({ json: args });
+  const token = getSession();
+  const res = await client.api.v0.posts.$post(
+    { json: args },
+    token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined,
+  );
   if (!res.ok) {
     let errorMessage =
       "There was an issue creating your post :( We'll look into it ASAP!";

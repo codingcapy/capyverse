@@ -29,7 +29,7 @@ const savePostSchema = z.object({
 
 export function assertIsParsableInt(id: string): number {
   const { result: parsedId, error: parseIdError } = mightFailSync(() =>
-    z.coerce.number().int().parse(id)
+    z.coerce.number().int().parse(id),
   );
   if (parseIdError) {
     throw new HTTPException(400, {
@@ -49,9 +49,13 @@ export const postsRouter = new Hono()
         postId: true,
         status: true,
         createdAt: true,
-      })
+      }),
     ),
     async (c) => {
+      const authHeader = c.req.header("authorization");
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        throw new HTTPException(401, { message: "Unauthorized" });
+      }
       const insertValues = c.req.valid("json");
       if (insertValues.content && insertValues.content.length > 10000)
         throw new HTTPException(401, {
@@ -84,10 +88,10 @@ export const postsRouter = new Hono()
             .where(
               and(
                 eq(imagesTable.userId, insertValues.userId),
-                eq(imagesTable.posted, false)
-              )
+                eq(imagesTable.posted, false),
+              ),
             )
-            .returning()
+            .returning(),
         );
       if (imageUpdateError) {
         console.log("Error while updating image");
@@ -97,7 +101,7 @@ export const postsRouter = new Hono()
         });
       }
       return c.json({ postResult: postInsertResult[0] }, 200);
-    }
+    },
   )
   .get("/", async (c) => {
     const limit = Number(c.req.query("limit") ?? 10);
@@ -111,7 +115,7 @@ export const postsRouter = new Hono()
         .from(postsTable)
         .where(cursorWhere)
         .orderBy(desc(postsTable.postId)) // newest first
-        .limit(limit + 1)
+        .limit(limit + 1),
     );
     if (error) {
       throw new HTTPException(500, {
@@ -138,7 +142,10 @@ export const postsRouter = new Hono()
       })
       .from(votesTable)
       .where(
-        and(sql`${votesTable.value} != 0`, sql`${votesTable.commentId} IS NULL`)
+        and(
+          sql`${votesTable.value} != 0`,
+          sql`${votesTable.commentId} IS NULL`,
+        ),
       )
       .groupBy(votesTable.postId)
       .as("scores");
@@ -165,9 +172,9 @@ export const postsRouter = new Hono()
         .where(cursorWhere)
         .orderBy(
           desc(sql`coalesce(${scoreSubquery.score}, 0)`),
-          desc(postsTable.postId)
+          desc(postsTable.postId),
         )
-        .limit(limit + 1) // fetch one extra to detect next page
+        .limit(limit + 1), // fetch one extra to detect next page
     );
     if (error) {
       throw new HTTPException(500, {
@@ -197,7 +204,7 @@ export const postsRouter = new Hono()
     const userId = c.req.param("userId");
     const { result: postsQueryResult, error: postsQueryError } =
       await mightFail(
-        db.select().from(postsTable).where(eq(postsTable.userId, userId))
+        db.select().from(postsTable).where(eq(postsTable.userId, userId)),
       );
     if (postsQueryError) {
       throw new HTTPException(500, {
@@ -216,7 +223,7 @@ export const postsRouter = new Hono()
         .select()
         .from(usersTable)
         .where(eq(usersTable.username, username))
-        .limit(1)
+        .limit(1),
     );
     if (userError) {
       throw new HTTPException(500, {
@@ -234,7 +241,7 @@ export const postsRouter = new Hono()
       throw new HTTPException(404, { message: "User not found" });
     }
     const { result: posts, error: postsError } = await mightFail(
-      db.select().from(postsTable).where(eq(postsTable.userId, user.userId))
+      db.select().from(postsTable).where(eq(postsTable.userId, user.userId)),
     );
     if (postsError) {
       throw new HTTPException(500, {
@@ -249,7 +256,7 @@ export const postsRouter = new Hono()
   .get("/recent", async (c) => {
     const { result: postsQueryResult, error: postsQueryError } =
       await mightFail(
-        db.select().from(postsTable).orderBy(desc(postsTable.postId)).limit(10)
+        db.select().from(postsTable).orderBy(desc(postsTable.postId)).limit(10),
       );
     if (postsQueryError) {
       throw new HTTPException(500, {
@@ -266,7 +273,7 @@ export const postsRouter = new Hono()
     const postId = assertIsParsableInt(postIdString);
     const { result: postsQueryResult, error: postsQueryError } =
       await mightFail(
-        db.select().from(postsTable).where(eq(postsTable.postId, postId))
+        db.select().from(postsTable).where(eq(postsTable.postId, postId)),
       );
     if (postsQueryError) {
       throw new HTTPException(500, {
@@ -285,7 +292,7 @@ export const postsRouter = new Hono()
       z.object({
         cursorPostId: z.string().optional(),
         limit: z.string().optional(),
-      })
+      }),
     ),
     async (c) => {
       const limit = Number(c.req.query("limit") ?? 10);
@@ -300,7 +307,7 @@ export const postsRouter = new Hono()
           .from(postsTable)
           .where(and(cursorWhere, eq(postsTable.communityId, communityId)))
           .orderBy(desc(postsTable.postId)) // newest first
-          .limit(limit + 1)
+          .limit(limit + 1),
       );
       if (error) {
         throw new HTTPException(500, {
@@ -315,7 +322,7 @@ export const postsRouter = new Hono()
         posts: pageItems,
         nextCursor: hasNextPage ? { postId: last!.postId } : null,
       });
-    }
+    },
   )
   .get(
     "/community/popular/:communityId",
@@ -325,7 +332,7 @@ export const postsRouter = new Hono()
         cursorScore: z.string().optional(),
         cursorPostId: z.string().optional(),
         limit: z.string().optional(),
-      })
+      }),
     ),
     async (c) => {
       const limit = Number(c.req.query("limit") ?? 10);
@@ -341,8 +348,8 @@ export const postsRouter = new Hono()
         .where(
           and(
             sql`${votesTable.value} != 0`,
-            sql`${votesTable.commentId} IS NULL`
-          )
+            sql`${votesTable.commentId} IS NULL`,
+          ),
         )
         .groupBy(votesTable.postId)
         .as("scores");
@@ -369,9 +376,9 @@ export const postsRouter = new Hono()
           .where(and(cursorWhere, eq(postsTable.communityId, communityId)))
           .orderBy(
             desc(sql`coalesce(${scoreSubquery.score}, 0)`),
-            desc(postsTable.postId)
+            desc(postsTable.postId),
           )
-          .limit(limit + 1) // fetch one extra to detect next page
+          .limit(limit + 1), // fetch one extra to detect next page
       );
       if (error) {
         throw new HTTPException(500, {
@@ -395,7 +402,7 @@ export const postsRouter = new Hono()
             }
           : null,
       });
-    }
+    },
   )
   .post("/post/delete", zValidator("json", deletePostSchema), async (c) => {
     const deleteValues = c.req.valid("json");
@@ -405,7 +412,7 @@ export const postsRouter = new Hono()
           .update(postsTable)
           .set({ content: "[This post has been deleted by the user]" })
           .where(eq(postsTable.postId, deleteValues.postId))
-          .returning()
+          .returning(),
       );
     if (postDeleteError) {
       console.log("Error while deleting post");
@@ -420,7 +427,7 @@ export const postsRouter = new Hono()
         db
           .delete(imagesTable)
           .where(and(eq(imagesTable.postId, deleteValues.postId)))
-          .returning()
+          .returning(),
       );
     if (imageDeleteError) {
       console.log("Error while updating image");
@@ -440,7 +447,7 @@ export const postsRouter = new Hono()
           .update(postsTable)
           .set({ content: updateValues.content })
           .where(eq(postsTable.postId, updateValues.postId))
-          .returning()
+          .returning(),
       );
     if (postUpdateError) {
       console.log("Error while updatng post");
@@ -462,9 +469,9 @@ export const postsRouter = new Hono()
           .where(
             and(
               eq(savedPostsTable.userId, saveValues.userId),
-              eq(savedPostsTable.postId, saveValues.postId)
-            )
-          )
+              eq(savedPostsTable.postId, saveValues.postId),
+            ),
+          ),
       );
     if (savedPostsQueryError) {
       throw new HTTPException(500, {
@@ -479,7 +486,7 @@ export const postsRouter = new Hono()
       });
     }
     const { error: postSaveError, result: postSaveResult } = await mightFail(
-      db.insert(savedPostsTable).values(saveValues).returning()
+      db.insert(savedPostsTable).values(saveValues).returning(),
     );
     if (postSaveError) {
       console.log("Error while creating post");
@@ -509,7 +516,7 @@ export const postsRouter = new Hono()
           .innerJoin(postsTable, eq(savedPostsTable.postId, postsTable.postId))
           .innerJoin(usersTable, eq(postsTable.userId, usersTable.userId))
           .where(eq(savedPostsTable.userId, userId))
-          .orderBy(desc(savedPostsTable.createdAt)) // optional but recommended
+          .orderBy(desc(savedPostsTable.createdAt)), // optional but recommended
       );
     if (savedPostsError) {
       throw new HTTPException(500, {
@@ -528,7 +535,7 @@ export const postsRouter = new Hono()
         db
           .delete(savedPostsTable)
           .where(eq(savedPostsTable.postId, saveValues.postId))
-          .returning()
+          .returning(),
       );
     if (postUnsaveError) {
       console.log("Error while creating post");
