@@ -9,6 +9,8 @@ import useNavStore from "../store/NavStore";
 import { useQuery } from "@tanstack/react-query";
 import { getCommunitiesByUserIdQueryOptions } from "../lib/api/communities";
 import defaultProfile from "/capypaul01.jpg";
+import { GiCapybara } from "react-icons/gi";
+import { IoPeopleCircleOutline } from "react-icons/io5";
 
 export function LeftNav() {
   const { showLeftNav, setShowLeftNav } = useNavStore();
@@ -85,7 +87,28 @@ export function LeftNav() {
               )}
             </div>
           )}
-          <div className="border-b border-[#808080] pb-3 pt-3">
+          <div className="border-b border-[#808080] pb-3">
+            <div className="pb-3 pt-7 text-[#808080]">RESOURCES</div>
+            <Link
+              to="/about"
+              onClick={() => window.innerWidth < 1100 && setShowLeftNav(false)}
+              className="flex py-2 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300"
+            >
+              <GiCapybara size={20} />
+              <div className="ml-3">About Capyverse</div>
+            </Link>
+          </div>
+          <div className="border-b border-[#808080] py-3">
+            <Link
+              to="/communities"
+              onClick={() => window.innerWidth < 1100 && setShowLeftNav(false)}
+              className="flex py-2 cursor-pointer hover:text-cyan-500 transition-all ease-in-out duration-300"
+            >
+              <IoPeopleCircleOutline size={20} />
+              <div className="ml-3">Communities</div>
+            </Link>
+          </div>
+          <div className="py-3">
             <Link
               to="/policies/privacypolicy"
               onClick={() => window.innerWidth < 1100 && setShowLeftNav(false)}
