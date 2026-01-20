@@ -50,7 +50,7 @@ export function LeftNav() {
             <div className="border-b border-[#808080] pb-3">
               <div className="pb-3 pt-7 text-[#808080]">COMMUNITIES</div>
               <Link
-                to="/communities"
+                to="/u/communities"
                 onClick={() =>
                   window.innerWidth < 1100 && setShowLeftNav(false)
                 }
