@@ -16,17 +16,11 @@ export const Route = createFileRoute("/communities")({
 });
 
 function CommunitiesPage() {
-  const { user } = useAuthStore();
-  const navigate = useNavigate();
   const {
     data: communities,
     isLoading: communitiesLoading,
     error: communitiesError,
   } = useQuery(getCommunitiesQueryOptions());
-
-  useEffect(() => {
-    if (!user) navigate({ to: "/login" });
-  }, [user]);
 
   return (
     <div className="pt-[88px] px-2 md:px-0 mx-auto w-full ">
