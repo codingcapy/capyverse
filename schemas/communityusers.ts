@@ -11,7 +11,7 @@ export const communityUsers = pgTable("community_users", {
   communityUserId: serial("community_user_id").primaryKey(),
   userId: varchar("user_id").notNull(),
   communityId: varchar("community_id").notNull(),
-  role: varchar("category").default("member").notNull(),
+  role: varchar("role").default("member").notNull(),
   status: varchar("status").default("active").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

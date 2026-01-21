@@ -228,7 +228,17 @@ export const getPostByIdQueryOptions = (postId: number) =>
   });
 
 async function deletePost(args: DeletePostArgs) {
-  const res = await client.api.v0.posts.post.delete.$post({ json: args });
+  const token = getSession();
+  const res = await client.api.v0.posts.post.delete.$post(
+    { json: args },
+    token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined,
+  );
   if (!res.ok) {
     let errorMessage =
       "There was an issue deleting your post :( We'll look into it ASAP!";
@@ -265,7 +275,17 @@ export const useDeletePostMutation = (onError?: (message: string) => void) => {
 };
 
 async function updatePost(args: UpdatePostArgs) {
-  const res = await client.api.v0.posts.post.update.$post({ json: args });
+  const token = getSession();
+  const res = await client.api.v0.posts.post.update.$post(
+    { json: args },
+    token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined,
+  );
   if (!res.ok) {
     let errorMessage =
       "There was an issue updating your post :( We'll look into it ASAP!";
