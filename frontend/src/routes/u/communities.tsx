@@ -40,7 +40,10 @@ function RouteComponent() {
       ) : communities ? (
         communities.length > 0 ? (
           communities.map((community) => (
-            <div className="flex justify-between my-5">
+            <div
+              className="flex justify-between my-5"
+              key={community.communityId}
+            >
               <Link
                 to="/c/$communityId"
                 params={{
@@ -50,7 +53,7 @@ function RouteComponent() {
               >
                 <div className="flex hover:text-cyan-500 transition-all ease-in-out duration-300">
                   <img
-                    src={defaultProfile}
+                    src={community.icon ? community.icon : defaultProfile}
                     alt=""
                     className="rounded-full w-[30px] h-[30px]"
                   />
