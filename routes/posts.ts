@@ -405,6 +405,10 @@ export const postsRouter = new Hono()
     },
   )
   .post("/post/delete", zValidator("json", deletePostSchema), async (c) => {
+    const authHeader = c.req.header("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      throw new HTTPException(401, { message: "Unauthorized" });
+    }
     const deleteValues = c.req.valid("json");
     const { error: postDeleteError, result: postDeleteResult } =
       await mightFail(
@@ -440,6 +444,10 @@ export const postsRouter = new Hono()
     return c.json({ postResult: postDeleteResult[0] }, 200);
   })
   .post("/post/update", zValidator("json", updatePostSchema), async (c) => {
+    const authHeader = c.req.header("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      throw new HTTPException(401, { message: "Unauthorized" });
+    }
     const updateValues = c.req.valid("json");
     const { error: postUpdateError, result: postUpdateResult } =
       await mightFail(
