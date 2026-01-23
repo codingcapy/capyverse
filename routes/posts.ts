@@ -12,6 +12,7 @@ import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import { deleteImageFromS3 } from "./images";
 import { savedPosts as savedPostsTable } from "../schemas/savedPosts";
+import jwt from "jsonwebtoken";
 
 const deletePostSchema = z.object({
   postId: z.number(),
@@ -410,12 +411,20 @@ export const postsRouter = new Hono()
       throw new HTTPException(401, { message: "Unauthorized" });
     }
     const deleteValues = c.req.valid("json");
+    const token = authHeader.split(" ")[1];
+    const decodedUser = jwt.verify(token!, process.env.JWT_SECRET!);
     const { error: postDeleteError, result: postDeleteResult } =
       await mightFail(
         db
           .update(postsTable)
           .set({ content: "[This post has been deleted by the user]" })
-          .where(eq(postsTable.postId, deleteValues.postId))
+          .where(
+            and(
+              eq(postsTable.postId, deleteValues.postId),
+              //@ts-ignore
+              eq(postsTable.userId, decodedUser.id),
+            ),
+          )
           .returning(),
       );
     if (postDeleteError) {
@@ -542,7 +551,12 @@ export const postsRouter = new Hono()
       await mightFail(
         db
           .delete(savedPostsTable)
-          .where(eq(savedPostsTable.postId, saveValues.postId))
+          .where(
+            and(
+              eq(savedPostsTable.postId, saveValues.postId),
+              eq(savedPostsTable.userId, saveValues.userId),
+            ),
+          )
           .returning(),
       );
     if (postUnsaveError) {

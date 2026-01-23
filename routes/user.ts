@@ -41,7 +41,7 @@ export const userRouter = new Hono()
         status: true,
         preference: true,
         createdAt: true,
-      })
+      }),
     ),
     async (c) => {
       try {
@@ -54,23 +54,21 @@ export const userRouter = new Hono()
         if (!user) return c.json({ result: { user: null, token: null } });
         const isPasswordValid = await verifyPassword(
           user.password,
-          loginInfo.password
+          loginInfo.password,
         );
         if (!isPasswordValid) {
           return c.json({ result: { user: null, token: null } });
         }
-        const token = jwt.sign(
-          { id: user.userId },
-          process.env.JWT_SECRET || "default_secret",
-          { expiresIn: "14 days" }
-        );
+        const token = jwt.sign({ id: user.userId }, process.env.JWT_SECRET!, {
+          expiresIn: "14 days",
+        });
         return c.json({ result: { user, token } });
       } catch (error) {
         console.error(error);
         c.status(500);
         return c.json({ message: "Internal Server Error" });
       }
-    }
+    },
   )
   .post("/validation", async (c) => {
     try {
@@ -80,10 +78,7 @@ export const userRouter = new Hono()
         return c.json({ message: "Header does not exist" });
       }
       const token = authHeader.split(" ")[1];
-      const decodedUser = jwt.verify(
-        token!,
-        process.env.JWT_SECRET || "default_secret"
-      );
+      const decodedUser = jwt.verify(token!, process.env.JWT_SECRET!);
       const response = await db
         .select()
         .from(usersTable)
