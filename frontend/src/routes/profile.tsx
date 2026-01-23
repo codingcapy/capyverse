@@ -45,8 +45,8 @@ function ProfilePage() {
     if (updateProfilePicPending) return;
     const file = event.target.files?.[0];
     if (file) {
-      if (file.size > 1024 * 1024) {
-        alert("File size exceeds 1MB. Please upload a smaller file.");
+      if (file.size > 2 * 1024 * 1024) {
+        alert("File size exceeds 2MB. Please upload a smaller file.");
         return;
       }
       const reader = new FileReader();
@@ -62,7 +62,7 @@ function ProfilePage() {
                 ...user!,
                 profilePic: reader.result as string,
               }),
-          }
+          },
         );
       };
       reader.readAsDataURL(file);

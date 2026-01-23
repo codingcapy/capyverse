@@ -100,7 +100,16 @@ export const getCommentsByPostIdQueryOptions = (postId: number) =>
   });
 
 async function deleteComment(args: DeleteCommentArgs) {
-  const res = await client.api.v0.comments.comment.delete.$post({ json: args });
+  const res = await client.api.v0.comments.comment.delete.$post(
+    { json: args },
+    token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined,
+  );
   if (!res.ok) {
     let errorMessage =
       "There was an issue deleting your post :( We'll look into it ASAP!";
@@ -139,7 +148,16 @@ export const useDeleteCommentMutation = (
 };
 
 async function updateComment(args: UpdateCommentArgs) {
-  const res = await client.api.v0.comments.comment.update.$post({ json: args });
+  const res = await client.api.v0.comments.comment.update.$post(
+    { json: args },
+    token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined,
+  );
   if (!res.ok) {
     let errorMessage =
       "There was an issue updating your post :( We'll look into it ASAP!";

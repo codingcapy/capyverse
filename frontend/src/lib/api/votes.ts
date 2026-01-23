@@ -119,7 +119,16 @@ export const getVotesByPostIdQueryOptions = (postId: number) =>
   });
 
 async function updateVote(args: UpdateVoteArgs) {
-  const res = await client.api.v0.votes.update.$post({ json: args });
+  const res = await client.api.v0.votes.update.$post(
+    { json: args },
+    token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined,
+  );
   if (!res.ok) {
     let errorMessage =
       "There was an issue updating your vote :( We'll look into it ASAP!";

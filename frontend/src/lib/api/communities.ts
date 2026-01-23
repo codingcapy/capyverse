@@ -284,9 +284,18 @@ export const useUpdateIconMutation = () => {
 };
 
 async function updateDescription(args: UpdateDescriptionArgs) {
-  const res = await client.api.v0.communities.update.description.$post({
-    json: args,
-  });
+  const res = await client.api.v0.communities.update.description.$post(
+    {
+      json: args,
+    },
+    token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined,
+  );
   if (!res.ok) {
     throw new Error("Error updating community description.");
   }

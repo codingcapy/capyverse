@@ -130,9 +130,18 @@ export const getAllImagesQueryOptions = () =>
   });
 
 async function deleteImage(args: DeleteImageArgs) {
-  const res = await client.api.v0.images.delete.$post({
-    json: args,
-  });
+  const res = await client.api.v0.images.delete.$post(
+    {
+      json: args,
+    },
+    token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined,
+  );
   if (!res.ok) {
     throw new Error("Error deleting image.");
   }
@@ -158,9 +167,18 @@ export const useDeleteImageMutation = () => {
 };
 
 async function updateImage(args: UpdateImageArgs) {
-  const res = await client.api.v0.images.update.$post({
-    json: args,
-  });
+  const res = await client.api.v0.images.update.$post(
+    {
+      json: args,
+    },
+    token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined,
+  );
   if (!res.ok) {
     throw new Error("Error updating image.");
   }

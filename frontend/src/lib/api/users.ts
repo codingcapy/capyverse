@@ -4,6 +4,7 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
+import { getSession } from "./posts";
 
 type CreateUserArgs = ArgumentTypes<
   typeof client.api.v0.users.$post
@@ -12,6 +13,8 @@ type CreateUserArgs = ArgumentTypes<
 type UpdateProfilePicArgs = ArgumentTypes<
   typeof client.api.v0.users.update.profilepic.$post
 >[0]["json"];
+
+const token = getSession();
 
 async function createUser(args: CreateUserArgs) {
   const res = await client.api.v0.users.$post({ json: args });
@@ -91,9 +94,18 @@ export const getUserByUsernameQueryOptions = (username: string) =>
   });
 
 async function updateProfilePic(args: UpdateProfilePicArgs) {
-  const res = await client.api.v0.users.update.profilepic.$post({
-    json: args,
-  });
+  const res = await client.api.v0.users.update.profilepic.$post(
+    {
+      json: args,
+    },
+    token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined,
+  );
   if (!res.ok) {
     throw new Error("Error updating user.");
   }
