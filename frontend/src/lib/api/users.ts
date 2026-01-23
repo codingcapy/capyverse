@@ -14,8 +14,6 @@ type UpdateProfilePicArgs = ArgumentTypes<
   typeof client.api.v0.users.update.profilepic.$post
 >[0]["json"];
 
-const token = getSession();
-
 async function createUser(args: CreateUserArgs) {
   const res = await client.api.v0.users.$post({ json: args });
   if (!res.ok) {
@@ -94,6 +92,7 @@ export const getUserByUsernameQueryOptions = (username: string) =>
   });
 
 async function updateProfilePic(args: UpdateProfilePicArgs) {
+  const token = getSession();
   const res = await client.api.v0.users.update.profilepic.$post(
     {
       json: args,

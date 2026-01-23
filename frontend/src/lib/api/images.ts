@@ -38,9 +38,8 @@ export function mapSerializedImageToSchema(
   };
 }
 
-const token = getSession();
-
 export function useUploadImageMutation() {
+  const token = getSession();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({
@@ -130,6 +129,7 @@ export const getAllImagesQueryOptions = () =>
   });
 
 async function deleteImage(args: DeleteImageArgs) {
+  const token = getSession();
   const res = await client.api.v0.images.delete.$post(
     {
       json: args,
@@ -167,6 +167,7 @@ export const useDeleteImageMutation = () => {
 };
 
 async function updateImage(args: UpdateImageArgs) {
+  const token = getSession();
   const res = await client.api.v0.images.update.$post(
     {
       json: args,

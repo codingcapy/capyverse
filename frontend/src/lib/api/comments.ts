@@ -31,9 +31,8 @@ export function mapSerializedCommentToSchema(
   };
 }
 
-const token = getSession();
-
 async function createComment(args: CreateCommentArgs) {
+  const token = getSession();
   const res = await client.api.v0.comments.$post(
     { json: args },
     token
@@ -100,6 +99,7 @@ export const getCommentsByPostIdQueryOptions = (postId: number) =>
   });
 
 async function deleteComment(args: DeleteCommentArgs) {
+  const token = getSession();
   const res = await client.api.v0.comments.comment.delete.$post(
     { json: args },
     token
@@ -148,6 +148,7 @@ export const useDeleteCommentMutation = (
 };
 
 async function updateComment(args: UpdateCommentArgs) {
+  const token = getSession();
   const res = await client.api.v0.comments.comment.update.$post(
     { json: args },
     token

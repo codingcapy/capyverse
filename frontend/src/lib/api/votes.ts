@@ -26,9 +26,8 @@ export function mapSerializedVoteToSchema(SerializedVote: SerializeVote): Vote {
   };
 }
 
-const token = getSession();
-
 async function createVote(args: CreateVoteArgs) {
+  const token = getSession();
   const res = await client.api.v0.votes.$post(
     { json: args },
     token
@@ -119,6 +118,7 @@ export const getVotesByPostIdQueryOptions = (postId: number) =>
   });
 
 async function updateVote(args: UpdateVoteArgs) {
+  const token = getSession();
   const res = await client.api.v0.votes.update.$post(
     { json: args },
     token

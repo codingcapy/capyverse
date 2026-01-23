@@ -40,9 +40,8 @@ export function mapSerializedCommunityToSchema(
   };
 }
 
-const token = getSession();
-
 async function createCommunity(args: CreateCommunityArgs) {
+  const token = getSession();
   const res = await client.api.v0.communities.$post(
     { json: args },
     token
@@ -284,6 +283,7 @@ export const useUpdateIconMutation = () => {
 };
 
 async function updateDescription(args: UpdateDescriptionArgs) {
+  const token = getSession();
   const res = await client.api.v0.communities.update.description.$post(
     {
       json: args,
