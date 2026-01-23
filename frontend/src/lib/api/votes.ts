@@ -5,6 +5,7 @@ import {
 } from "@tanstack/react-query";
 import { Vote } from "../../../../schemas/votes";
 import { ArgumentTypes, client, ExtractData } from "./client";
+import { getSession } from "./posts";
 
 type CreateVoteArgs = ArgumentTypes<
   typeof client.api.v0.votes.$post
@@ -25,8 +26,19 @@ export function mapSerializedVoteToSchema(SerializedVote: SerializeVote): Vote {
   };
 }
 
+const token = getSession();
+
 async function createVote(args: CreateVoteArgs) {
-  const res = await client.api.v0.votes.$post({ json: args });
+  const res = await client.api.v0.votes.$post(
+    { json: args },
+    token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined,
+  );
   if (!res.ok) {
     let errorMessage =
       "There was an issue creating your vote :( We'll look into it ASAP!";
@@ -192,7 +204,7 @@ async function getUserVoteByPostId(postId: number, userId: string) {
 
 export const getUserVoteByPostIdQueryOptions = (
   postId: number,
-  userId: string
+  userId: string,
 ) =>
   queryOptions({
     queryKey: ["user-vote", postId, userId],

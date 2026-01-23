@@ -4,6 +4,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { ArgumentTypes, client, ExtractData } from "./client";
+import { getSession } from "./posts";
 
 type CreateCommentArgs = ArgumentTypes<
   typeof client.api.v0.comments.$post
@@ -30,8 +31,19 @@ export function mapSerializedCommentToSchema(
   };
 }
 
+const token = getSession();
+
 async function createComment(args: CreateCommentArgs) {
-  const res = await client.api.v0.comments.$post({ json: args });
+  const res = await client.api.v0.comments.$post(
+    { json: args },
+    token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined,
+  );
   if (!res.ok) {
     let errorMessage =
       "There was an issue creating your comment :( We'll look into it ASAP!";

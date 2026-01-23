@@ -5,6 +5,7 @@ import {
 } from "@tanstack/react-query";
 import { Community } from "../../../../schemas/communities";
 import { ArgumentTypes, client, ExtractData } from "./client";
+import { getSession } from "./posts";
 
 type CreateCommunityArgs = ArgumentTypes<
   typeof client.api.v0.communities.$post
@@ -31,7 +32,7 @@ type UpdateDescriptionArgs = ArgumentTypes<
 >[0]["json"];
 
 export function mapSerializedCommunityToSchema(
-  serialized: SerializeCommunity
+  serialized: SerializeCommunity,
 ): Community {
   return {
     ...serialized,
@@ -39,8 +40,19 @@ export function mapSerializedCommunityToSchema(
   };
 }
 
+const token = getSession();
+
 async function createCommunity(args: CreateCommunityArgs) {
-  const res = await client.api.v0.communities.$post({ json: args });
+  const res = await client.api.v0.communities.$post(
+    { json: args },
+    token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined,
+  );
   if (!res.ok) {
     let errorMessage =
       "There was an issue creating your community :( We'll look into it ASAP!";
@@ -66,7 +78,7 @@ async function createCommunity(args: CreateCommunityArgs) {
 }
 
 export const useCreateCommunityMutation = (
-  onError?: (message: string) => void
+  onError?: (message: string) => void,
 ) => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -159,7 +171,7 @@ async function joinCommunity(args: JoinCommunityArgs) {
 }
 
 export const useJoinCommunityMutation = (
-  onError?: (message: string) => void
+  onError?: (message: string) => void,
 ) => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -207,7 +219,7 @@ async function leaveCommunity(args: LeaveCommunityArgs) {
 }
 
 export const useLeaveCommunityMutation = (
-  onError?: (message: string) => void
+  onError?: (message: string) => void,
 ) => {
   const queryClient = useQueryClient();
   return useMutation({

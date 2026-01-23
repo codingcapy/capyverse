@@ -43,8 +43,9 @@ export function getSession() {
   return localStorage.getItem(TOKEN_KEY);
 }
 
+const token = getSession();
+
 async function createPost(args: CreatePostArgs) {
-  const token = getSession();
   const res = await client.api.v0.posts.$post(
     { json: args },
     token
@@ -228,7 +229,6 @@ export const getPostByIdQueryOptions = (postId: number) =>
   });
 
 async function deletePost(args: DeletePostArgs) {
-  const token = getSession();
   const res = await client.api.v0.posts.post.delete.$post(
     { json: args },
     token
@@ -275,7 +275,6 @@ export const useDeletePostMutation = (onError?: (message: string) => void) => {
 };
 
 async function updatePost(args: UpdatePostArgs) {
-  const token = getSession();
   const res = await client.api.v0.posts.post.update.$post(
     { json: args },
     token

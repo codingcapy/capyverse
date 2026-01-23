@@ -5,6 +5,7 @@ import {
 } from "@tanstack/react-query";
 import { ArgumentTypes, client, ExtractData } from "./client";
 import { ImagePost } from "../../../../schemas/images";
+import { getSession } from "./posts";
 
 type UploadResponse =
   | {
@@ -29,13 +30,15 @@ type UpdateImageArgs = ArgumentTypes<
 >[0]["json"];
 
 export function mapSerializedImageToSchema(
-  SerializedImage: SerializeImage
+  SerializedImage: SerializeImage,
 ): ImagePost {
   return {
     ...SerializedImage,
     createdAt: new Date(SerializedImage.createdAt),
   };
 }
+
+const token = getSession();
 
 export function useUploadImageMutation() {
   const queryClient = useQueryClient();
@@ -52,9 +55,18 @@ export function useUploadImageMutation() {
       const formData = new FormData();
       formData.append("file", file);
 
-      const res = await client.api.v0.images.upload.$post({
-        form: { userId, file, postId },
-      });
+      const res = await client.api.v0.images.upload.$post(
+        {
+          form: { userId, file, postId },
+        },
+        token
+          ? {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          : undefined,
+      );
 
       const data = (await res.json()) as UploadResponse;
       if (!data.success) throw new Error(data.error);
