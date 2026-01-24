@@ -48,9 +48,13 @@ export const imagesRouter = new Hono()
         userId: z.string(),
         postId: z.string(),
         file: z.instanceof(File),
-      })
+      }),
     ),
     async (c) => {
+      const authHeader = c.req.header("authorization");
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        throw new HTTPException(401, { message: "Unauthorized" });
+      }
       const { file, userId, postId } = c.req.valid("form");
       const { result: imagesQueryResult, error: imagesQueryError } =
         await mightFail(
@@ -58,8 +62,11 @@ export const imagesRouter = new Hono()
             .select()
             .from(imagesTable)
             .where(
-              and(eq(imagesTable.userId, userId), eq(imagesTable.posted, false))
-            )
+              and(
+                eq(imagesTable.userId, userId),
+                eq(imagesTable.posted, false),
+              ),
+            ),
         );
       if (imagesQueryError) {
         throw new HTTPException(500, {
@@ -70,7 +77,7 @@ export const imagesRouter = new Hono()
       if (imagesQueryResult.length > 5)
         return c.json(
           { message: "Exceeds maximum image upload limit of 5" },
-          409
+          409,
         );
       try {
         const fileType = file.type;
@@ -86,7 +93,7 @@ export const imagesRouter = new Hono()
               success: false,
               error: "Invalid file type",
             },
-            400
+            400,
           );
         }
         // Validate file size
@@ -96,7 +103,7 @@ export const imagesRouter = new Hono()
               success: false,
               error: "File too large",
             },
-            400
+            400,
           );
         }
         // Use timestamp in the key itself for time-versioned images
@@ -133,10 +140,10 @@ export const imagesRouter = new Hono()
             success: false,
             error: "Failed to upload file",
           },
-          500
+          500,
         );
       }
-    }
+    },
   )
   .get("/:postId", async (c) => {
     const postId = c.req.param("postId");
@@ -148,7 +155,7 @@ export const imagesRouter = new Hono()
         db
           .select()
           .from(imagesTable)
-          .where(eq(imagesTable.postId, Number(postId)))
+          .where(eq(imagesTable.postId, Number(postId))),
       );
     if (imagesQueryError) {
       throw new HTTPException(500, {
@@ -170,8 +177,8 @@ export const imagesRouter = new Hono()
           .select()
           .from(imagesTable)
           .where(
-            and(eq(imagesTable.userId, userId), eq(imagesTable.posted, false))
-          )
+            and(eq(imagesTable.userId, userId), eq(imagesTable.posted, false)),
+          ),
       );
     if (imagesQueryError) {
       throw new HTTPException(500, {
@@ -199,7 +206,7 @@ export const imagesRouter = new Hono()
         db
           .delete(imagesTable)
           .where(eq(imagesTable.imageId, Number(deleteValues.imageId)))
-          .returning()
+          .returning(),
       );
     if (imageDeleteError) {
       console.log("Error while deleting image");
@@ -209,7 +216,7 @@ export const imagesRouter = new Hono()
       });
     } else {
       deleteImageFromS3(
-        (imageDeleteResult[0] && imageDeleteResult[0].imageUrl) || ""
+        (imageDeleteResult[0] && imageDeleteResult[0].imageUrl) || "",
       );
     }
     return c.json({ newImage: imageDeleteResult[0] }, 200);
@@ -223,7 +230,7 @@ export const imagesRouter = new Hono()
         imageUrl: true,
         posted: true,
         createdAt: true,
-      })
+      }),
     ),
     async (c) => {
       const updateValues = c.req.valid("json");
@@ -233,7 +240,7 @@ export const imagesRouter = new Hono()
             .update(imagesTable)
             .set({ postId: updateValues.postId, posted: true })
             .where(eq(imagesTable.imageId, Number(updateValues.imageId)))
-            .returning()
+            .returning(),
         );
       if (imageUpdateError) {
         console.log("Error while updating image");
@@ -243,7 +250,7 @@ export const imagesRouter = new Hono()
         });
       }
       return c.json({ newImage: imageUpdateResult[0] }, 200);
-    }
+    },
   );
 
 export async function deleteImageFromS3(imageUrl: string) {

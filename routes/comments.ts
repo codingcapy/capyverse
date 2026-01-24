@@ -37,6 +37,10 @@ export const commentsRouter = new Hono()
       }),
     ),
     async (c) => {
+      const authHeader = c.req.header("authorization");
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        throw new HTTPException(401, { message: "Unauthorized" });
+      }
       const insertValues = c.req.valid("json");
       const { error: commentInsertError, result: commentInsertResult } =
         await mightFail(

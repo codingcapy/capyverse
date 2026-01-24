@@ -40,6 +40,7 @@ export const userRouter = new Hono()
         role: true,
         status: true,
         preference: true,
+        profilePic: true,
         createdAt: true,
       }),
     ),

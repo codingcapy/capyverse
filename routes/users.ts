@@ -32,7 +32,7 @@ export const usersRouter = new Hono()
       createInsertSchema(usersTable).omit({
         userId: true,
         createdAt: true,
-      })
+      }),
     ),
     async (c) => {
       const insertValues = c.req.valid("json");
@@ -41,7 +41,7 @@ export const usersRouter = new Hono()
           db
             .select()
             .from(usersTable)
-            .where(eq(usersTable.email, insertValues.email))
+            .where(eq(usersTable.email, insertValues.email)),
         );
       if (emailQueryError) {
         throw new HTTPException(500, {
@@ -52,7 +52,7 @@ export const usersRouter = new Hono()
       if (emailQueryResult.length > 0) {
         return c.json(
           { message: "An account with this email already exists" },
-          409
+          409,
         );
       }
       const { error: usernameQueryError, result: usernameQueryResult } =
@@ -60,7 +60,7 @@ export const usersRouter = new Hono()
           db
             .select()
             .from(usersTable)
-            .where(eq(usersTable.username, insertValues.username))
+            .where(eq(usersTable.username, insertValues.username)),
         );
       if (usernameQueryError) {
         throw new HTTPException(500, {
@@ -71,7 +71,7 @@ export const usersRouter = new Hono()
       if (usernameQueryResult.length > 0) {
         return c.json(
           { message: "An account with this username already exists" },
-          409
+          409,
         );
       }
       const encrypted = await hashPassword(insertValues.password);
@@ -86,7 +86,7 @@ export const usersRouter = new Hono()
               email: insertValues.email,
               password: encrypted,
             })
-            .returning()
+            .returning(),
         );
       if (userInsertError) {
         console.log("Error while creating user");
@@ -96,7 +96,7 @@ export const usersRouter = new Hono()
         });
       }
       return c.json({ user: userInsertResult[0] }, 200);
-    }
+    },
   )
   .get("/:userId", async (c) => {
     const { userId } = c.req.param();
@@ -107,7 +107,7 @@ export const usersRouter = new Hono()
           profilePic: usersTable.profilePic,
         })
         .from(usersTable)
-        .where(eq(usersTable.userId, userId))
+        .where(eq(usersTable.userId, userId)),
     );
     if (userQueryError) {
       throw new HTTPException(500, {
@@ -128,7 +128,7 @@ export const usersRouter = new Hono()
           profilePic: usersTable.profilePic,
         })
         .from(usersTable)
-        .where(eq(usersTable.username, username))
+        .where(eq(usersTable.username, username)),
     );
     if (userQueryError) {
       throw new HTTPException(500, {
@@ -144,13 +144,17 @@ export const usersRouter = new Hono()
     "/update/profilepic",
     zValidator("json", updateProfilePicSchema),
     async (c) => {
+      const authHeader = c.req.header("authorization");
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        throw new HTTPException(401, { message: "Unauthorized" });
+      }
       const updateValues = c.req.valid("json");
       const { error: queryError, result: newUserResult } = await mightFail(
         db
           .update(usersTable)
           .set({ profilePic: updateValues.profilePic })
           .where(eq(usersTable.userId, updateValues.userId))
-          .returning()
+          .returning(),
       );
       if (queryError) {
         throw new HTTPException(500, {
@@ -159,5 +163,5 @@ export const usersRouter = new Hono()
         });
       }
       return c.json({ newUser: newUserResult[0] }, 200);
-    }
+    },
   );

@@ -38,13 +38,17 @@ const joinCommunitySchema = z.object({
 
 export const communitiesRouter = new Hono()
   .post("/", zValidator("json", createCommunitySchema), async (c) => {
+    const authHeader = c.req.header("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      throw new HTTPException(401, { message: "Unauthorized" });
+    }
     const insertValues = c.req.valid("json");
     const { result: communitiesQueryResult, error: communitiesQueryError } =
       await mightFail(
         db
           .select()
           .from(communitiesTable)
-          .where(eq(communitiesTable.communityId, insertValues.communityId))
+          .where(eq(communitiesTable.communityId, insertValues.communityId)),
       );
     if (communitiesQueryError) {
       throw new HTTPException(500, {
@@ -70,7 +74,7 @@ export const communitiesRouter = new Hono()
             icon: insertValues.icon,
             banner: insertValues.banner,
           })
-          .returning()
+          .returning(),
       );
     if (communityInsertError) {
       console.log("Error while creating community");
@@ -91,7 +95,7 @@ export const communitiesRouter = new Hono()
           communityId: insertValues.communityId,
           role: "moderator",
         })
-        .returning()
+        .returning(),
     );
     if (communityUserInsertError) {
       console.log("Error while creating community user");
@@ -131,10 +135,10 @@ export const communitiesRouter = new Hono()
           .from(communityUsersTable)
           .innerJoin(
             communitiesTable,
-            eq(communityUsersTable.communityId, communitiesTable.communityId)
+            eq(communityUsersTable.communityId, communitiesTable.communityId),
           )
           .where(eq(communityUsersTable.userId, userId))
-          .orderBy(desc(communityUsersTable.createdAt))
+          .orderBy(desc(communityUsersTable.createdAt)),
       );
     if (suserCommunitiesError) {
       throw new HTTPException(500, {
@@ -156,9 +160,9 @@ export const communitiesRouter = new Hono()
           .where(
             and(
               eq(communityUsersTable.communityId, communityId),
-              eq(communityUsersTable.role, "moderator")
-            )
-          )
+              eq(communityUsersTable.role, "moderator"),
+            ),
+          ),
       );
     if (moderatorsQueryError) {
       throw new HTTPException(500, {
@@ -177,7 +181,7 @@ export const communitiesRouter = new Hono()
         db
           .select()
           .from(communitiesTable)
-          .where(eq(communitiesTable.communityId, communityId))
+          .where(eq(communitiesTable.communityId, communityId)),
       );
     if (communitiesQueryError) {
       throw new HTTPException(500, {
@@ -196,7 +200,7 @@ export const communitiesRouter = new Hono()
         .update(communitiesTable)
         .set({ icon: updateValues.icon })
         .where(eq(communitiesTable.communityId, updateValues.communityId))
-        .returning()
+        .returning(),
     );
     if (queryError) {
       throw new HTTPException(500, {
@@ -216,7 +220,7 @@ export const communitiesRouter = new Hono()
           .update(communitiesTable)
           .set({ description: updateValues.description })
           .where(eq(communitiesTable.communityId, updateValues.communityId))
-          .returning()
+          .returning(),
       );
       if (queryError) {
         throw new HTTPException(500, {
@@ -225,7 +229,7 @@ export const communitiesRouter = new Hono()
         });
       }
       return c.json({ newCommunity: newCommunityResult[0] }, 200);
-    }
+    },
   )
   .post("/join", zValidator("json", joinCommunitySchema), async (c) => {
     const insertValues = c.req.valid("json");
@@ -237,9 +241,9 @@ export const communitiesRouter = new Hono()
           .where(
             and(
               eq(communityUsersTable.communityId, insertValues.communityId),
-              eq(communityUsersTable.userId, insertValues.userId)
-            )
-          )
+              eq(communityUsersTable.userId, insertValues.userId),
+            ),
+          ),
       );
     if (communitiesQueryError) {
       throw new HTTPException(500, {
@@ -256,7 +260,7 @@ export const communitiesRouter = new Hono()
       error: communityUserInsertError,
       result: communityUserInsertResult,
     } = await mightFail(
-      db.insert(communityUsersTable).values(insertValues).returning()
+      db.insert(communityUsersTable).values(insertValues).returning(),
     );
     if (communityUserInsertError) {
       console.log("Error while creating community user");
@@ -279,10 +283,10 @@ export const communitiesRouter = new Hono()
         .where(
           and(
             eq(communityUsersTable.communityId, insertValues.communityId),
-            eq(communityUsersTable.userId, insertValues.userId)
-          )
+            eq(communityUsersTable.userId, insertValues.userId),
+          ),
         )
-        .returning()
+        .returning(),
     );
     if (communityUserDeleteError) {
       console.log("Error while creating community user");

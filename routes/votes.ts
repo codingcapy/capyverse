@@ -22,9 +22,13 @@ export const votesRouter = new Hono()
       createInsertSchema(votesTable).omit({
         status: true,
         createdAt: true,
-      })
+      }),
     ),
     async (c) => {
+      const authHeader = c.req.header("authorization");
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        throw new HTTPException(401, { message: "Unauthorized" });
+      }
       const insertValues = c.req.valid("json");
       if (
         insertValues.commentId !== null &&
@@ -39,9 +43,9 @@ export const votesRouter = new Hono()
                 and(
                   eq(votesTable.userId, insertValues.userId),
                   eq(votesTable.postId, insertValues.postId),
-                  eq(votesTable.commentId, insertValues.commentId)
-                )
-              )
+                  eq(votesTable.commentId, insertValues.commentId),
+                ),
+              ),
           );
         if (votesQueryError) {
           throw new HTTPException(500, {
@@ -65,9 +69,9 @@ export const votesRouter = new Hono()
                 and(
                   eq(votesTable.userId, insertValues.userId),
                   eq(votesTable.postId, insertValues.postId),
-                  isNull(votesTable.commentId)
-                )
-              )
+                  isNull(votesTable.commentId),
+                ),
+              ),
           );
         if (votesQueryError) {
           throw new HTTPException(500, {
@@ -93,7 +97,7 @@ export const votesRouter = new Hono()
         });
       }
       return c.json({ vote: voteInsertResult[0] }, 200);
-    }
+    },
   )
   .get("/", async (c) => {
     const { result: votesQueryResult, error: votesQueryError } =
@@ -118,7 +122,7 @@ export const votesRouter = new Hono()
             value: insertValues.value,
           })
           .where(eq(votesTable.voteId, insertValues.voteId))
-          .returning()
+          .returning(),
       );
     if (voteUpdateError) {
       console.log("Error while updating vote");
@@ -135,7 +139,7 @@ export const votesRouter = new Hono()
     const postId = assertIsParsableInt(postIdString);
     const { result: votesQueryResult, error: votesQueryError } =
       await mightFail(
-        db.select().from(votesTable).where(eq(votesTable.postId, postId))
+        db.select().from(votesTable).where(eq(votesTable.postId, postId)),
       );
     if (votesQueryError) {
       throw new HTTPException(500, {
@@ -152,7 +156,7 @@ export const votesRouter = new Hono()
     const commentId = assertIsParsableInt(commentIdString);
     const { result: commentVotesQueryResult, error: commentVotesQueryError } =
       await mightFail(
-        db.select().from(votesTable).where(eq(votesTable.commentId, commentId))
+        db.select().from(votesTable).where(eq(votesTable.commentId, commentId)),
       );
     if (commentVotesQueryError) {
       throw new HTTPException(500, {
@@ -174,7 +178,9 @@ export const votesRouter = new Hono()
           score: sql<number>`COALESCE(SUM(${votesTable.value}), 0)`,
         })
         .from(votesTable)
-        .where(and(eq(votesTable.postId, postId), isNull(votesTable.commentId)))
+        .where(
+          and(eq(votesTable.postId, postId), isNull(votesTable.commentId)),
+        ),
     );
     if (error) {
       throw new HTTPException(500, {
@@ -187,7 +193,7 @@ export const votesRouter = new Hono()
         upvotes: 0,
         downvotes: 0,
         score: 0,
-      }
+      },
     );
   })
   .get("/post/user/:postId/:userId", async (c) => {
@@ -204,10 +210,10 @@ export const votesRouter = new Hono()
           and(
             eq(votesTable.postId, postId),
             eq(votesTable.userId, userId),
-            isNull(votesTable.commentId)
-          )
+            isNull(votesTable.commentId),
+          ),
         )
-        .limit(1)
+        .limit(1),
     );
     if (error) {
       throw new HTTPException(500, {
