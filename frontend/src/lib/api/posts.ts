@@ -337,7 +337,17 @@ export const getPostsByUserIdQueryOptions = (userId: string) =>
   });
 
 async function savePost(args: SavePostArgs) {
-  const res = await client.api.v0.posts.save.$post({ json: args });
+  const token = getSession();
+  const res = await client.api.v0.posts.save.$post(
+    { json: args },
+    token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined,
+  );
   if (!res.ok) {
     let errorMessage =
       "There was an issue saving your post :( We'll look into it ASAP!";
@@ -392,7 +402,17 @@ export const getSavedPostsByUserIdQueryOptions = (userId: string) =>
   });
 
 async function unsavePost(args: UnsavePostArgs) {
-  const res = await client.api.v0.posts.unsave.$post({ json: args });
+  const token = getSession();
+  const res = await client.api.v0.posts.unsave.$post(
+    { json: args },
+    token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined,
+  );
   if (!res.ok) {
     let errorMessage =
       "There was an issue unsaving your post :( We'll look into it ASAP!";

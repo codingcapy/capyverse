@@ -53,14 +53,13 @@ function CreatePostPage() {
     if (!user) return "Error: no logged in user";
     if (content.length > 10000)
       return setNotification(
-        "Post content length max character limit is 10,000"
+        "Post content length max character limit is 10,000",
       );
     const titleInput = (e.target as HTMLFormElement).titleinput.value;
     if (titleInput.length > 400)
       return setNotification("Title content length max character limit is 400");
     createPost(
       {
-        userId: user.userId || "",
         title: titleInput,
         content,
         communityId: community === "Select a community" ? "" : community,
@@ -68,7 +67,7 @@ function CreatePostPage() {
       {
         onSuccess: () => navigate({ to: "/" }),
         onError: (e) => setNotification(e.toString()),
-      }
+      },
     );
     if (createPostError) setNotification(createPostError.toString());
   }
@@ -202,7 +201,7 @@ function CreatePostPage() {
                       type="button"
                       onClick={() =>
                         setActiveImageIndex((i) =>
-                          i === 0 ? imagesByUser.length - 1 : i - 1
+                          i === 0 ? imagesByUser.length - 1 : i - 1,
                         )
                       }
                       className="absolute left-2 z-10 bg-zinc-800/80 hover:bg-zinc-700 p-2 rounded-full"
@@ -232,7 +231,7 @@ function CreatePostPage() {
                       type="button"
                       onClick={() =>
                         setActiveImageIndex((i) =>
-                          i === imagesByUser.length - 1 ? 0 : i + 1
+                          i === imagesByUser.length - 1 ? 0 : i + 1,
                         )
                       }
                       className="absolute right-2 z-10 bg-zinc-800/80 hover:bg-zinc-700 p-2 rounded-full"
