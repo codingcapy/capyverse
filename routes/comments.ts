@@ -5,7 +5,7 @@ import { comments as commentsTable } from "../schemas/comments";
 import { mightFail } from "might-fail";
 import { db } from "../db";
 import { HTTPException } from "hono/http-exception";
-import { assertIsParsableInt } from "./posts";
+import { assertIsParsableInt, requireUser } from "./posts";
 import { and, eq } from "drizzle-orm";
 import { users as usersTable } from "../schemas/users";
 import z from "zod";
@@ -122,13 +122,19 @@ export const commentsRouter = new Hono()
     "/comment/delete",
     zValidator("json", deleteCommentSchema),
     async (c) => {
+      const decodedUser = requireUser(c);
       const insertValues = c.req.valid("json");
       const { error: commentDeleteError, result: commentDeleteResult } =
         await mightFail(
           db
             .update(commentsTable)
             .set({ content: "[This comment has been deleted by the user]" })
-            .where(eq(commentsTable.commentId, insertValues.commentId))
+            .where(
+              and(
+                eq(commentsTable.commentId, insertValues.commentId),
+                eq(commentsTable.userId, decodedUser.id),
+              ),
+            )
             .returning(),
         );
       if (commentDeleteError) {
@@ -146,13 +152,19 @@ export const commentsRouter = new Hono()
     "/comment/update",
     zValidator("json", updateCommentSchema),
     async (c) => {
+      const decodedUser = requireUser(c);
       const insertValues = c.req.valid("json");
       const { error: commentEditError, result: commentEditResult } =
         await mightFail(
           db
             .update(commentsTable)
             .set({ content: insertValues.content })
-            .where(eq(commentsTable.commentId, insertValues.commentId))
+            .where(
+              and(
+                eq(commentsTable.commentId, insertValues.commentId),
+                eq(commentsTable.userId, decodedUser.id),
+              ),
+            )
             .returning(),
         );
       if (commentEditError) {
@@ -238,6 +250,7 @@ export const commentsRouter = new Hono()
     return c.json({ commentsLength: commentsCount });
   })
   .post("/save", zValidator("json", saveCommentSchema), async (c) => {
+    const decodedUser = requireUser(c);
     const saveValues = c.req.valid("json");
     const { result: savedCommentQueryResult, error: savedCommentsQueryError } =
       await mightFail(
