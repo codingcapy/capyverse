@@ -5,7 +5,7 @@ import { communities as communitiesTable } from "../schemas/communities";
 import { mightFail } from "might-fail";
 import { db } from "../db";
 import { HTTPException } from "hono/http-exception";
-import { assertIsParsableInt } from "./posts";
+import { assertIsParsableInt, requireUser } from "./posts";
 import { and, desc, eq } from "drizzle-orm";
 import { communityUsers as communityUsersTable } from "../schemas/communityusers";
 import z from "zod";
@@ -194,6 +194,7 @@ export const communitiesRouter = new Hono()
     });
   })
   .post("/update/icon", zValidator("json", updateIconSchema), async (c) => {
+    const decodedUser = requireUser(c);
     const updateValues = c.req.valid("json");
     const { error: queryError, result: newCommunityResult } = await mightFail(
       db
@@ -214,6 +215,7 @@ export const communitiesRouter = new Hono()
     "/update/description",
     zValidator("json", updateDescriptionSchema),
     async (c) => {
+      const decodedUser = requireUser(c);
       const updateValues = c.req.valid("json");
       const { error: queryError, result: newCommunityResult } = await mightFail(
         db
@@ -232,6 +234,7 @@ export const communitiesRouter = new Hono()
     },
   )
   .post("/join", zValidator("json", joinCommunitySchema), async (c) => {
+    const decodedUser = requireUser(c);
     const insertValues = c.req.valid("json");
     const { result: communitiesQueryResult, error: communitiesQueryError } =
       await mightFail(
@@ -273,6 +276,7 @@ export const communitiesRouter = new Hono()
     return c.json({ communityResult: communityUserInsertResult[0] }, 200);
   })
   .post("/leave", zValidator("json", joinCommunitySchema), async (c) => {
+    const decodedUser = requireUser(c);
     const insertValues = c.req.valid("json");
     const {
       error: communityUserDeleteError,

@@ -144,7 +144,17 @@ export const getCommunitiesByUserIdQueryOptions = (userId: string) =>
   });
 
 async function joinCommunity(args: JoinCommunityArgs) {
-  const res = await client.api.v0.communities.join.$post({ json: args });
+  const token = getSession();
+  const res = await client.api.v0.communities.join.$post(
+    { json: args },
+    token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined,
+  );
   if (!res.ok) {
     let errorMessage =
       "There was an issue joining the community :( We'll look into it ASAP!";
@@ -192,7 +202,17 @@ export const useJoinCommunityMutation = (
 };
 
 async function leaveCommunity(args: LeaveCommunityArgs) {
-  const res = await client.api.v0.communities.leave.$post({ json: args });
+  const token = getSession();
+  const res = await client.api.v0.communities.leave.$post(
+    { json: args },
+    token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined,
+  );
   if (!res.ok) {
     let errorMessage =
       "There was an issue leaving the community :( We'll look into it ASAP!";
@@ -258,9 +278,19 @@ export const getModeratorsQueryOptions = (communityId: string) =>
   });
 
 async function updateIcon(args: UpdateIconArgs) {
-  const res = await client.api.v0.communities.update.icon.$post({
-    json: args,
-  });
+  const token = getSession();
+  const res = await client.api.v0.communities.update.icon.$post(
+    {
+      json: args,
+    },
+    token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined,
+  );
   if (!res.ok) {
     throw new Error("Error updating community icon.");
   }

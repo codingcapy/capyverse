@@ -13,6 +13,7 @@ import { mightFail } from "might-fail";
 import { and, eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import { createInsertSchema } from "drizzle-zod";
+import { requireUser } from "./posts";
 
 const s3Client = new S3Client({
   region: process.env.AWS_IMAGE_BUCKET_REGION!,
@@ -200,6 +201,7 @@ export const imagesRouter = new Hono()
     return c.json({ images: imagesQueryResult });
   })
   .post("/delete", zValidator("json", deleteImageSchema), async (c) => {
+    const decodedUser = requireUser(c);
     const deleteValues = c.req.valid("json");
     const { error: imageDeleteError, result: imageDeleteResult } =
       await mightFail(
@@ -233,6 +235,7 @@ export const imagesRouter = new Hono()
       }),
     ),
     async (c) => {
+      const decodedUser = requireUser(c);
       const updateValues = c.req.valid("json");
       const { error: imageUpdateError, result: imageUpdateResult } =
         await mightFail(

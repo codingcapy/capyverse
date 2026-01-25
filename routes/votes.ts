@@ -7,7 +7,7 @@ import { db } from "../db";
 import { HTTPException } from "hono/http-exception";
 import { and, eq, isNotNull, isNull, sql } from "drizzle-orm";
 import z from "zod";
-import { assertIsParsableInt } from "./posts";
+import { assertIsParsableInt, requireUser } from "./posts";
 
 const updateVoteSchema = z.object({
   voteId: z.number(),
@@ -113,6 +113,7 @@ export const votesRouter = new Hono()
     });
   })
   .post("/update", zValidator("json", updateVoteSchema), async (c) => {
+    const decodedUser = requireUser(c);
     const insertValues = c.req.valid("json");
     const { error: voteUpdateError, result: voteUpdateResult } =
       await mightFail(
@@ -121,7 +122,12 @@ export const votesRouter = new Hono()
           .set({
             value: insertValues.value,
           })
-          .where(eq(votesTable.voteId, insertValues.voteId))
+          .where(
+            and(
+              eq(votesTable.voteId, insertValues.voteId),
+              eq(votesTable.userId, decodedUser.id),
+            ),
+          )
           .returning(),
       );
     if (voteUpdateError) {
