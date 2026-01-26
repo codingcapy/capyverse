@@ -28,7 +28,7 @@ export function CommentVotesComponent(props: { comment: Comment }) {
   function handleSubmitVote(
     e: React.MouseEvent<HTMLDivElement>,
     comment: Comment,
-    value: number
+    value: number,
   ) {
     e.preventDefault();
     e.stopPropagation();
@@ -39,13 +39,12 @@ export function CommentVotesComponent(props: { comment: Comment }) {
         (vote) =>
           vote.commentId === props.comment.commentId &&
           user &&
-          vote.userId === user.userId
+          vote.userId === user.userId,
       );
     if (user && vote) {
       updateVote({ voteId: vote.voteId, value });
     } else if (user) {
       createVote({
-        userId: (user && user.userId) || "",
         postId: comment.postId,
         commentId: comment.commentId,
         value,
@@ -68,7 +67,7 @@ export function CommentVotesComponent(props: { comment: Comment }) {
               vote.commentId === props.comment.commentId &&
               user &&
               vote.userId === user.userId &&
-              vote.value === 1
+              vote.value === 1,
           ).length > 0 ? (
             <div
               onClick={(e) => {
@@ -80,7 +79,7 @@ export function CommentVotesComponent(props: { comment: Comment }) {
                       vote.commentId === props.comment.commentId &&
                       user &&
                       vote.userId === user.userId &&
-                      vote.value === 1
+                      vote.value === 1,
                   )!.voteId,
                   value: 0,
                 });
@@ -109,7 +108,7 @@ export function CommentVotesComponent(props: { comment: Comment }) {
               vote.commentId === props.comment.commentId &&
               user &&
               vote.userId === user.userId &&
-              vote.value === -1
+              vote.value === -1,
           ).length > 0 ? (
             <div
               onClick={(e) => {
@@ -121,7 +120,7 @@ export function CommentVotesComponent(props: { comment: Comment }) {
                       vote.commentId === props.comment.commentId &&
                       user &&
                       vote.userId === user.userId &&
-                      vote.value === -1
+                      vote.value === -1,
                   )!.voteId,
                   value: 0,
                 });

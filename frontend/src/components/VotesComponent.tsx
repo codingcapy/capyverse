@@ -32,14 +32,14 @@ export function VotesComponent(props: { post: Post }) {
   } = useQuery(
     getUserVoteByPostIdQueryOptions(
       props.post.postId,
-      (user && user.userId) || ""
-    )
+      (user && user.userId) || "",
+    ),
   );
 
   function handleSubmitVote(
     e: React.MouseEvent<HTMLDivElement>,
     post: Post,
-    value: number
+    value: number,
   ) {
     e.preventDefault();
     e.stopPropagation();
@@ -52,7 +52,6 @@ export function VotesComponent(props: { post: Post }) {
       updateVote({ voteId: userVote.voteId, value });
     } else if (user) {
       createVote({
-        userId: (user && user.userId) || "",
         postId: post.postId,
         value,
       });

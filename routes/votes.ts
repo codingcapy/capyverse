@@ -22,6 +22,7 @@ export const votesRouter = new Hono()
       createInsertSchema(votesTable).omit({
         status: true,
         createdAt: true,
+        userId: true,
       }),
     ),
     async (c) => {
@@ -84,7 +85,12 @@ export const votesRouter = new Hono()
         }
       }
       const { error: voteInsertError, result: voteInsertResult } =
-        await mightFail(db.insert(votesTable).values(insertValues).returning());
+        await mightFail(
+          db
+            .insert(votesTable)
+            .values({ ...insertValues, userId: decodedUser.id })
+            .returning(),
+        );
       if (voteInsertError) {
         console.log("Error while creating vote");
         console.log(voteInsertError);
