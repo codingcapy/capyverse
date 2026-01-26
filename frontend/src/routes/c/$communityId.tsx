@@ -232,14 +232,13 @@ function CommunityPage() {
                   <div>Error loading communities</div>
                 ) : communities ? (
                   communities.some(
-                    (c) => c.communityId === community.communityId
+                    (c) => c.communityId === community.communityId,
                   ) ? (
                     <div
                       onClick={() => {
                         if (leaveCommunityPending) return;
                         leaveCommunity({
                           communityId,
-                          userId: (user && user.userId) || "",
                         });
                       }}
                       className="px-5 py-3 rounded-full border cursor-pointer hover:bg-[#333333] transition-all ease-in-out duration-300"
@@ -252,7 +251,6 @@ function CommunityPage() {
                         if (joinCommunityPending) return;
                         joinCommunity({
                           communityId,
-                          userId: (user && user.userId) || "",
                         });
                       }}
                       className="px-5 py-3 rounded-full bg-cyan-700 cursor-pointer hover:bg-cyan-500 transition-all ease-in-out duration-300"

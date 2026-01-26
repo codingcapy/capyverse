@@ -68,7 +68,6 @@ function RouteComponent() {
                     if (leaveCommunityPending) return;
                     leaveCommunity({
                       communityId: (community && community.communityId) || "",
-                      userId: (user && user.userId) || "",
                     });
                   }}
                   className="px-3 py-1 rounded-full border cursor-pointer hover:bg-[#333333] transition-all ease-in-out duration-300"
@@ -81,7 +80,6 @@ function RouteComponent() {
                     if (joinCommunityPending) return;
                     joinCommunity({
                       communityId: (community && community.communityId) || "",
-                      userId: (user && user.userId) || "",
                     });
                   }}
                   className="px-5 py-3 rounded-full bg-cyan-700 cursor-pointer hover:bg-cyan-500 transition-all ease-in-out duration-300"

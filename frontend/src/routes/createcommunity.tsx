@@ -31,12 +31,11 @@ function CreateCommunityPage() {
       {
         communityId: title,
         description: content,
-        userId: (user && user.userId) || "",
         mature: matureContent,
         visibility,
         icon: iconContent,
       },
-      { onSuccess: () => navigate({ to: `/c/${title}` }) }
+      { onSuccess: () => navigate({ to: `/c/${title}` }) },
     );
   }
 

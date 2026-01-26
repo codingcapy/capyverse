@@ -12,7 +12,6 @@ import z from "zod";
 
 const createCommunitySchema = z.object({
   communityId: z.string(),
-  userId: z.string(),
   description: z.string(),
   category: z.string().optional(),
   visibility: z.string().optional(),
@@ -33,7 +32,6 @@ const updateDescriptionSchema = z.object({
 
 const joinCommunitySchema = z.object({
   communityId: z.string(),
-  userId: z.string(),
 });
 
 export const communitiesRouter = new Hono()
@@ -260,7 +258,10 @@ export const communitiesRouter = new Hono()
       error: communityUserInsertError,
       result: communityUserInsertResult,
     } = await mightFail(
-      db.insert(communityUsersTable).values(insertValues).returning(),
+      db
+        .insert(communityUsersTable)
+        .values({ ...insertValues, userId: decodedUser.id })
+        .returning(),
     );
     if (communityUserInsertError) {
       console.log("Error while creating community user");
