@@ -25,10 +25,7 @@ export const votesRouter = new Hono()
       }),
     ),
     async (c) => {
-      const authHeader = c.req.header("authorization");
-      if (!authHeader || !authHeader.startsWith("Bearer ")) {
-        throw new HTTPException(401, { message: "Unauthorized" });
-      }
+      const decodedUser = requireUser(c);
       const insertValues = c.req.valid("json");
       if (
         insertValues.commentId !== null &&
@@ -41,7 +38,7 @@ export const votesRouter = new Hono()
               .from(votesTable)
               .where(
                 and(
-                  eq(votesTable.userId, insertValues.userId),
+                  eq(votesTable.userId, decodedUser.id),
                   eq(votesTable.postId, insertValues.postId),
                   eq(votesTable.commentId, insertValues.commentId),
                 ),
@@ -67,7 +64,7 @@ export const votesRouter = new Hono()
               .from(votesTable)
               .where(
                 and(
-                  eq(votesTable.userId, insertValues.userId),
+                  eq(votesTable.userId, decodedUser.id),
                   eq(votesTable.postId, insertValues.postId),
                   isNull(votesTable.commentId),
                 ),

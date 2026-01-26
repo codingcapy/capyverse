@@ -259,7 +259,7 @@ export const commentsRouter = new Hono()
           .from(savedCommentsTable)
           .where(
             and(
-              eq(savedCommentsTable.userId, saveValues.userId),
+              eq(savedCommentsTable.userId, decodedUser.id),
               eq(savedCommentsTable.commentId, saveValues.commentId),
             ),
           ),

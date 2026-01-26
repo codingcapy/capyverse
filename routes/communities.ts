@@ -38,10 +38,7 @@ const joinCommunitySchema = z.object({
 
 export const communitiesRouter = new Hono()
   .post("/", zValidator("json", createCommunitySchema), async (c) => {
-    const authHeader = c.req.header("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      throw new HTTPException(401, { message: "Unauthorized" });
-    }
+    const decodedUser = requireUser(c);
     const insertValues = c.req.valid("json");
     const { result: communitiesQueryResult, error: communitiesQueryError } =
       await mightFail(
@@ -91,7 +88,7 @@ export const communitiesRouter = new Hono()
       db
         .insert(communityUsersTable)
         .values({
-          userId: insertValues.userId,
+          userId: decodedUser.id,
           communityId: insertValues.communityId,
           role: "moderator",
         })
@@ -244,7 +241,7 @@ export const communitiesRouter = new Hono()
           .where(
             and(
               eq(communityUsersTable.communityId, insertValues.communityId),
-              eq(communityUsersTable.userId, insertValues.userId),
+              eq(communityUsersTable.userId, decodedUser.id),
             ),
           ),
       );
@@ -287,7 +284,7 @@ export const communitiesRouter = new Hono()
         .where(
           and(
             eq(communityUsersTable.communityId, insertValues.communityId),
-            eq(communityUsersTable.userId, insertValues.userId),
+            eq(communityUsersTable.userId, decodedUser.id),
           ),
         )
         .returning(),
