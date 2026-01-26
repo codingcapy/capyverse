@@ -44,7 +44,6 @@ export function CommentComponent(props: { comment: CommentNode; post: Post }) {
     const userId = user.userId;
     createComment(
       {
-        userId,
         postId: props.post.postId,
         parentCommentId: props.comment.commentId,
         level: props.comment.level + 1,
@@ -55,7 +54,7 @@ export function CommentComponent(props: { comment: CommentNode; post: Post }) {
           setCommentContent("");
           setReplyMode(false);
         },
-      }
+      },
     );
   }
 
@@ -72,7 +71,7 @@ export function CommentComponent(props: { comment: CommentNode; post: Post }) {
           setEditCommentModePointer(0);
           setCommentContent("");
         },
-      }
+      },
     );
   }
 

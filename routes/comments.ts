@@ -21,7 +21,6 @@ const updateCommentSchema = z.object({
 });
 
 const saveCommentSchema = z.object({
-  userId: z.string(),
   commentId: z.number(),
 });
 
@@ -34,17 +33,18 @@ export const commentsRouter = new Hono()
         status: true,
         createdAt: true,
         commentId: true,
+        userId: true,
       }),
     ),
     async (c) => {
-      const authHeader = c.req.header("authorization");
-      if (!authHeader || !authHeader.startsWith("Bearer ")) {
-        throw new HTTPException(401, { message: "Unauthorized" });
-      }
+      const decodedUser = requireUser(c);
       const insertValues = c.req.valid("json");
       const { error: commentInsertError, result: commentInsertResult } =
         await mightFail(
-          db.insert(commentsTable).values(insertValues).returning(),
+          db
+            .insert(commentsTable)
+            .values({ ...insertValues, userId: decodedUser.id })
+            .returning(),
         );
       if (commentInsertError)
         throw new HTTPException(500, {
@@ -278,7 +278,10 @@ export const commentsRouter = new Hono()
     }
     const { error: commentSaveError, result: commentSaveResult } =
       await mightFail(
-        db.insert(savedCommentsTable).values(saveValues).returning(),
+        db
+          .insert(savedCommentsTable)
+          .values({ ...saveValues, userId: decodedUser.id })
+          .returning(),
       );
     if (commentSaveError) {
       console.log("Error while creating saved comment");

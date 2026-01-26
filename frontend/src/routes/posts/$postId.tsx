@@ -113,7 +113,7 @@ function PostComponent() {
 
   function buildCommentTree(
     comments: Comment[],
-    opts?: { sort?: "asc" | "desc" }
+    opts?: { sort?: "asc" | "desc" },
   ): CommentNode[] {
     const sort = opts?.sort ?? "desc";
     const map = new Map<number, CommentNode>();
@@ -153,18 +153,18 @@ function PostComponent() {
     if (createCommentPending) return;
     if (commentContent.length > 10000)
       return setNotification(
-        "Comment content length max character limit is 10,000"
+        "Comment content length max character limit is 10,000",
       );
     if (!user) return navigate({ to: "/login" });
     const userId = user.userId;
     createComment(
-      { userId, postId: post.postId, content: commentContent },
+      { postId: post.postId, content: commentContent },
       {
         onSuccess: () => {
           setCommentContent("");
           setCommentMode(false);
         },
-      }
+      },
     );
   }
 
@@ -305,7 +305,7 @@ function PostComponent() {
                   type="button"
                   onClick={() =>
                     setActiveImageIndex((i) =>
-                      i === 0 ? images.length - 1 : i - 1
+                      i === 0 ? images.length - 1 : i - 1,
                     )
                   }
                   className="absolute left-2 z-10 bg-zinc-800/80 hover:bg-zinc-700 p-2 rounded-full"
@@ -326,7 +326,7 @@ function PostComponent() {
                   type="button"
                   onClick={() =>
                     setActiveImageIndex((i) =>
-                      i === images.length - 1 ? 0 : i + 1
+                      i === images.length - 1 ? 0 : i + 1,
                     )
                   }
                   className="absolute right-2 z-10 bg-zinc-800/80 hover:bg-zinc-700 p-2 rounded-full"
@@ -377,7 +377,7 @@ function PostComponent() {
                 if (updatePostPending) return;
                 if (editContent.length > 10000)
                   return setNotification(
-                    "Post content length max character limit is 10,000"
+                    "Post content length max character limit is 10,000",
                   );
                 updatePost(
                   {
@@ -389,7 +389,7 @@ function PostComponent() {
                       router.invalidate();
                       setEditPostModePointer(0);
                     },
-                  }
+                  },
                 );
               }}
               className="mx-2 px-2 py-1 rounded-full bg-cyan-700"
@@ -483,10 +483,10 @@ function PostComponent() {
                       router.invalidate();
                       setDeleteMode(false);
                       setEditContent(
-                        "[This post has been deleted by the user]"
+                        "[This post has been deleted by the user]",
                       );
                     },
-                  }
+                  },
                 );
               }}
               className="p-2 mr-1 bg-red-500 rounded text-white bold secondary-font font-bold cursor-pointer"
