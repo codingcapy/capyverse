@@ -164,7 +164,10 @@ function CreateCommunityPage() {
           <div className="text-sm">
             Users must be over 18 to view and contribute
           </div>
-          <div className="mt-2">
+          <div
+            onClick={() => setMatureContent(!matureContent)}
+            className="mt-2"
+          >
             <div
               className={`inline-flex items-center justify-center gap-0 mb-2 ${matureContent ? "bg-cyan-500" : "bg-[#666666]"} rounded-full shadow-[inset_-1px_0px_4.8px_rgba(0,0,0,0.5)]`}
             >
@@ -173,14 +176,12 @@ function CreateCommunityPage() {
                   !matureContent ? "bg-white" : "bg-transparent"
                 }`}
                 style={{ fontFamily: "'Nunito Sans', sans-serif" }}
-                onClick={() => setMatureContent(false)}
               ></div>
               <div
                 className={`h-[25px] w-[25px] rounded-full font-bold text-lg tracking-wide transition-all duration-300 ease-in-out ${
                   matureContent ? "bg-white" : "bg-transparent"
                 }`}
                 style={{ fontFamily: "'Nunito Sans', sans-serif" }}
-                onClick={() => setMatureContent(true)}
               ></div>
             </div>
           </div>
