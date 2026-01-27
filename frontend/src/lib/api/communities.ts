@@ -93,19 +93,25 @@ export const useCreateCommunityMutation = (
   });
 };
 
-async function getCommunities() {
-  const res = await client.api.v0.communities.$get();
+async function getCommunities(page: number) {
+  const res = await client.api.v0.communities.$get({
+    query: { page: page.toString() },
+  });
   if (!res.ok) {
     throw new Error("Error getting communities");
   }
-  const { communities } = await res.json();
-  return communities.map(mapSerializedCommunityToSchema);
+  const { communities, page: currentPage, totalPages } = await res.json();
+  return {
+    communities: communities.map(mapSerializedCommunityToSchema),
+    page: currentPage,
+    totalPages,
+  };
 }
 
-export const getCommunitiesQueryOptions = () =>
+export const getCommunitiesQueryOptions = (page: number) =>
   queryOptions({
-    queryKey: ["communities"],
-    queryFn: () => getCommunities(),
+    queryKey: ["communities", page],
+    queryFn: () => getCommunities(page),
   });
 
 async function getCommunityById(communityId: string) {

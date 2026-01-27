@@ -1,26 +1,25 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import useAuthStore from "../store/AuthStore";
-import { useEffect } from "react";
-import {
-  getCommunitiesByUserIdQueryOptions,
-  getCommunitiesQueryOptions,
-  useJoinCommunityMutation,
-  useLeaveCommunityMutation,
-} from "../lib/api/communities";
+import { getCommunitiesQueryOptions } from "../lib/api/communities";
 import { useQuery } from "@tanstack/react-query";
 import defaultProfile from "/capypaul01.jpg";
 import DOMPurify from "dompurify";
+import z from "zod";
 
 export const Route = createFileRoute("/communities")({
+  validateSearch: z.object({
+    page: z.coerce.number().int().min(1).default(1),
+  }),
   component: CommunitiesPage,
 });
 
 function CommunitiesPage() {
+  const navigate = Route.useNavigate();
+  const { page } = Route.useSearch();
   const {
-    data: communities,
+    data: data,
     isLoading: communitiesLoading,
     error: communitiesError,
-  } = useQuery(getCommunitiesQueryOptions());
+  } = useQuery(getCommunitiesQueryOptions(page));
 
   return (
     <div className="pt-[88px] px-2 lg:px-0 mx-auto w-full ">
@@ -32,11 +31,13 @@ function CommunitiesPage() {
           <div></div>
         ) : communitiesError ? (
           <div></div>
-        ) : communities ? (
-          communities.length > 0 ? (
-            communities.map((community, idx) => (
+        ) : data ? (
+          data.communities.length > 0 ? (
+            data.communities.map((community, idx) => (
               <div className="flex my-5 sm:my-0" key={community.communityId}>
-                <div className="mr-3 sm:mr-5 pt-2">{idx}</div>
+                <div className="mr-3 sm:mr-5 pt-2">
+                  {(page - 1) * 250 + idx + 1}
+                </div>
                 <Link
                   to="/c/$communityId"
                   params={{
@@ -96,6 +97,28 @@ function CommunitiesPage() {
           <div></div>
         )}
       </div>
+      {data && data.totalPages > 1 && (
+        <div className="flex justify-center gap-2 mt-10">
+          {Array.from({ length: data.totalPages }, (_, i) => i + 1).map((p) => (
+            <button
+              key={p}
+              onClick={() =>
+                navigate({
+                  search: (prev) => ({
+                    ...prev,
+                    page: p,
+                  }),
+                })
+              }
+              className={`px-3 py-1 rounded ${
+                p === page ? "text-cyan-500" : ""
+              }`}
+            >
+              {p}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -6,7 +6,7 @@ import { mightFail } from "might-fail";
 import { db } from "../db";
 import { HTTPException } from "hono/http-exception";
 import { assertIsParsableInt, requireUser } from "./posts";
-import { and, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { communityUsers as communityUsersTable } from "../schemas/communityusers";
 import z from "zod";
 
@@ -103,16 +103,50 @@ export const communitiesRouter = new Hono()
     return c.json({ communityResult: communityInsertResult[0] }, 200);
   })
   .get("/", async (c) => {
-    const { result: communitiesQueryResult, error: communitiesQueryError } =
-      await mightFail(db.select().from(communitiesTable));
-    if (communitiesQueryError) {
+    const PAGE_SIZE = 250;
+    const page = Math.max(Number(c.req.query("page") ?? 1), 1);
+    const offset = (page - 1) * PAGE_SIZE;
+    const { result: communities, error: communitiesError } = await mightFail(
+      db
+        .select()
+        .from(communitiesTable)
+        .orderBy(asc(communitiesTable.communityId))
+        .limit(PAGE_SIZE)
+        .offset(offset),
+    );
+    if (communitiesError) {
       throw new HTTPException(500, {
         message: "Error occurred when fetching communities",
-        cause: communitiesQueryError,
+        cause: communitiesError,
       });
     }
+    const { result: countResult, error: countError } = await mightFail(
+      db
+        .select({
+          count: sql<number>`count(*)`,
+        })
+        .from(communitiesTable),
+    );
+    if (countError) {
+      throw new HTTPException(500, {
+        message: "Error occurred when counting communities",
+        cause: countError,
+      });
+    }
+    if (!countResult || countResult.length === 0) {
+      throw new HTTPException(500, {
+        message: "Failed to count communities",
+      });
+    }
+    //@ts-ignore
+    const total = Number(countResult[0].count);
+    const totalPages = Math.ceil(total / PAGE_SIZE);
     return c.json({
-      communities: communitiesQueryResult,
+      communities,
+      page,
+      pageSize: PAGE_SIZE,
+      total,
+      totalPages,
     });
   })
   .get("/user/:userId", async (c) => {
