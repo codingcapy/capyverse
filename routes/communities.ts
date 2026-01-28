@@ -30,6 +30,13 @@ const updateDescriptionSchema = z.object({
   description: z.string(),
 });
 
+const updateSettingsSchema = z.object({
+  communityId: z.string(),
+  description: z.string(),
+  visibility: z.string(),
+  mature: z.boolean(),
+});
+
 const joinCommunitySchema = z.object({
   communityId: z.string(),
 });
@@ -250,6 +257,32 @@ export const communitiesRouter = new Hono()
         db
           .update(communitiesTable)
           .set({ description: updateValues.description })
+          .where(eq(communitiesTable.communityId, updateValues.communityId))
+          .returning(),
+      );
+      if (queryError) {
+        throw new HTTPException(500, {
+          message: "Error updating communities table",
+          cause: queryError,
+        });
+      }
+      return c.json({ newCommunity: newCommunityResult[0] }, 200);
+    },
+  )
+  .post(
+    "/update/settings",
+    zValidator("json", updateSettingsSchema),
+    async (c) => {
+      const decodedUser = requireUser(c);
+      const updateValues = c.req.valid("json");
+      const { error: queryError, result: newCommunityResult } = await mightFail(
+        db
+          .update(communitiesTable)
+          .set({
+            description: updateValues.description,
+            visibility: updateValues.visibility,
+            mature: updateValues.mature,
+          })
           .where(eq(communitiesTable.communityId, updateValues.communityId))
           .returning(),
       );
