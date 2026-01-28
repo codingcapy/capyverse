@@ -3,6 +3,7 @@ import { FiEdit2 } from "react-icons/fi";
 import {
   getModeratorsQueryOptions,
   useUpdateDescriptionMutation,
+  useUpdateSettingsMutation,
 } from "../lib/api/communities";
 import { useQuery } from "@tanstack/react-query";
 import useAuthStore from "../store/AuthStore";
@@ -17,18 +18,22 @@ export function CommunitySidebar(props: { community: Community }) {
   } = useQuery(getModeratorsQueryOptions(props.community.communityId));
   const [editMode, setEditMode] = useState(false);
   const [editContent, setEditContent] = useState(props.community.description);
-  const { mutate: updateDescription, isPending: updateDescriptionPending } =
-    useUpdateDescriptionMutation();
-  const [matureContent, setMatureContent] = useState(props.community.mature);
+  const { mutate: updateSettings, isPending: updateSettingsPending } =
+    useUpdateSettingsMutation();
+  const [matureContent, setMatureContent] = useState(
+    props.community.mature || false,
+  );
   const [visibility, setVisibility] = useState(props.community.visibility);
 
   function handleUpdateDescription(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (updateDescriptionPending || !user) return;
-    updateDescription(
+    if (updateSettingsPending || !user) return;
+    updateSettings(
       {
         communityId: props.community.communityId,
         description: editContent,
+        visibility: visibility,
+        mature: matureContent,
       },
       { onSuccess: () => setEditMode(false) },
     );
@@ -68,56 +73,51 @@ export function CommunitySidebar(props: { community: Community }) {
             value={editContent}
             onChange={(e) => setEditContent(e.target.value)}
           />
-          <div
-            onClick={() => setMatureContent(!matureContent)}
-            className="mt-2"
-          >
-            <div className="m-2">
-              <div className="mb-2 font-semibold">Visibility</div>
-              <div
-                onClick={() => setVisibility("public")}
-                className={`p-2 cursor-pointer ${visibility === "public" && "bg-[#555555]"}`}
-              >
-                <div>Public</div>
-                <div className="text-xs">Anyone can view, post and comment</div>
-              </div>
-              <div
-                onClick={() => setVisibility("restricted")}
-                className={`p-2 cursor-pointer ${visibility === "restricted" && "bg-[#555555]"}`}
-              >
-                <div>Restricted</div>
-                <div className="text-xs">
-                  Anyone can view, but only approved users can contribute
-                </div>
-              </div>
-              <div
-                onClick={() => setVisibility("private")}
-                className={`p-2 cursor-pointer ${visibility === "private" && "bg-[#555555]"}`}
-              >
-                <div>Private</div>
-                <div className="text-xs">
-                  Only approved users can view and contribute
-                </div>
+          <div className="m-2">
+            <div className="font-semibold">Visibility</div>
+            <div
+              onClick={() => setVisibility("public")}
+              className={`p-2 cursor-pointer ${visibility === "public" && "bg-[#555555]"}`}
+            >
+              <div>Public</div>
+              <div className="text-xs">Anyone can view, post and comment</div>
+            </div>
+            <div
+              onClick={() => setVisibility("restricted")}
+              className={`p-2 cursor-pointer ${visibility === "restricted" && "bg-[#555555]"}`}
+            >
+              <div>Restricted</div>
+              <div className="text-xs">
+                Anyone can view, but only approved users can contribute
               </div>
             </div>
-            <div className="m-2">
-              <div className="mb-2 font-semibold">Mature (18+)</div>
-              <div
-                className={`inline-flex items-center justify-center gap-0 mb-2 ${matureContent ? "bg-cyan-500" : "bg-[#666666]"} rounded-full shadow-[inset_-1px_0px_4.8px_rgba(0,0,0,0.5)]`}
-              >
-                <div
-                  className={`h-[25px] w-[25px] rounded-full font-bold text-lg tracking-wide transition-all duration-300 ease-in-out ${
-                    !matureContent ? "bg-white" : "bg-transparent"
-                  }`}
-                  style={{ fontFamily: "'Nunito Sans', sans-serif" }}
-                ></div>
-                <div
-                  className={`h-[25px] w-[25px] rounded-full font-bold text-lg tracking-wide transition-all duration-300 ease-in-out ${
-                    matureContent ? "bg-white" : "bg-transparent"
-                  }`}
-                  style={{ fontFamily: "'Nunito Sans', sans-serif" }}
-                ></div>
+            <div
+              onClick={() => setVisibility("private")}
+              className={`p-2 cursor-pointer ${visibility === "private" && "bg-[#555555]"}`}
+            >
+              <div>Private</div>
+              <div className="text-xs">
+                Only approved users can view and contribute
               </div>
+            </div>
+          </div>
+          <div onClick={() => setMatureContent(!matureContent)} className="m-2">
+            <div className="mb-2 font-semibold">Mature (18+)</div>
+            <div
+              className={`inline-flex items-center justify-center gap-0 mb-2 ${matureContent ? "bg-cyan-500" : "bg-[#666666]"} rounded-full shadow-[inset_-1px_0px_4.8px_rgba(0,0,0,0.5)]`}
+            >
+              <div
+                className={`h-[25px] w-[25px] rounded-full font-bold text-lg tracking-wide transition-all duration-300 ease-in-out ${
+                  !matureContent ? "bg-white" : "bg-transparent"
+                }`}
+                style={{ fontFamily: "'Nunito Sans', sans-serif" }}
+              ></div>
+              <div
+                className={`h-[25px] w-[25px] rounded-full font-bold text-lg tracking-wide transition-all duration-300 ease-in-out ${
+                  matureContent ? "bg-white" : "bg-transparent"
+                }`}
+                style={{ fontFamily: "'Nunito Sans', sans-serif" }}
+              ></div>
             </div>
           </div>
           <div className="m-2 self-end flex text-center">
