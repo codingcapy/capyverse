@@ -1,8 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { PostContentInput } from "../components/PostContentInput";
 import useAuthStore from "../store/AuthStore";
 import { useCreateCommunityMutation } from "../lib/api/communities";
+import { FaTrashCan } from "react-icons/fa6";
 
 export const Route = createFileRoute("/createcommunity")({
   component: CreateCommunityPage,
@@ -12,7 +12,9 @@ type Visibility = "public" | "restricted" | "private";
 
 function CreateCommunityPage() {
   const [isDragOver, setIsDragOver] = useState(false);
+  const [isDragOver2, setIsDragOver2] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef2 = useRef<HTMLInputElement>(null);
   const [content, setContent] = useState("");
   const [notification, setNotification] = useState("");
   const navigate = useNavigate();
@@ -23,6 +25,7 @@ function CreateCommunityPage() {
   const [matureContent, setMatureContent] = useState(false);
   const [visibility, setVisibility] = useState<Visibility>("public");
   const [iconContent, setIconContent] = useState("");
+  const [bannerContent, setBannerContent] = useState("");
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -34,6 +37,7 @@ function CreateCommunityPage() {
         mature: matureContent,
         visibility,
         icon: iconContent,
+        banner: bannerContent,
       },
       { onSuccess: () => navigate({ to: `/c/${title}` }) },
     );
@@ -50,6 +54,21 @@ function CreateCommunityPage() {
     console.log(reader);
     reader.onloadend = () => {
       setIconContent(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function handleImageUpload2(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      alert("File size exceeds 2MB. Please upload a smaller file.");
+      return;
+    }
+    const reader = new FileReader();
+    console.log(reader);
+    reader.onloadend = () => {
+      setBannerContent(reader.result as string);
     };
     reader.readAsDataURL(file);
   }
@@ -81,8 +100,16 @@ function CreateCommunityPage() {
           />
         </div>
         {iconContent !== "" ? (
-          <div className="my-5">
-            <img src={iconContent} />
+          <div className="my-5 relative">
+            <FaTrashCan
+              size={20}
+              className="text-red-400 absolute top-2 right-2 bg-zinc-700 p-[4px] rounded z-10 cursor-pointer"
+              onClick={() => setIconContent("")}
+            />
+            <img
+              src={iconContent}
+              className="rounded-full w-[100px] h-[100px]"
+            />
           </div>
         ) : (
           <div
@@ -99,7 +126,7 @@ function CreateCommunityPage() {
               e.preventDefault();
               setIsDragOver(false);
             }}
-            className={`my-5 border border-dashed w-full h-[150px] rounded-xl ${
+            className={`my-5 border border-dashed w-full h-[125px] rounded-xl ${
               isDragOver ? "bg-[#242424]" : ""
             }`}
           >
@@ -111,7 +138,7 @@ function CreateCommunityPage() {
               onChange={handleImageUpload}
             />
             <div className="relative w-full h-full">
-              <div className="text-center pt-[60px]">
+              <div className="text-center pt-[50px]">
                 Drag and drop or upload community icon
               </div>
               <input
@@ -119,6 +146,54 @@ function CreateCommunityPage() {
                 className="absolute top-0 left-0 w-full h-full py-2 opacity-0 cursor-pointer appearance-none file:hidden"
                 accept="image/png, image/jpeg, image/heic, image/webp"
                 onChange={handleImageUpload}
+              />
+            </div>
+          </div>
+        )}
+        {bannerContent !== "" ? (
+          <div className="my-5 relative">
+            <FaTrashCan
+              size={20}
+              className="text-red-400 absolute top-2 right-2 bg-zinc-700 p-[4px] rounded z-10 cursor-pointer"
+              onClick={() => setBannerContent("")}
+            />
+            <img src={bannerContent} className="" />
+          </div>
+        ) : (
+          <div
+            onDragEnter={(e) => {
+              e.preventDefault();
+              setIsDragOver2(true);
+            }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setIsDragOver2(true);
+            }}
+            onDragLeave={() => setIsDragOver2(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setIsDragOver2(false);
+            }}
+            className={`mb-5 border border-dashed w-full h-[125px] rounded-xl ${
+              isDragOver2 ? "bg-[#242424]" : ""
+            }`}
+          >
+            <input
+              ref={fileInputRef2}
+              type="file"
+              className="hidden"
+              accept="image/png, image/jpeg, image/heic, image/webp"
+              onChange={handleImageUpload2}
+            />
+            <div className="relative w-full h-full">
+              <div className="text-center pt-[50px]">
+                Drag and drop or upload community banner
+              </div>
+              <input
+                type="file"
+                className="absolute top-0 left-0 w-full h-full py-2 opacity-0 cursor-pointer appearance-none file:hidden"
+                accept="image/png, image/jpeg, image/heic, image/webp"
+                onChange={handleImageUpload2}
               />
             </div>
           </div>
