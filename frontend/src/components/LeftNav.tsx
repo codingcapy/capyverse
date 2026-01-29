@@ -24,7 +24,7 @@ export function LeftNav() {
   return (
     <div>
       {showLeftNav && (
-        <div className="fixed top-0 left-0 min-h-screen bg-[#222222] border-r border-[#808080] pt-[75px] z-70 p-10 text-sm">
+        <div className="fixed top-0 left-0 h-screen bg-[#222222] border-r border-[#808080] pt-[75px] z-70 p-10 text-sm overflow-y-auto custom-scrollbar">
           <div className="border-b border-[#808080] pb-3">
             <Link
               to="/"
