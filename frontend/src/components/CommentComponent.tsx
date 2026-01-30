@@ -9,7 +9,7 @@ import {
   useDeleteCommentMutation,
   useUpdateCommentMutation,
 } from "../lib/api/comments";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { CommentNode } from "../routes/posts/$postId";
 import { FaEllipsis } from "react-icons/fa6";
 import { CommentMenu } from "./CommentMenu";
@@ -77,19 +77,34 @@ export function CommentComponent(props: { comment: CommentNode; post: Post }) {
 
   return (
     <div key={props.comment.commentId} className={`relative my-3 flex w-full`}>
-      <img
-        src={
-          !commenterLoading || !commenterError
-            ? commenter
-              ? commenter.profilePic
-                ? commenter.profilePic
-                : defaultProfile
-              : defaultProfile
-            : defaultProfile
-        }
-        alt=""
-        className="absolute top-0 left-0 w-8 h-8 rounded-full"
-      />
+      {!commenterLoading || !commenterError ? (
+        commenter ? (
+          <Link
+            to="/u/$username"
+            params={{
+              username: commenter.username.toString(),
+            }}
+          >
+            <img
+              src={commenter.profilePic ? commenter.profilePic : defaultProfile}
+              alt=""
+              className="absolute top-0 left-0 w-8 h-8 rounded-full"
+            />
+          </Link>
+        ) : (
+          <img
+            src={defaultProfile}
+            alt=""
+            className="absolute top-0 left-0 w-8 h-8 rounded-full"
+          />
+        )
+      ) : (
+        <img
+          src={defaultProfile}
+          alt=""
+          className="absolute top-0 left-0 w-8 h-8 rounded-full"
+        />
+      )}
       <div className="ml-4 pl-5 border-l border-[#555555] w-full">
         <div className="flex text-[#bdbdbd] text-sm">
           {commenterLoading ? (
@@ -97,7 +112,15 @@ export function CommentComponent(props: { comment: CommentNode; post: Post }) {
           ) : commenterError ? (
             <div>Unknown author</div>
           ) : commenter ? (
-            <div className="font-bold">{commenter.username}</div>
+            <Link
+              to="/u/$username"
+              params={{
+                username: commenter.username.toString(),
+              }}
+              className="font-bold hover:text-cyan-500 transition-all ease-in-out duration-300"
+            >
+              {commenter.username}
+            </Link>
           ) : (
             <div>Unknown author</div>
           )}
