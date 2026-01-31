@@ -172,21 +172,21 @@ function CommunityPage() {
                       <img
                         src={community.icon ? community.icon : defaultProfile}
                         alt=""
-                        className="rounded-full w-[100px] h-[100px] object-cover object-center"
+                        className="relative rounded-full w-[100px] h-[100px] object-cover object-center"
                       />
                     )
                   ) : (
                     <img
                       src={community.icon ? community.icon : defaultProfile}
                       alt=""
-                      className="rounded-full w-[100px] h-[100px] object-cover object-center"
+                      className="relative rounded-full w-[100px] h-[100px] object-cover object-center"
                     />
                   )
                 ) : (
                   <img
                     src={community.icon ? community.icon : defaultProfile}
                     alt=""
-                    className="rounded-full w-[100px] h-[100px] object-cover object-center"
+                    className="relative rounded-full w-[100px] h-[100px] object-cover object-center"
                   />
                 )}
               </div>
