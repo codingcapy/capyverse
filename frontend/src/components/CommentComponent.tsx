@@ -88,7 +88,7 @@ export function CommentComponent(props: { comment: CommentNode; post: Post }) {
             <img
               src={commenter.profilePic ? commenter.profilePic : defaultProfile}
               alt=""
-              className="absolute top-0 left-0 w-8 h-8 rounded-full"
+              className="absolute top-0 left-0 w-8 h-8 rounded-full object-cover object-center "
             />
           </Link>
         ) : (

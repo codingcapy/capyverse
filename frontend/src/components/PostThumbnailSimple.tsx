@@ -52,7 +52,7 @@ export function PostThumbnailSimple(props: { post: Post }) {
               <img
                 src={community.icon ? community.icon : defaultProfile}
                 alt=""
-                className="w-6 h-6 rounded-full"
+                className="w-6 h-6 rounded-full object-cover object-center"
               />
             </Link>
             <Link
@@ -83,7 +83,7 @@ export function PostThumbnailSimple(props: { post: Post }) {
               <img
                 src={poster.profilePic ? poster.profilePic : defaultProfile}
                 alt=""
-                className="w-6 h-6 rounded-full"
+                className="w-6 h-6 rounded-full object-cover object-center"
               />
             </Link>
             <Link
@@ -121,7 +121,7 @@ export function PostThumbnailSimple(props: { post: Post }) {
             <img
               src={poster.profilePic ? poster.profilePic : defaultProfile}
               alt=""
-              className="w-6 h-6 rounded-full"
+              className="w-6 h-6 rounded-full object-cover object-center"
             />
           </Link>
           <Link

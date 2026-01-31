@@ -47,7 +47,7 @@ function UserProfilePage() {
                 profileUser.profilePic ? profileUser.profilePic : defaultProfile
               }
               alt=""
-              className="w-[65px] h-[65px] rounded-full cursor-pointer"
+              className="w-[65px] h-[65px] rounded-full cursor-pointer object-cover object-center"
             />
           </div>
           <div className="ml-5">{profileUser.username}</div>

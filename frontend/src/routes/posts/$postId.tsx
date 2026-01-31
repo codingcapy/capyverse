@@ -187,7 +187,7 @@ function PostComponent() {
                 <img
                   src={community.icon ? community.icon : defaultProfile}
                   alt=""
-                  className="w-8 h-8 rounded-full"
+                  className="w-8 h-8 rounded-full object-cover object-center"
                 />
               </Link>
               <div>
@@ -241,7 +241,7 @@ function PostComponent() {
               <img
                 src={author.profilePic ? author.profilePic : defaultProfile}
                 alt=""
-                className="w-8 h-8 rounded-full"
+                className="w-8 h-8 rounded-full object-cover object-center"
               />
             </Link>
             <Link
@@ -259,7 +259,11 @@ function PostComponent() {
           </div>
         ) : (
           <div className="flex text-[#bdbdbd] text-sm">
-            <img src={defaultProfile} alt="" className="w-8 h-8 rounded-full" />
+            <img
+              src={defaultProfile}
+              alt=""
+              className="w-8 h-8 rounded-full object-cover object-center"
+            />
             <div className="font-bold ml-2 hover:text-cyan-500 transition-all ease-in-out duration-300">
               unknown author
             </div>

@@ -114,7 +114,16 @@ function CommunityPage() {
       ) : community ? (
         <div className="flex flex-col">
           <div className="mx-auto w-full md:w-[50%] pt-[70px] pb-2">
-            <div className="flex pt-10">
+            <div className="flex pt-10 relative">
+              {community.banner ? (
+                <img
+                  src={community.banner}
+                  alt=""
+                  className="absolute top-0 left-0 h-[100px] w-full object-cover object-center rounded"
+                />
+              ) : (
+                ""
+              )}
               <div className="pt-5">
                 {user ? (
                   moderatorsLoading ? (
@@ -163,21 +172,21 @@ function CommunityPage() {
                       <img
                         src={community.icon ? community.icon : defaultProfile}
                         alt=""
-                        className="rounded-full w-[100px] h-[100px]"
+                        className="rounded-full w-[100px] h-[100px] object-cover object-center"
                       />
                     )
                   ) : (
                     <img
                       src={community.icon ? community.icon : defaultProfile}
                       alt=""
-                      className="rounded-full w-[100px] h-[100px]"
+                      className="rounded-full w-[100px] h-[100px] object-cover object-center"
                     />
                   )
                 ) : (
                   <img
                     src={community.icon ? community.icon : defaultProfile}
                     alt=""
-                    className="rounded-full w-[100px] h-[100px]"
+                    className="rounded-full w-[100px] h-[100px] object-cover object-center"
                   />
                 )}
               </div>

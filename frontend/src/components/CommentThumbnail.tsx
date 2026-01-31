@@ -47,7 +47,7 @@ export function CommentThumbnail(props: { comment: Comment }) {
                 <img
                   src={poster.profilePic ? poster.profilePic : defaultProfile}
                   alt=""
-                  className="w-6 h-6 rounded-full"
+                  className="w-6 h-6 rounded-full object-cover object-center "
                 />
                 <div className="font-bold ml-2">{poster.username}</div>
                 <div className="px-1">•</div>

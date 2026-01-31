@@ -76,7 +76,7 @@ export function PostThumbnail(props: { post: Post }) {
                         : defaultProfile
                     }
                     alt=""
-                    className="w-6 h-6 rounded-full"
+                    className="w-6 h-6 rounded-full object-cover object-center"
                   />
                   <div className="font-bold ml-2">
                     c/{community.communityId}
@@ -95,7 +95,7 @@ export function PostThumbnail(props: { post: Post }) {
                         : defaultProfile
                     }
                     alt=""
-                    className="w-6 h-6 rounded-full"
+                    className="w-6 h-6 rounded-full object-cover object-center"
                   />
                   {posterLoading ? (
                     <div>Loading...</div>
@@ -123,7 +123,7 @@ export function PostThumbnail(props: { post: Post }) {
                       : defaultProfile
                   }
                   alt=""
-                  className="w-6 h-6 rounded-full"
+                  className="w-6 h-6 rounded-full object-cover object-center"
                 />
                 {posterLoading ? (
                   <div>Loading...</div>

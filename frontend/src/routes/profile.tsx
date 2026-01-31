@@ -84,7 +84,7 @@ function ProfilePage() {
           <img
             src={user && user.profilePic ? user.profilePic : defaultProfile}
             alt=""
-            className="w-[65px] h-[65px] rounded-full cursor-pointer"
+            className="w-[65px] h-[65px] rounded-full cursor-pointer object-cover object-center"
           />
           {logoHovered && (
             <svg

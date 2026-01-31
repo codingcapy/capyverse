@@ -55,7 +55,7 @@ function RouteComponent() {
                   <img
                     src={community.icon ? community.icon : defaultProfile}
                     alt=""
-                    className="rounded-full w-[30px] h-[30px]"
+                    className="rounded-full w-[30px] h-[30px] object-cover object-center"
                   />
                   <div className="ml-1 pt-1">c/{community.communityId}</div>
                 </div>

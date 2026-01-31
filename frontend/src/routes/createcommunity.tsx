@@ -108,7 +108,7 @@ function CreateCommunityPage() {
             />
             <img
               src={iconContent}
-              className="rounded-full w-[100px] h-[100px]"
+              className="rounded-full w-[100px] h-[100px] object-cover object-center"
             />
           </div>
         ) : (
@@ -157,7 +157,7 @@ function CreateCommunityPage() {
               className="text-red-400 absolute top-2 right-2 bg-zinc-700 p-[4px] rounded z-10 cursor-pointer"
               onClick={() => setBannerContent("")}
             />
-            <img src={bannerContent} className="" />
+            <img src={bannerContent} className="object-cover object-center" />
           </div>
         ) : (
           <div

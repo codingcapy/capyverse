@@ -111,7 +111,7 @@ export function Header() {
                 src={user.profilePic ? user.profilePic : defaultProfile}
                 alt="User Profile"
                 onClick={() => setShowMenu(!showMenu)}
-                className="w-8 h-8 rounded-full cursor-pointer"
+                className="w-8 h-8 rounded-full cursor-pointer object-cover object-center"
               />
             </div>
           )}
