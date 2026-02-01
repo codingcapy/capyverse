@@ -133,7 +133,7 @@ export function CommunitySidebar(props: { community: Community }) {
           </div>
         </form>
       ) : (
-        <div className="px-5 line-clamp-4">{props.community.description}</div>
+        <div className="px-5">{props.community.description}</div>
       )}
     </aside>
   );

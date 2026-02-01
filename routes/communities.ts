@@ -6,7 +6,7 @@ import { mightFail } from "might-fail";
 import { db } from "../db";
 import { HTTPException } from "hono/http-exception";
 import { assertIsParsableInt, requireUser } from "./posts";
-import { and, asc, desc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, ne, sql } from "drizzle-orm";
 import { communityUsers as communityUsersTable } from "../schemas/communityusers";
 import z from "zod";
 
@@ -117,6 +117,7 @@ export const communitiesRouter = new Hono()
       db
         .select()
         .from(communitiesTable)
+        .where(ne(communitiesTable.visibility, "private"))
         .orderBy(asc(communitiesTable.communityId))
         .limit(PAGE_SIZE)
         .offset(offset),
