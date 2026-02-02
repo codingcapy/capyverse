@@ -5,7 +5,7 @@ import { communities as communitiesTable } from "../schemas/communities";
 import { mightFail } from "might-fail";
 import { db } from "../db";
 import { HTTPException } from "hono/http-exception";
-import { assertIsParsableInt, requireUser } from "./posts";
+import { assertIsParsableInt, optionalUser, requireUser } from "./posts";
 import { and, asc, desc, eq, ne, sql } from "drizzle-orm";
 import { communityUsers as communityUsersTable } from "../schemas/communityusers";
 import z from "zod";
@@ -213,6 +213,7 @@ export const communitiesRouter = new Hono()
   })
   .get("/:communityId", async (c) => {
     const { communityId } = c.req.param();
+    const user = optionalUser(c);
     const { result: communitiesQueryResult, error: communitiesQueryError } =
       await mightFail(
         db
@@ -225,6 +226,40 @@ export const communitiesRouter = new Hono()
         message: "Error occurred when fetching community",
         cause: communitiesQueryError,
       });
+    }
+    if (communitiesQueryResult.length === 0) {
+      throw new HTTPException(404, {
+        message: "Community not found",
+      });
+    }
+    if (communitiesQueryResult[0]?.visibility === "private") {
+      if (!user) {
+        throw new HTTPException(403, {
+          message: "This community is private",
+        });
+      }
+      const { result: membershipQueryResult, error: membershipQueryError } =
+        await mightFail(
+          db
+            .select()
+            .from(communityUsersTable)
+            .where(
+              and(
+                eq(communityUsersTable.communityId, communityId),
+                eq(communityUsersTable.userId, user.id),
+                eq(communityUsersTable.status, "active"),
+              ),
+            ),
+        );
+      if (membershipQueryError)
+        throw new HTTPException(500, {
+          message: "Error occurred when fetching community",
+          cause: membershipQueryError,
+        });
+      if (membershipQueryResult.length === 0)
+        throw new HTTPException(403, {
+          message: "This community is private",
+        });
     }
     return c.json({
       community: communitiesQueryResult[0],

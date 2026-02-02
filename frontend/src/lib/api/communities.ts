@@ -119,9 +119,19 @@ export const getCommunitiesQueryOptions = (page: number) =>
   });
 
 async function getCommunityById(communityId: string) {
-  const res = await client.api.v0.communities[":communityId"].$get({
-    param: { communityId: communityId.toString() },
-  });
+  const token = getSession();
+  const res = await client.api.v0.communities[":communityId"].$get(
+    {
+      param: { communityId },
+    },
+    token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined,
+  );
   if (!res.ok) {
     throw new Error("Error getting community by id");
   }

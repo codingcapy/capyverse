@@ -54,6 +54,20 @@ export function requireUser(c: Context) {
   }
 }
 
+export function optionalUser(c: Context) {
+  const authHeader = c.req.header("authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return null;
+  }
+  try {
+    return jwt.verify(authHeader.split(" ")[1]!, process.env.JWT_SECRET!) as {
+      id: string;
+    };
+  } catch {
+    return null;
+  }
+}
+
 export const postsRouter = new Hono()
   .post(
     "/",
