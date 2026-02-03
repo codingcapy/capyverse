@@ -98,7 +98,16 @@ export const useCreatePostMutation = (onError?: (message: string) => void) => {
 };
 
 async function getPosts() {
-  const res = await client.api.v0.posts.$get();
+  const token = getSession();
+  const res = await client.api.v0.posts.$get(
+    token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined,
+  );
   if (!res.ok) {
     throw new Error("Error getting posts");
   }
@@ -121,9 +130,19 @@ export async function getNewPostsPage({
 }: {
   pageParam: NewPostsCursor;
 }) {
-  const res = await client.api.v0.posts.$get({
-    query: pageParam ? { cursorPostId: String(pageParam.postId) } : {},
-  });
+  const token = getSession();
+  const res = await client.api.v0.posts.$get(
+    {
+      query: pageParam ? { cursorPostId: String(pageParam.postId) } : {},
+    },
+    token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined,
+  );
   if (!res.ok) {
     throw new Error("Error getting posts");
   }
@@ -165,14 +184,24 @@ export async function getPopularPostsPage({
 }: {
   pageParam: PopularPostsCursor;
 }) {
-  const res = await client.api.v0.posts.popular.$get({
-    query: pageParam
+  const token = getSession();
+  const res = await client.api.v0.posts.popular.$get(
+    {
+      query: pageParam
+        ? {
+            cursorScore: String(pageParam.score),
+            cursorPostId: String(pageParam.postId),
+          }
+        : {},
+    },
+    token
       ? {
-          cursorScore: String(pageParam.score),
-          cursorPostId: String(pageParam.postId),
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      : {},
-  });
+      : undefined,
+  );
 
   if (!res.ok) {
     throw new Error("Error getting popular posts");
@@ -211,9 +240,19 @@ export async function getPopularCommunityPostsPage(ctx: QueryFunctionContext) {
 }
 
 async function getPostById(postId: number) {
-  const res = await client.api.v0.posts[":postId"].$get({
-    param: { postId: postId.toString() },
-  });
+  const token = getSession();
+  const res = await client.api.v0.posts[":postId"].$get(
+    {
+      param: { postId: postId.toString() },
+    },
+    token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined,
+  );
   if (!res.ok) {
     throw new Error("Error getting post by id");
   }
@@ -319,9 +358,19 @@ export const useUpdatePostMutation = (onError?: (message: string) => void) => {
 };
 
 async function getPostsByUserId(userId: string) {
-  const res = await client.api.v0.posts.user[":userId"].$get({
-    param: { userId: userId.toString() },
-  });
+  const token = getSession();
+  const res = await client.api.v0.posts.user[":userId"].$get(
+    {
+      param: { userId: userId.toString() },
+    },
+    token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined,
+  );
 
   if (!res.ok) {
     throw new Error("Error getting posts by user id");

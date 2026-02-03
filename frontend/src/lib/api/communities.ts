@@ -146,9 +146,19 @@ export const getCommunityByIdQueryOptions = (communityId: string) =>
   });
 
 async function getCommunitiesByUserId(userId: string) {
-  const res = await client.api.v0.communities.user[":userId"].$get({
-    param: { userId: userId.toString() },
-  });
+  const token = getSession();
+  const res = await client.api.v0.communities.user[":userId"].$get(
+    {
+      param: { userId: userId.toString() },
+    },
+    token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined,
+  );
 
   if (!res.ok) {
     throw new Error("Error getting saved posts by user id");
@@ -157,10 +167,11 @@ async function getCommunitiesByUserId(userId: string) {
   return communities;
 }
 
-export const getCommunitiesByUserIdQueryOptions = (userId: string) =>
+export const getCommunitiesByUserIdQueryOptions = (userId: string | null) =>
   queryOptions({
     queryKey: ["user-communities", userId],
-    queryFn: () => getCommunitiesByUserId(userId),
+    queryFn: () => getCommunitiesByUserId(userId!),
+    enabled: !!userId,
   });
 
 async function joinCommunity(args: JoinCommunityArgs) {
