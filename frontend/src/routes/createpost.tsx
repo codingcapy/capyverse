@@ -62,7 +62,7 @@ function CreatePostPage() {
       {
         title: titleInput,
         content,
-        communityId: community === "Select a community" ? "" : community,
+        communityId: community === "Select a community" ? null : community,
       },
       {
         onSuccess: () => navigate({ to: "/" }),

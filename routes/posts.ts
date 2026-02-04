@@ -137,6 +137,7 @@ export const postsRouter = new Hono()
     },
   )
   .get("/", async (c) => {
+    const user = optionalUser(c);
     const limit = Number(c.req.query("limit") ?? 10);
     const cursorPostId = c.req.query("cursorPostId");
     const cursorWhere = cursorPostId
@@ -144,10 +145,32 @@ export const postsRouter = new Hono()
       : undefined;
     const { result, error } = await mightFail(
       db
-        .select()
+        .select({
+          post: postsTable,
+        })
         .from(postsTable)
-        .where(cursorWhere)
-        .orderBy(desc(postsTable.postId)) // newest first
+        .leftJoin(
+          communitiesTable,
+          eq(postsTable.communityId, communitiesTable.communityId),
+        )
+        .leftJoin(
+          communityUsersTable,
+          and(
+            eq(communityUsersTable.communityId, postsTable.communityId),
+            user ? eq(communityUsersTable.userId, user.id) : sql`false`,
+          ),
+        )
+        .where(
+          and(
+            cursorWhere,
+            or(
+              isNull(postsTable.communityId), // Post not in a community
+              ne(communitiesTable.visibility, "private"), // Community is not private
+              isNotNull(communityUsersTable.userId), // User is a member
+            ),
+          ),
+        )
+        .orderBy(desc(postsTable.postId))
         .limit(limit + 1),
     );
     if (error) {
@@ -160,8 +183,8 @@ export const postsRouter = new Hono()
     const pageItems = hasNextPage ? result.slice(0, limit) : result;
     const last = pageItems.at(-1);
     return c.json({
-      posts: pageItems,
-      nextCursor: hasNextPage ? { postId: last!.postId } : null,
+      posts: pageItems.map((row) => row.post),
+      nextCursor: hasNextPage ? { postId: last!.post.postId } : null,
     });
   })
   .get("/popular", async (c) => {
