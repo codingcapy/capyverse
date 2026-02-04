@@ -188,6 +188,7 @@ export const postsRouter = new Hono()
     });
   })
   .get("/popular", async (c) => {
+    const user = optionalUser(c);
     const limit = Number(c.req.query("limit") ?? 10);
     const cursorScore = c.req.query("cursorScore");
     const cursorPostId = c.req.query("cursorPostId");
@@ -225,12 +226,32 @@ export const postsRouter = new Hono()
         })
         .from(postsTable)
         .leftJoin(scoreSubquery, eq(scoreSubquery.postId, postsTable.postId))
-        .where(cursorWhere)
+        .leftJoin(
+          communitiesTable,
+          eq(postsTable.communityId, communitiesTable.communityId),
+        )
+        .leftJoin(
+          communityUsersTable,
+          and(
+            eq(communityUsersTable.communityId, postsTable.communityId),
+            user ? eq(communityUsersTable.userId, user.id) : sql`false`,
+          ),
+        )
+        .where(
+          and(
+            cursorWhere,
+            or(
+              isNull(postsTable.communityId), // Post not in a community
+              ne(communitiesTable.visibility, "private"), // Community is not private
+              isNotNull(communityUsersTable.userId), // User is a member
+            ),
+          ),
+        )
         .orderBy(
           desc(sql`coalesce(${scoreSubquery.score}, 0)`),
           desc(postsTable.postId),
         )
-        .limit(limit + 1), // fetch one extra to detect next page
+        .limit(limit + 1),
     );
     if (error) {
       throw new HTTPException(500, {
