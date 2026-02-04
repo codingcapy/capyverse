@@ -498,7 +498,16 @@ export const useUnsavePostMutation = (onError?: (message: string) => void) => {
 };
 
 async function getRecentPosts() {
-  const res = await client.api.v0.posts.recent.$get();
+  const token = getSession();
+  const res = await client.api.v0.posts.recent.$get(
+    token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined,
+  );
   if (!res.ok) {
     throw new Error("Error getting posts");
   }

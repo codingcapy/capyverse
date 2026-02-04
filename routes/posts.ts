@@ -7,12 +7,14 @@ import { images as imagesTable } from "../schemas/images";
 import { votes as votesTable } from "../schemas/votes";
 import { mightFail, mightFailSync } from "might-fail";
 import { db } from "../db";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, isNotNull, isNull, ne, sql, or } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import { deleteImageFromS3 } from "./images";
 import { savedPosts as savedPostsTable } from "../schemas/savedPosts";
 import jwt from "jsonwebtoken";
+import { communities as communitiesTable } from "../schemas/communities";
+import { communityUsers as communityUsersTable } from "../schemas/communityusers";
 
 const deletePostSchema = z.object({
   postId: z.number(),
@@ -233,6 +235,7 @@ export const postsRouter = new Hono()
   })
   .get("/user/:userId", async (c) => {
     const userId = c.req.param("userId");
+    const user = optionalUser(c);
     const { result: postsQueryResult, error: postsQueryError } =
       await mightFail(
         db.select().from(postsTable).where(eq(postsTable.userId, userId)),
@@ -285,36 +288,95 @@ export const postsRouter = new Hono()
     });
   })
   .get("/recent", async (c) => {
-    const { result: postsQueryResult, error: postsQueryError } =
-      await mightFail(
-        db.select().from(postsTable).orderBy(desc(postsTable.postId)).limit(10),
-      );
-    if (postsQueryError) {
+    const user = optionalUser(c);
+    const { result, error } = await mightFail(
+      db
+        .select({
+          post: postsTable,
+          communityId: postsTable.communityId,
+          visibility: communitiesTable.visibility,
+          memberUserId: communityUsersTable.userId,
+        })
+        .from(postsTable)
+        .leftJoin(
+          communitiesTable,
+          eq(postsTable.communityId, communitiesTable.communityId),
+        )
+        .leftJoin(
+          communityUsersTable,
+          and(
+            eq(communityUsersTable.communityId, postsTable.communityId),
+            user ? eq(communityUsersTable.userId, user.id) : sql`false`,
+          ),
+        )
+        .where(
+          or(
+            isNull(postsTable.communityId),
+            isNull(communitiesTable.visibility),
+            ne(communitiesTable.visibility, "private"),
+            isNotNull(communityUsersTable.userId),
+          ),
+        )
+        .orderBy(desc(postsTable.postId))
+        .limit(10),
+    );
+    if (error) {
       throw new HTTPException(500, {
         message: "Error occurred when fetching recent posts",
-        cause: postsQueryError,
+        cause: error,
       });
     }
     return c.json({
-      posts: postsQueryResult,
+      posts: result.map((row) => row.post),
     });
   })
   .get("/:postId", async (c) => {
     const { postId: postIdString } = c.req.param();
+    const user = optionalUser(c);
     const postId = assertIsParsableInt(postIdString);
-    const { result: postsQueryResult, error: postsQueryError } =
-      await mightFail(
-        db.select().from(postsTable).where(eq(postsTable.postId, postId)),
-      );
-    if (postsQueryError) {
+    const { result, error } = await mightFail(
+      db
+        .select({
+          post: postsTable,
+          visibility: communitiesTable.visibility,
+          memberUserId: communityUsersTable.userId,
+          communityId: postsTable.communityId,
+        })
+        .from(postsTable)
+        .leftJoin(
+          communitiesTable,
+          eq(postsTable.communityId, communitiesTable.communityId),
+        )
+        .leftJoin(
+          communityUsersTable,
+          and(
+            eq(communityUsersTable.communityId, postsTable.communityId),
+            user ? eq(communityUsersTable.userId, user.id) : sql`false`,
+          ),
+        )
+        .where(eq(postsTable.postId, postId))
+        .limit(1),
+    );
+    if (error) {
       throw new HTTPException(500, {
         message: "Error occurred when fetching post",
-        cause: postsQueryError,
+        cause: error,
       });
     }
-    return c.json({
-      post: postsQueryResult[0],
-    });
+    const row = result?.[0];
+    if (!row) {
+      throw new HTTPException(404, { message: "Post not found" });
+    }
+    if (row.communityId === null) {
+      return c.json({ post: row.post });
+    }
+    if (row.visibility !== "private") {
+      return c.json({ post: row.post });
+    }
+    if (row.memberUserId) {
+      return c.json({ post: row.post });
+    }
+    throw new HTTPException(404, { message: "Post not found" });
   })
   .get(
     "/community/:communityId",

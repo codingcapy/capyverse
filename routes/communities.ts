@@ -159,7 +159,7 @@ export const communitiesRouter = new Hono()
   })
   .get("/user/:userId", async (c) => {
     const userId = c.req.param("userId");
-    const { result: userCommunitiesResult, error: suserCommunitiesError } =
+    const { result: userCommunitiesResult, error: userCommunitiesError } =
       await mightFail(
         db
           .select({
@@ -177,10 +177,10 @@ export const communitiesRouter = new Hono()
           .where(eq(communityUsersTable.userId, userId))
           .orderBy(desc(communityUsersTable.createdAt)),
       );
-    if (suserCommunitiesError) {
+    if (userCommunitiesError) {
       throw new HTTPException(500, {
         message: "Error occurred when fetching saved posts",
-        cause: suserCommunitiesError,
+        cause: userCommunitiesError,
       });
     }
     return c.json({
