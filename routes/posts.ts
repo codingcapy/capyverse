@@ -143,6 +143,11 @@ export const postsRouter = new Hono()
     const cursorWhere = cursorPostId
       ? sql`${postsTable.postId} < ${Number(cursorPostId)}`
       : undefined;
+    const visibilityFilter = or(
+      isNull(postsTable.communityId),
+      ne(communitiesTable.visibility, "private"),
+      isNotNull(communityUsersTable.userId),
+    );
     const { result, error } = await mightFail(
       db
         .select({
@@ -161,14 +166,7 @@ export const postsRouter = new Hono()
           ),
         )
         .where(
-          and(
-            cursorWhere,
-            or(
-              isNull(postsTable.communityId), // Post not in a community
-              ne(communitiesTable.visibility, "private"), // Community is not private
-              isNotNull(communityUsersTable.userId), // User is a member
-            ),
-          ),
+          cursorWhere ? and(cursorWhere, visibilityFilter) : visibilityFilter,
         )
         .orderBy(desc(postsTable.postId))
         .limit(limit + 1),
@@ -208,16 +206,19 @@ export const postsRouter = new Hono()
       .as("scores");
     const cursorWhere =
       cursorScore && cursorPostId
-        ? sql`
-        (
-          coalesce(${scoreSubquery.score}, 0) < ${Number(cursorScore)}
-        )
-        OR (
-          coalesce(${scoreSubquery.score}, 0) = ${Number(cursorScore)}
-          AND ${postsTable.postId} < ${Number(cursorPostId)}
-        )
-      `
+        ? or(
+            sql`coalesce(${scoreSubquery.score}, 0) < ${Number(cursorScore)}`,
+            and(
+              sql`coalesce(${scoreSubquery.score}, 0) = ${Number(cursorScore)}`,
+              sql`${postsTable.postId} < ${Number(cursorPostId)}`,
+            ),
+          )
         : undefined;
+    const visibilityFilter = or(
+      isNull(postsTable.communityId),
+      ne(communitiesTable.visibility, "private"),
+      isNotNull(communityUsersTable.userId),
+    );
     const { result, error } = await mightFail(
       db
         .select({
@@ -238,14 +239,7 @@ export const postsRouter = new Hono()
           ),
         )
         .where(
-          and(
-            cursorWhere,
-            or(
-              isNull(postsTable.communityId), // Post not in a community
-              ne(communitiesTable.visibility, "private"), // Community is not private
-              isNotNull(communityUsersTable.userId), // User is a member
-            ),
-          ),
+          cursorWhere ? and(cursorWhere, visibilityFilter) : visibilityFilter,
         )
         .orderBy(
           desc(sql`coalesce(${scoreSubquery.score}, 0)`),
