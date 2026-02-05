@@ -32,7 +32,7 @@ export function CommunityPostsByNew(props: { community: Community }) {
           fetchNextPage();
         }
       },
-      { rootMargin: "200px" }
+      { rootMargin: "200px" },
     );
     observer.observe(loadMoreRef.current);
     return () => observer.disconnect();
@@ -56,7 +56,7 @@ export function CommunityPostsByNew(props: { community: Community }) {
             (post) =>
               searchContent === "" ||
               post.title.toLowerCase().includes(searchContent.toLowerCase()) ||
-              post.content.toLowerCase().includes(searchContent.toLowerCase())
+              post.content.toLowerCase().includes(searchContent.toLowerCase()),
           )
           .map((post) => (
             <PostThumbnail key={post.postId} post={post} />

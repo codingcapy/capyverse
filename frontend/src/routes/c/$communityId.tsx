@@ -87,6 +87,11 @@ function CommunityPage() {
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    console.log(moderators);
+    console.log((user && user.userId) || "no user");
+  }, [moderators]);
+
   return (
     <div className="flex-1">
       {communityLoading ? (
@@ -243,16 +248,31 @@ function CommunityPage() {
                   communities.some(
                     (c) => c.communityId === community.communityId,
                   ) ? (
-                    <div
-                      onClick={() => {
-                        if (leaveCommunityPending) return;
-                        leaveCommunity({
-                          communityId,
-                        });
-                      }}
-                      className="px-5 py-3 rounded-full border cursor-pointer hover:bg-[#333333] transition-all ease-in-out duration-300"
-                    >
-                      {leaveCommunityPending ? "Leaving..." : "Joined"}
+                    <div className="flex">
+                      <div
+                        onClick={() => {
+                          if (leaveCommunityPending) return;
+                          leaveCommunity({
+                            communityId,
+                          });
+                        }}
+                        className="px-5 py-3 mr-1 rounded-full border cursor-pointer hover:bg-[#333333] transition-all ease-in-out duration-300"
+                      >
+                        {leaveCommunityPending ? "Leaving..." : "Joined"}
+                      </div>
+                      {moderatorsLoading ? (
+                        <div>Loading...</div>
+                      ) : moderatorsError ? (
+                        <div>Error loading moderators</div>
+                      ) : moderators ? (
+                        moderators.some((m) => m.userId === user.userId) && (
+                          <div className="px-5 py-3 bg-cyan-700 rounded-full ml-1 w-[115px] text-center cursor-pointer hover:bg-cyan-500 transition-all ease-in-out duration-300">
+                            Mod Tools
+                          </div>
+                        )
+                      ) : (
+                        <div></div>
+                      )}
                     </div>
                   ) : (
                     <div
