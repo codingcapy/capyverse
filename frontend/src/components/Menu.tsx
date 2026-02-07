@@ -26,10 +26,10 @@ export function Menu(props: {
   const { mutate: savePost, isPending: savePostPending } =
     useSavePostMutation();
   const { data: savedPosts } = useQuery(
-    getSavedPostsByUserIdQueryOptions((user && user.userId) || "")
+    getSavedPostsByUserIdQueryOptions((user && user.userId) || ""),
   );
   const isSaved = !!savedPosts?.some(
-    (savedPost) => savedPost.postId === props.post.postId
+    (savedPost) => savedPost.postId === props.post.postId,
   );
   const { mutate: unsavePost, isPending: unsavePostPending } =
     useUnsavePostMutation();
@@ -75,8 +75,8 @@ export function Menu(props: {
               if (!user) return navigate({ to: "/login" });
               if (unsavePostPending) return;
               unsavePost(
-                { userId: user.userId || "", postId: props.post.postId },
-                { onSuccess: () => props.setShowMenu(false) }
+                { postId: props.post.postId },
+                { onSuccess: () => props.setShowMenu(false) },
               );
             }}
             className="ml-2"
@@ -94,8 +94,8 @@ export function Menu(props: {
               if (!user) return navigate({ to: "/login" });
               if (savePostPending) return;
               savePost(
-                { userId: user.userId || "", postId: props.post.postId },
-                { onSuccess: () => props.setShowMenu(false) }
+                { postId: props.post.postId },
+                { onSuccess: () => props.setShowMenu(false) },
               );
             }}
             className="ml-2"
