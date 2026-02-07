@@ -266,9 +266,11 @@ function CommunityPage() {
                         <div>Error loading moderators</div>
                       ) : moderators ? (
                         moderators.some((m) => m.userId === user.userId) && (
-                          <div className="px-5 py-3 bg-cyan-700 rounded-full ml-1 w-[115px] text-center cursor-pointer hover:bg-cyan-500 transition-all ease-in-out duration-300">
-                            Mod Tools
-                          </div>
+                          <Link to="/mod/moderators">
+                            <div className="px-5 py-3 bg-cyan-700 rounded-full ml-1 w-[115px] text-center cursor-pointer hover:bg-cyan-500 transition-all ease-in-out duration-300">
+                              Mod Tools
+                            </div>
+                          </Link>
                         )
                       ) : (
                         <div></div>
