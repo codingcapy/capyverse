@@ -327,13 +327,15 @@ export const postsRouter = new Hono()
   })
   .get("/recent", async (c) => {
     const user = optionalUser(c);
+    const visibilityFilter = or(
+      isNull(postsTable.communityId),
+      ne(communitiesTable.visibility, "private"),
+      isNotNull(communityUsersTable.userId),
+    );
     const { result, error } = await mightFail(
       db
         .select({
           post: postsTable,
-          communityId: postsTable.communityId,
-          visibility: communitiesTable.visibility,
-          memberUserId: communityUsersTable.userId,
         })
         .from(postsTable)
         .leftJoin(
@@ -347,14 +349,7 @@ export const postsRouter = new Hono()
             user ? eq(communityUsersTable.userId, user.id) : sql`false`,
           ),
         )
-        .where(
-          or(
-            isNull(postsTable.communityId),
-            isNull(communitiesTable.visibility),
-            ne(communitiesTable.visibility, "private"),
-            isNotNull(communityUsersTable.userId),
-          ),
-        )
+        .where(visibilityFilter)
         .orderBy(desc(postsTable.postId))
         .limit(10),
     );

@@ -266,7 +266,12 @@ function CommunityPage() {
                         <div>Error loading moderators</div>
                       ) : moderators ? (
                         moderators.some((m) => m.userId === user.userId) && (
-                          <Link to="/mod/moderators">
+                          <Link
+                            to="/mod/$communityId"
+                            params={{
+                              communityId: community.communityId,
+                            }}
+                          >
                             <div className="px-5 py-3 bg-cyan-700 rounded-full ml-1 w-[115px] text-center cursor-pointer hover:bg-cyan-500 transition-all ease-in-out duration-300">
                               Mod Tools
                             </div>

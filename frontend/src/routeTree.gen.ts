@@ -22,7 +22,7 @@ import { Route as UUsernameRouteImport } from './routes/u/$username'
 import { Route as PostsPostIdRouteImport } from './routes/posts/$postId'
 import { Route as PoliciesUseragreementRouteImport } from './routes/policies/useragreement'
 import { Route as PoliciesPrivacypolicyRouteImport } from './routes/policies/privacypolicy'
-import { Route as ModModeratorsRouteImport } from './routes/mod/moderators'
+import { Route as ModCommunityIdRouteImport } from './routes/mod/$communityId'
 import { Route as CCommunityIdRouteImport } from './routes/c/$communityId'
 
 const SignupRoute = SignupRouteImport.update({
@@ -90,9 +90,9 @@ const PoliciesPrivacypolicyRoute = PoliciesPrivacypolicyRouteImport.update({
   path: '/policies/privacypolicy',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ModModeratorsRoute = ModModeratorsRouteImport.update({
-  id: '/mod/moderators',
-  path: '/mod/moderators',
+const ModCommunityIdRoute = ModCommunityIdRouteImport.update({
+  id: '/mod/$communityId',
+  path: '/mod/$communityId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CCommunityIdRoute = CCommunityIdRouteImport.update({
@@ -111,7 +111,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
   '/c/$communityId': typeof CCommunityIdRoute
-  '/mod/moderators': typeof ModModeratorsRoute
+  '/mod/$communityId': typeof ModCommunityIdRoute
   '/policies/privacypolicy': typeof PoliciesPrivacypolicyRoute
   '/policies/useragreement': typeof PoliciesUseragreementRoute
   '/posts/$postId': typeof PostsPostIdRoute
@@ -128,7 +128,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
   '/c/$communityId': typeof CCommunityIdRoute
-  '/mod/moderators': typeof ModModeratorsRoute
+  '/mod/$communityId': typeof ModCommunityIdRoute
   '/policies/privacypolicy': typeof PoliciesPrivacypolicyRoute
   '/policies/useragreement': typeof PoliciesUseragreementRoute
   '/posts/$postId': typeof PostsPostIdRoute
@@ -146,7 +146,7 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
   '/c/$communityId': typeof CCommunityIdRoute
-  '/mod/moderators': typeof ModModeratorsRoute
+  '/mod/$communityId': typeof ModCommunityIdRoute
   '/policies/privacypolicy': typeof PoliciesPrivacypolicyRoute
   '/policies/useragreement': typeof PoliciesUseragreementRoute
   '/posts/$postId': typeof PostsPostIdRoute
@@ -165,7 +165,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/signup'
     | '/c/$communityId'
-    | '/mod/moderators'
+    | '/mod/$communityId'
     | '/policies/privacypolicy'
     | '/policies/useragreement'
     | '/posts/$postId'
@@ -182,7 +182,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/signup'
     | '/c/$communityId'
-    | '/mod/moderators'
+    | '/mod/$communityId'
     | '/policies/privacypolicy'
     | '/policies/useragreement'
     | '/posts/$postId'
@@ -199,7 +199,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/signup'
     | '/c/$communityId'
-    | '/mod/moderators'
+    | '/mod/$communityId'
     | '/policies/privacypolicy'
     | '/policies/useragreement'
     | '/posts/$postId'
@@ -217,7 +217,7 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   SignupRoute: typeof SignupRoute
   CCommunityIdRoute: typeof CCommunityIdRoute
-  ModModeratorsRoute: typeof ModModeratorsRoute
+  ModCommunityIdRoute: typeof ModCommunityIdRoute
   PoliciesPrivacypolicyRoute: typeof PoliciesPrivacypolicyRoute
   PoliciesUseragreementRoute: typeof PoliciesUseragreementRoute
   PostsPostIdRoute: typeof PostsPostIdRoute
@@ -318,11 +318,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PoliciesPrivacypolicyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/mod/moderators': {
-      id: '/mod/moderators'
-      path: '/mod/moderators'
-      fullPath: '/mod/moderators'
-      preLoaderRoute: typeof ModModeratorsRouteImport
+    '/mod/$communityId': {
+      id: '/mod/$communityId'
+      path: '/mod/$communityId'
+      fullPath: '/mod/$communityId'
+      preLoaderRoute: typeof ModCommunityIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/c/$communityId': {
@@ -345,7 +345,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   SignupRoute: SignupRoute,
   CCommunityIdRoute: CCommunityIdRoute,
-  ModModeratorsRoute: ModModeratorsRoute,
+  ModCommunityIdRoute: ModCommunityIdRoute,
   PoliciesPrivacypolicyRoute: PoliciesPrivacypolicyRoute,
   PoliciesUseragreementRoute: PoliciesUseragreementRoute,
   PostsPostIdRoute: PostsPostIdRoute,
