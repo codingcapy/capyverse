@@ -2,7 +2,10 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import useAuthStore from "../../store/AuthStore";
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getModeratorsQueryOptions } from "../../lib/api/communities";
+import {
+  getCommunityByIdQueryOptions,
+  getModeratorsQueryOptions,
+} from "../../lib/api/communities";
 
 export const Route = createFileRoute("/mod/$communityId")({
   component: RouteComponent,
@@ -17,6 +20,11 @@ function RouteComponent() {
     isLoading: moderatorsLoading,
     error: moderatorsError,
   } = useQuery(getModeratorsQueryOptions(communityId));
+  const {
+    data: community,
+    isLoading: communityLoading,
+    error: communityError,
+  } = useQuery(getCommunityByIdQueryOptions(communityId));
 
   useEffect(() => {
     if (moderatorsLoading) return;
@@ -28,10 +36,43 @@ function RouteComponent() {
 
   return (
     <div className="pt-[70px] mx-auto">
-      <div className="md:flex pt-[5px] px-5 lg:px-0 lg:pl-[170px] max-w-[1300px]">
-        <div className="text-3xl font-bold">Settings</div>
-        <div className="w-[1300px]"></div>
-      </div>
+      {communityLoading ? (
+        <div className="p-5 lg:pl-[170px]">Loading community...</div>
+      ) : communityError ? (
+        <div className="p-5 lg:pl-[170px]">Error loading community</div>
+      ) : community ? (
+        <div className="p-5 lg:px-0 lg:pl-[170px] max-w-[1300px]">
+          <div className="text-3xl font-bold">Settings</div>
+          <div className="my-5">
+            <div className="flex justify-between max-w-[800px] my-2">
+              <div className="">Display name</div>
+              <div>{community.communityId}</div>
+            </div>
+            <div className="flex justify-between max-w-[800px] my-2">
+              <div className="mr-10">Description</div>
+              <div className="line-clamp-1">{community.description}</div>
+            </div>
+            <div className="flex justify-between max-w-[800px] my-2">
+              <div className="">Community Type</div>
+              <div className="capitalize">{community.visibility}</div>
+            </div>
+            <div className="flex justify-between max-w-[800px] my-2">
+              <div className="">Mature (18+)</div>
+              <div>
+                {community.mature ? community.mature.toString() : "Off"}
+              </div>
+            </div>
+          </div>
+          <div className="text-3xl font-bold">Mods & Members</div>
+          <div className="my-5 flex">
+            <div className="px-2">Moderators</div>
+            <div className="px-2">Members</div>
+          </div>
+        </div>
+      ) : (
+        <div></div>
+      )}
+      <div className="w-[1300px]"></div>
     </div>
   );
 }
