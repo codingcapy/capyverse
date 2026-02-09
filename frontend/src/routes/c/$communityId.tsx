@@ -136,7 +136,7 @@ function CommunityPage() {
                   ) : moderatorsError ? (
                     <div>Error loading moderators</div>
                   ) : moderators ? (
-                    moderators.some((m) => m.userId === user.userId) ? (
+                    moderators.some((m) => m.username === user.username) ? (
                       <div
                         className="relative cursor-pointer"
                         onMouseEnter={() => setIconHovered(true)}
@@ -265,7 +265,9 @@ function CommunityPage() {
                       ) : moderatorsError ? (
                         <div>Error loading moderators</div>
                       ) : moderators ? (
-                        moderators.some((m) => m.userId === user.userId) && (
+                        moderators.some(
+                          (m) => m.username === user.username,
+                        ) && (
                           <Link
                             to="/mod/$communityId"
                             params={{

@@ -30,7 +30,11 @@ function RouteComponent() {
     if (moderatorsLoading) return;
     if (moderatorsError) navigate({ to: "/" });
     if (!user) navigate({ to: "/" });
-    if (moderators && user && !moderators.some((m) => m.userId === user.userId))
+    if (
+      moderators &&
+      user &&
+      !moderators.some((m) => m.username === user.username)
+    )
       navigate({ to: "/" });
   }, [user, moderators]);
 
@@ -41,22 +45,22 @@ function RouteComponent() {
       ) : communityError ? (
         <div className="p-5 lg:pl-[170px]">Error loading community</div>
       ) : community ? (
-        <div className="p-5 lg:px-0 lg:pl-[170px] max-w-[1300px]">
+        <div className="p-5 lg:px-0 lg:pl-[170px]">
           <div className="text-3xl font-bold">Settings</div>
           <div className="my-5">
-            <div className="flex justify-between max-w-[800px] my-2">
+            <div className="flex justify-between max-w-[700px] w-[70vw] 2xl:max-w-[1000px] my-2">
               <div className="">Display name</div>
               <div>{community.communityId}</div>
             </div>
-            <div className="flex justify-between max-w-[800px] my-2">
+            <div className="flex justify-between max-w-[700px] 2xl:max-w-[1000px] my-2">
               <div className="mr-10">Description</div>
               <div className="line-clamp-1">{community.description}</div>
             </div>
-            <div className="flex justify-between max-w-[800px] my-2">
+            <div className="flex justify-between max-w-[700px] 2xl:max-w-[1000px] my-2">
               <div className="">Community Type</div>
               <div className="capitalize">{community.visibility}</div>
             </div>
-            <div className="flex justify-between max-w-[800px] my-2">
+            <div className="flex justify-between max-w-[700px] 2xl:max-w-[1000px] my-2">
               <div className="">Mature (18+)</div>
               <div>
                 {community.mature ? community.mature.toString() : "Off"}
@@ -68,11 +72,28 @@ function RouteComponent() {
             <div className="px-2">Moderators</div>
             <div className="px-2">Members</div>
           </div>
+          <div className="flex justify-between font-bold border-y border-[#555555] py-2 mb-5">
+            <div>USERNAME</div>
+            <div>JOINED</div>
+          </div>
+          {moderatorsLoading ? (
+            <div>Loading moderators...</div>
+          ) : moderatorsError ? (
+            <div>Error loading moderators</div>
+          ) : moderators ? (
+            moderators.map((m) => (
+              <div className="flex justify-between">
+                <div>{m.username}</div>
+                <div>{m.createdAt}</div>
+              </div>
+            ))
+          ) : (
+            <div></div>
+          )}
         </div>
       ) : (
         <div></div>
       )}
-      <div className="w-[1300px]"></div>
     </div>
   );
 }

@@ -9,6 +9,7 @@ import { assertIsParsableInt, optionalUser, requireUser } from "./posts";
 import { and, asc, desc, eq, ne, sql } from "drizzle-orm";
 import { communityUsers as communityUsersTable } from "../schemas/communityusers";
 import z from "zod";
+import { users as usersTable } from "../schemas/users";
 
 const createCommunitySchema = z.object({
   communityId: z.string(),
@@ -192,8 +193,20 @@ export const communitiesRouter = new Hono()
     const { result: moderatorsQueryResult, error: moderatorsQueryError } =
       await mightFail(
         db
-          .select()
+          .select({
+            communityUserId: communityUsersTable.communityUserId,
+            communityId: communityUsersTable.communityId,
+            role: communityUsersTable.role,
+            status: communityUsersTable.status,
+            createdAt: communityUsersTable.createdAt,
+            username: usersTable.username,
+            profilePic: usersTable.profilePic,
+          })
           .from(communityUsersTable)
+          .innerJoin(
+            usersTable,
+            eq(communityUsersTable.userId, usersTable.userId),
+          )
           .where(
             and(
               eq(communityUsersTable.communityId, communityId),
