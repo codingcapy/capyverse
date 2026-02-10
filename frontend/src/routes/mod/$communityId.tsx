@@ -1,11 +1,13 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import useAuthStore from "../../store/AuthStore";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   getCommunityByIdQueryOptions,
   getModeratorsQueryOptions,
 } from "../../lib/api/communities";
+
+type MembersMode = "mods" | "members";
 
 export const Route = createFileRoute("/mod/$communityId")({
   component: RouteComponent,
@@ -25,6 +27,7 @@ function RouteComponent() {
     isLoading: communityLoading,
     error: communityError,
   } = useQuery(getCommunityByIdQueryOptions(communityId));
+  const [membersMode, setMembersMode] = useState<MembersMode>("mods");
 
   useEffect(() => {
     if (moderatorsLoading) return;
@@ -69,8 +72,18 @@ function RouteComponent() {
           </div>
           <div className="text-3xl font-bold">Mods & Members</div>
           <div className="my-5 flex">
-            <div className="px-2">Moderators</div>
-            <div className="px-2">Members</div>
+            <div
+              onClick={() => setMembersMode("mods")}
+              className={`pr-2 cursor-pointer ${membersMode === "mods" && "underline font-bold"}`}
+            >
+              Moderators
+            </div>
+            <div
+              onClick={() => setMembersMode("members")}
+              className={`px-2 cursor-pointer ${membersMode === "members" && "underline font-bold"}`}
+            >
+              Members
+            </div>
           </div>
           <div className="flex justify-between font-bold border-y border-[#555555] py-2 mb-5">
             <div>USERNAME</div>
@@ -81,12 +94,19 @@ function RouteComponent() {
           ) : moderatorsError ? (
             <div>Error loading moderators</div>
           ) : moderators ? (
-            moderators.map((m) => (
-              <div className="flex justify-between">
-                <div>{m.username}</div>
-                <div>{m.createdAt}</div>
-              </div>
-            ))
+            membersMode === "mods" ? (
+              moderators.map((m) => {
+                const createdAt = new Date(m.createdAt);
+                return (
+                  <div key={m.communityUserId} className="flex justify-between">
+                    <div>{m.username}</div>
+                    <div>{createdAt.toLocaleString()}</div>
+                  </div>
+                );
+              })
+            ) : (
+              <div></div>
+            )
           ) : (
             <div></div>
           )}
