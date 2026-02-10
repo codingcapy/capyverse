@@ -5,11 +5,13 @@ import { comments as commentsTable } from "../schemas/comments";
 import { mightFail } from "might-fail";
 import { db } from "../db";
 import { HTTPException } from "hono/http-exception";
-import { assertIsParsableInt, requireUser } from "./posts";
-import { and, eq } from "drizzle-orm";
+import { assertIsParsableInt, optionalUser, requireUser } from "./posts";
+import { and, eq, ne } from "drizzle-orm";
 import { users as usersTable } from "../schemas/users";
 import z from "zod";
 import { savedComments as savedCommentsTable } from "../schemas/savedComments";
+import { posts as postsTable } from "../schemas/posts";
+import { communities as communitiesTable } from "../schemas/communities";
 
 const deleteCommentSchema = z.object({
   commentId: z.number(),
@@ -56,7 +58,26 @@ export const commentsRouter = new Hono()
   )
   .get("/", async (c) => {
     const { result: commentsQueryResult, error: commentsQueryError } =
-      await mightFail(db.select().from(commentsTable));
+      await mightFail(
+        db
+          .select({
+            commentId: commentsTable.commentId,
+            userId: commentsTable.userId,
+            postId: commentsTable.postId,
+            parentCommentId: commentsTable.parentCommentId,
+            level: commentsTable.level,
+            content: commentsTable.content,
+            status: commentsTable.status,
+            createdAt: commentsTable.createdAt,
+          })
+          .from(commentsTable)
+          .innerJoin(postsTable, eq(commentsTable.postId, postsTable.postId))
+          .innerJoin(
+            communitiesTable,
+            eq(postsTable.communityId, communitiesTable.communityId),
+          )
+          .where(ne(communitiesTable.visibility, "private")),
+      );
     if (commentsQueryError)
       throw new HTTPException(500, {
         message: "error querying comments",
