@@ -199,11 +199,14 @@ export const commentsRouter = new Hono()
       return c.json({ commentResult: commentEditResult[0] }, 200);
     },
   )
-  .get("/user/:userId", async (c) => {
-    const userId = c.req.param("userId");
+  .get("/user/profile", async (c) => {
+    const decodedUser = requireUser(c);
     const { result: commentsQueryResult, error: commentsQueryError } =
       await mightFail(
-        db.select().from(commentsTable).where(eq(commentsTable.userId, userId)),
+        db
+          .select()
+          .from(commentsTable)
+          .where(eq(commentsTable.userId, decodedUser.id)),
       );
     if (commentsQueryError) {
       throw new HTTPException(500, {

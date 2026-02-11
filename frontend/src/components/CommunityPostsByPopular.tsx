@@ -62,7 +62,7 @@ export function CommunityPostsByPopular(props: { community: Community }) {
             (post) =>
               searchContent === "" ||
               post.title.toLowerCase().includes(searchContent.toLowerCase()) ||
-              post.content.toLowerCase().includes(searchContent.toLowerCase())
+              post.content.toLowerCase().includes(searchContent.toLowerCase()),
           )
           .map((post) => (
             <PostThumbnail key={post.postId} post={post} />

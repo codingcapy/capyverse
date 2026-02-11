@@ -115,11 +115,12 @@ async function getPosts() {
   return posts.map(mapSerializedPostToSchema);
 }
 
-export const getPostsQueryOptions = () =>
+export function getPostsQueryOptions() {
   queryOptions({
     queryKey: ["posts"],
     queryFn: () => getPosts(),
   });
+}
 
 export type NewPostsCursor = {
   postId: number;
@@ -156,16 +157,26 @@ export async function getNewPostsPage({
 import type { QueryFunctionContext } from "@tanstack/react-query";
 
 export async function getNewCommunityPostsPage(ctx: QueryFunctionContext) {
+  const token = getSession();
   const { pageParam, queryKey } = ctx;
   const [, communityId] = queryKey as ["community-posts", number];
   const cursor =
     pageParam && typeof pageParam === "object"
       ? (pageParam as NewPostsCursor)
       : null;
-  const res = await client.api.v0.posts.community[":communityId"].$get({
-    param: { communityId: String(communityId) },
-    query: cursor ? { cursorPostId: String(cursor.postId) } : {},
-  });
+  const res = await client.api.v0.posts.community[":communityId"].$get(
+    {
+      param: { communityId: String(communityId) },
+      query: cursor ? { cursorPostId: String(cursor.postId) } : {},
+    },
+    token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined,
+  );
   if (!res.ok) throw new Error("Error getting posts");
   const { posts, nextCursor } = await res.json();
   return {
@@ -177,6 +188,7 @@ export async function getNewCommunityPostsPage(ctx: QueryFunctionContext) {
 export type PopularPostsCursor = {
   score: number;
   postId: number;
+  createdAt: string;
 } | null;
 
 export async function getPopularPostsPage({
@@ -214,21 +226,31 @@ export async function getPopularPostsPage({
 }
 
 export async function getPopularCommunityPostsPage(ctx: QueryFunctionContext) {
+  const token = getSession();
   const { pageParam, queryKey } = ctx;
   const [, communityId] = queryKey as ["community-popular-posts", number];
   const cursor =
     pageParam && typeof pageParam === "object"
       ? (pageParam as PopularPostsCursor)
       : null;
-  const res = await client.api.v0.posts.community.popular[":communityId"].$get({
-    param: { communityId: String(communityId) },
-    query: cursor
+  const res = await client.api.v0.posts.community.popular[":communityId"].$get(
+    {
+      param: { communityId: String(communityId) },
+      query: cursor
+        ? {
+            cursorScore: String(cursor.score),
+            cursorPostId: String(cursor.postId),
+          }
+        : {},
+    },
+    token
       ? {
-          cursorScore: String(cursor.score),
-          cursorPostId: String(cursor.postId),
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      : {},
-  });
+      : undefined,
+  );
   if (!res.ok) {
     throw new Error("Error getting popular community posts");
   }

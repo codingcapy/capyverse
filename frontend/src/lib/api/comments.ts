@@ -82,9 +82,19 @@ export const useCreateCommentMutation = (
 };
 
 async function getCommentsByPostId(postId: number) {
-  const res = await client.api.v0.comments[":postId"].$get({
-    param: { postId: postId.toString() },
-  });
+  const token = getSession();
+  const res = await client.api.v0.comments[":postId"].$get(
+    {
+      param: { postId: postId.toString() },
+    },
+    token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined,
+  );
   if (!res.ok) {
     throw new Error("Error getting comments by id");
   }
@@ -196,22 +206,30 @@ export const useUpdateCommentMutation = (
   });
 };
 
-async function getCommentsByUserId(userId: string) {
-  const res = await client.api.v0.comments.user[":userId"].$get({
-    param: { userId: userId.toString() },
-  });
+async function getCommentsByUserProfile() {
+  const token = getSession();
+  const res = await client.api.v0.comments.user.profile.$get(
+    {},
+    token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined,
+  );
 
   if (!res.ok) {
-    throw new Error("Error getting comments by user id");
+    throw new Error("Error getting comments by user profile");
   }
   const { comments } = await res.json();
   return comments.map(mapSerializedCommentToSchema);
 }
 
-export const getCommentsByUserIdQueryOptions = (userId: string) =>
+export const getCommentsByUserProfileQueryOptions = () =>
   queryOptions({
-    queryKey: ["comments", userId],
-    queryFn: () => getCommentsByUserId(userId),
+    queryKey: ["profile-comments"],
+    queryFn: () => getCommentsByUserProfile(),
   });
 
 async function getCommentsLengthByPostId(postId: number) {

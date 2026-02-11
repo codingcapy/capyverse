@@ -8,7 +8,7 @@ import {
   getPostsByUserIdQueryOptions,
   getSavedPostsByUserIdQueryOptions,
 } from "../lib/api/posts";
-import { getCommentsByUserIdQueryOptions } from "../lib/api/comments";
+import { getCommentsByUserProfileQueryOptions } from "../lib/api/comments";
 import { PostThumbnail } from "../components/PostThumbnail";
 import { CommentThumbnail } from "../components/CommentThumbnail";
 
@@ -33,7 +33,7 @@ function ProfilePage() {
     data: comments,
     isLoading: commentsLoading,
     error: commentsError,
-  } = useQuery(getCommentsByUserIdQueryOptions((user && user.userId) || ""));
+  } = useQuery(getCommentsByUserProfileQueryOptions());
   const navigate = useNavigate();
   const {
     data: savedPosts,
