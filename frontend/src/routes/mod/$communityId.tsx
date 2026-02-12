@@ -6,6 +6,7 @@ import {
   getCommunityByIdQueryOptions,
   getModeratorsQueryOptions,
 } from "../../lib/api/communities";
+import { PiCaretDownBold } from "react-icons/pi";
 
 type MembersMode = "mods" | "members";
 
@@ -57,16 +58,31 @@ function RouteComponent() {
             </div>
             <div className="flex justify-between max-w-[700px] 2xl:max-w-[1000px] my-2">
               <div className="mr-10">Description</div>
-              <div className="line-clamp-1">{community.description}</div>
+              <div className="flex">
+                <div className="line-clamp-1 mr-5">{community.description}</div>
+                <div className="rotate-270">
+                  <PiCaretDownBold />
+                </div>
+              </div>
             </div>
             <div className="flex justify-between max-w-[700px] 2xl:max-w-[1000px] my-2">
               <div className="">Community Type</div>
-              <div className="capitalize">{community.visibility}</div>
+              <div className="flex">
+                <div className="capitalize mr-5">{community.visibility}</div>
+                <div className="rotate-270">
+                  <PiCaretDownBold />
+                </div>
+              </div>
             </div>
             <div className="flex justify-between max-w-[700px] 2xl:max-w-[1000px] my-2">
               <div className="">Mature (18+)</div>
-              <div>
-                {community.mature ? community.mature.toString() : "Off"}
+              <div className="flex">
+                <div className="mr-5">
+                  {community.mature ? community.mature.toString() : "Off"}
+                </div>
+                <div className="rotate-270">
+                  <PiCaretDownBold />
+                </div>
               </div>
             </div>
           </div>
