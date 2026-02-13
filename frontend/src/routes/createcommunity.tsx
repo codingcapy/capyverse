@@ -8,7 +8,7 @@ export const Route = createFileRoute("/createcommunity")({
   component: CreateCommunityPage,
 });
 
-type Visibility = "public" | "restricted" | "private";
+export type Visibility = "public" | "restricted" | "private";
 
 function CreateCommunityPage() {
   const [isDragOver, setIsDragOver] = useState(false);

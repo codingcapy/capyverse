@@ -49,7 +49,7 @@ export function CommunitySidebar(props: { community: Community }) {
           ) : moderatorsError ? (
             <div>Error loading moderators</div>
           ) : moderators ? (
-            moderators.some((m) => m.userId === user.userId) ? (
+            moderators.some((m) => m.username === user.username) ? (
               <div
                 onClick={() => setEditMode(true)}
                 className="rounded-full m-2.5 p-2 bg-[#333333] hover:text-cyan-500 transition-all ease-in-out duration-300 cursor-pointer"
