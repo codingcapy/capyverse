@@ -31,8 +31,15 @@ function RouteComponent() {
   } = useQuery(getCommunityByIdQueryOptions(communityId));
   const [membersMode, setMembersMode] = useState<MembersMode>("mods");
   const [editMode, setEditMode] = useState<EditMode>("none");
-  const [visibility, setVisibility] = useState("public");
-  const [matureContent, setMatureContent] = useState(false);
+  const [descriptionContent, setDescriptionContent] = useState(
+    community ? community.description : "",
+  );
+  const [visibility, setVisibility] = useState(
+    community ? community.visibility : "public",
+  );
+  const [matureContent, setMatureContent] = useState(
+    community ? community.mature : false,
+  );
 
   useEffect(() => {
     if (moderatorsLoading) return;
@@ -139,116 +146,131 @@ function RouteComponent() {
           ) : (
             <div></div>
           )}
-        </div>
-      ) : (
-        <div></div>
-      )}
-      {editMode === "description" ? (
-        <div>
-          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[#222222] p-6 rounded shadow-lg w-[90%] max-w-md  z-100">
-            <form action="" className="flex flex-col">
-              <div className="text-2xl mb-5">Description</div>
-              <textarea className="bg-[#444444] p-3 mx-auto mb-5 w-full rounded-xl" />
-              <div className="flex justify-end">
-                <div
-                  onClick={() => setEditMode("none")}
-                  className="mx-1 bg-[#444444] hover:bg-[#555555] px-2 py-1 rounded-full cursor-pointer transition-all ease-in-out duration-300"
-                >
-                  Cancel
-                </div>
-                <div className="mx-1 bg-cyan-600 hover:bg-cyan-500 px-2 py-1 rounded-full cursor-pointer transition-all ease-in-out duration-300">
-                  Save
-                </div>
+          {editMode === "description" ? (
+            <div>
+              <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[#222222] p-6 rounded shadow-lg w-[90%] max-w-md  z-100">
+                <form action="" className="flex flex-col">
+                  <div className="text-2xl mb-5">Description</div>
+                  <textarea
+                    className="bg-[#444444] p-3 mx-auto mb-5 w-full rounded-xl"
+                    value={descriptionContent}
+                    onChange={(e) => setDescriptionContent(e.target.value)}
+                  />
+                  <div className="flex justify-end">
+                    <div
+                      onClick={() => {
+                        setEditMode("none");
+                        setDescriptionContent(community.description);
+                      }}
+                      className="mx-1 bg-[#444444] hover:bg-[#555555] px-2 py-1 rounded-full cursor-pointer transition-all ease-in-out duration-300"
+                    >
+                      Cancel
+                    </div>
+                    <div className="mx-1 bg-cyan-600 hover:bg-cyan-500 px-2 py-1 rounded-full cursor-pointer transition-all ease-in-out duration-300">
+                      Save
+                    </div>
+                  </div>
+                </form>
               </div>
-            </form>
-          </div>
-          <div className="fixed inset-0 bg-black opacity-50 z-90"></div>
-        </div>
-      ) : editMode === "mature" ? (
-        <div>
-          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[#222222] p-6 rounded shadow-lg w-[90%] max-w-md  z-100">
-            <form action="" className="flex flex-col">
-              <div className="text-2xl mb-5">Mature (18+)</div>
-              <div
-                onClick={() => setMatureContent(!matureContent)}
-                className=""
-              >
-                <div
-                  className={`inline-flex items-center justify-center gap-0 mb-2 ${matureContent ? "bg-cyan-500" : "bg-[#666666]"} rounded-full shadow-[inset_-1px_0px_4.8px_rgba(0,0,0,0.5)]`}
-                >
+              <div className="fixed inset-0 bg-black opacity-50 z-90"></div>
+            </div>
+          ) : editMode === "mature" ? (
+            <div>
+              <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[#222222] p-6 rounded shadow-lg w-[90%] max-w-md  z-100">
+                <form action="" className="flex flex-col">
+                  <div className="text-2xl mb-5">Mature (18+)</div>
                   <div
-                    className={`h-[25px] w-[25px] rounded-full font-bold text-lg tracking-wide transition-all duration-300 ease-in-out ${
-                      !matureContent ? "bg-white" : "bg-transparent"
-                    }`}
-                    style={{ fontFamily: "'Nunito Sans', sans-serif" }}
-                  ></div>
+                    onClick={() => setMatureContent(!matureContent)}
+                    className=""
+                  >
+                    <div
+                      className={`inline-flex items-center justify-center gap-0 mb-2 ${matureContent ? "bg-cyan-500" : "bg-[#666666]"} rounded-full shadow-[inset_-1px_0px_4.8px_rgba(0,0,0,0.5)]`}
+                    >
+                      <div
+                        className={`h-[25px] w-[25px] rounded-full font-bold text-lg tracking-wide transition-all duration-300 ease-in-out ${
+                          !matureContent ? "bg-white" : "bg-transparent"
+                        }`}
+                        style={{ fontFamily: "'Nunito Sans', sans-serif" }}
+                      ></div>
+                      <div
+                        className={`h-[25px] w-[25px] rounded-full font-bold text-lg tracking-wide transition-all duration-300 ease-in-out ${
+                          matureContent ? "bg-white" : "bg-transparent"
+                        }`}
+                        style={{ fontFamily: "'Nunito Sans', sans-serif" }}
+                      ></div>
+                    </div>
+                  </div>
+                  <div className="flex justify-end">
+                    <div
+                      onClick={() => {
+                        setEditMode("none");
+                        setMatureContent(community.mature);
+                      }}
+                      className="mx-1 bg-[#444444] hover:bg-[#555555] px-2 py-1 rounded-full cursor-pointer transition-all ease-in-out duration-300"
+                    >
+                      Cancel
+                    </div>
+                    <div className="mx-1 bg-cyan-600 hover:bg-cyan-500 px-2 py-1 rounded-full cursor-pointer transition-all ease-in-out duration-300">
+                      Save
+                    </div>
+                  </div>
+                </form>
+              </div>
+              <div className="fixed inset-0 bg-black opacity-50 z-90"></div>
+            </div>
+          ) : editMode === "visibility" ? (
+            <div className="">
+              <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[#222222] p-6 rounded shadow-lg w-[90%] max-w-md  z-100">
+                <form action="" className="flex flex-col">
+                  <div className="text-2xl mb-5">Visibility</div>
                   <div
-                    className={`h-[25px] w-[25px] rounded-full font-bold text-lg tracking-wide transition-all duration-300 ease-in-out ${
-                      matureContent ? "bg-white" : "bg-transparent"
-                    }`}
-                    style={{ fontFamily: "'Nunito Sans', sans-serif" }}
-                  ></div>
-                </div>
+                    onClick={() => setVisibility("public")}
+                    className={`p-2 cursor-pointer ${visibility === "public" && "bg-[#555555]"}`}
+                  >
+                    <div>Public</div>
+                    <div className="text-xs">
+                      Anyone can view, post and comment
+                    </div>
+                  </div>
+                  <div
+                    onClick={() => setVisibility("restricted")}
+                    className={`p-2 cursor-pointer ${visibility === "restricted" && "bg-[#555555]"}`}
+                  >
+                    <div>Restricted</div>
+                    <div className="text-xs">
+                      Anyone can view, but only approved users can contribute
+                    </div>
+                  </div>
+                  <div
+                    onClick={() => setVisibility("private")}
+                    className={`p-2 cursor-pointer mb-5 ${visibility === "private" && "bg-[#555555]"}`}
+                  >
+                    <div>Private</div>
+                    <div className="text-xs">
+                      Only approved users can view and contribute
+                    </div>
+                  </div>
+                  <div className="flex justify-end">
+                    <div
+                      onClick={() => {
+                        setEditMode("none");
+                        setVisibility(community.visibility);
+                      }}
+                      className="mx-1 bg-[#444444] hover:bg-[#555555] px-2 py-1 rounded-full cursor-pointer transition-all ease-in-out duration-300"
+                    >
+                      Cancel
+                    </div>
+                    <div className="mx-1 bg-cyan-600 hover:bg-cyan-500 px-2 py-1 rounded-full cursor-pointer transition-all ease-in-out duration-300">
+                      Save
+                    </div>
+                  </div>
+                </form>
               </div>
-              <div className="flex justify-end">
-                <div
-                  onClick={() => setEditMode("none")}
-                  className="mx-1 bg-[#444444] hover:bg-[#555555] px-2 py-1 rounded-full cursor-pointer transition-all ease-in-out duration-300"
-                >
-                  Cancel
-                </div>
-                <div className="mx-1 bg-cyan-600 hover:bg-cyan-500 px-2 py-1 rounded-full cursor-pointer transition-all ease-in-out duration-300">
-                  Save
-                </div>
-              </div>
-            </form>
-          </div>
-          <div className="fixed inset-0 bg-black opacity-50 z-90"></div>
-        </div>
-      ) : editMode === "visibility" ? (
-        <div>
-          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[#222222] p-6 rounded shadow-lg w-[90%] max-w-md  z-100">
-            <form action="" className="flex flex-col">
-              <div className="text-2xl mb-5">Visibility</div>
-              <div
-                onClick={() => setVisibility("public")}
-                className={`p-2 cursor-pointer ${visibility === "public" && "bg-[#555555]"}`}
-              >
-                <div>Public</div>
-                <div className="text-xs">Anyone can view, post and comment</div>
-              </div>
-              <div
-                onClick={() => setVisibility("restricted")}
-                className={`p-2 cursor-pointer ${visibility === "restricted" && "bg-[#555555]"}`}
-              >
-                <div>Restricted</div>
-                <div className="text-xs">
-                  Anyone can view, but only approved users can contribute
-                </div>
-              </div>
-              <div
-                onClick={() => setVisibility("private")}
-                className={`p-2 cursor-pointer ${visibility === "private" && "bg-[#555555]"}`}
-              >
-                <div>Private</div>
-                <div className="text-xs">
-                  Only approved users can view and contribute
-                </div>
-              </div>
-              <div className="flex justify-end">
-                <div
-                  onClick={() => setEditMode("none")}
-                  className="mx-1 bg-[#444444] hover:bg-[#555555] px-2 py-1 rounded-full cursor-pointer transition-all ease-in-out duration-300"
-                >
-                  Cancel
-                </div>
-                <div className="mx-1 bg-cyan-600 hover:bg-cyan-500 px-2 py-1 rounded-full cursor-pointer transition-all ease-in-out duration-300">
-                  Save
-                </div>
-              </div>
-            </form>
-          </div>
-          <div className="fixed inset-0 bg-black opacity-50 z-90"></div>
+              <div className="fixed inset-0 bg-black opacity-50 z-90"></div>
+            </div>
+          ) : (
+            <div></div>
+          )}
         </div>
       ) : (
         <div></div>
