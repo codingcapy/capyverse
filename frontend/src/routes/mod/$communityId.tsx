@@ -1,12 +1,14 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import useAuthStore from "../../store/AuthStore";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   getCommunityByIdQueryOptions,
+  getMembersQueryOptions,
   getModeratorsQueryOptions,
 } from "../../lib/api/communities";
 import { PiCaretDownBold } from "react-icons/pi";
+import defaultProfile from "/capypaul01.jpg";
 
 type MembersMode = "mods" | "members";
 type EditMode = "none" | "description" | "visibility" | "mature";
@@ -24,6 +26,11 @@ function RouteComponent() {
     isLoading: moderatorsLoading,
     error: moderatorsError,
   } = useQuery(getModeratorsQueryOptions(communityId));
+  const {
+    data: members,
+    isLoading: membersLoading,
+    error: membersError,
+  } = useQuery(getMembersQueryOptions(communityId));
   const {
     data: community,
     isLoading: communityLoading,
@@ -125,24 +132,73 @@ function RouteComponent() {
             <div>USERNAME</div>
             <div>JOINED</div>
           </div>
-          {moderatorsLoading ? (
-            <div>Loading moderators...</div>
-          ) : moderatorsError ? (
-            <div>Error loading moderators</div>
-          ) : moderators ? (
-            membersMode === "mods" ? (
-              moderators.map((m) => {
-                const createdAt = new Date(m.createdAt);
-                return (
-                  <div key={m.communityUserId} className="flex justify-between">
-                    <div>{m.username}</div>
-                    <div>{createdAt.toLocaleString()}</div>
-                  </div>
-                );
-              })
+          {membersMode === "mods" ? (
+            moderatorsLoading ? (
+              <div>Loading moderators...</div>
+            ) : moderatorsError ? (
+              <div>Error loading moderators</div>
+            ) : moderators ? (
+              membersMode === "mods" ? (
+                moderators.map((m) => {
+                  const createdAt = new Date(m.createdAt);
+                  return (
+                    <div
+                      key={m.communityUserId}
+                      className="flex justify-between"
+                    >
+                      <Link
+                        to="/u/$username"
+                        params={{
+                          username: m.username.toString(),
+                        }}
+                      >
+                        <div className="flex">
+                          <img
+                            src={m.profilePic || defaultProfile}
+                            alt=""
+                            className="w-6 h-6 rounded-full object-cover object-center"
+                          />
+                          <div className="ml-2">{m.username}</div>
+                        </div>
+                      </Link>
+                      <div>{createdAt.toLocaleString()}</div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div></div>
+              )
             ) : (
               <div></div>
             )
+          ) : membersLoading ? (
+            <div>Loading members...</div>
+          ) : membersError ? (
+            <div>Error loading memberes</div>
+          ) : members ? (
+            members.map((m) => {
+              const createdAt = new Date(m.createdAt);
+              return (
+                <div key={m.communityUserId} className="flex justify-between">
+                  <Link
+                    to="/u/$username"
+                    params={{
+                      username: m.username.toString(),
+                    }}
+                  >
+                    <div className="flex">
+                      <img
+                        src={m.profilePic || defaultProfile}
+                        alt=""
+                        className="w-6 h-6 rounded-full object-cover object-center"
+                      />
+                      <div className="ml-2">{m.username}</div>
+                    </div>
+                  </Link>
+                  <div>{createdAt.toLocaleString()}</div>
+                </div>
+              );
+            })
           ) : (
             <div></div>
           )}

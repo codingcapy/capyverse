@@ -330,6 +330,24 @@ async function updateIcon(args: UpdateIconArgs) {
   return newCommunity;
 }
 
+async function getMembers(communityId: string) {
+  const res = await client.api.v0.communities.members[":communityId"].$get({
+    param: { communityId: communityId.toString() },
+  });
+
+  if (!res.ok) {
+    throw new Error("Error getting members");
+  }
+  const { members } = await res.json();
+  return members;
+}
+
+export const getMembersQueryOptions = (communityId: string) =>
+  queryOptions({
+    queryKey: ["members"],
+    queryFn: () => getMembers(communityId),
+  });
+
 export const useUpdateIconMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
