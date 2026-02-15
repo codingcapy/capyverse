@@ -224,6 +224,42 @@ export const communitiesRouter = new Hono()
       moderators: moderatorsQueryResult,
     });
   })
+  .get("/members/:communityId", async (c) => {
+    const { communityId } = c.req.param();
+    const { result: membersQueryResult, error: membersQueryError } =
+      await mightFail(
+        db
+          .select({
+            communityUserId: communityUsersTable.communityUserId,
+            communityId: communityUsersTable.communityId,
+            role: communityUsersTable.role,
+            status: communityUsersTable.status,
+            createdAt: communityUsersTable.createdAt,
+            username: usersTable.username,
+            profilePic: usersTable.profilePic,
+          })
+          .from(communityUsersTable)
+          .innerJoin(
+            usersTable,
+            eq(communityUsersTable.userId, usersTable.userId),
+          )
+          .where(
+            and(
+              eq(communityUsersTable.communityId, communityId),
+              eq(communityUsersTable.role, "member"),
+            ),
+          ),
+      );
+    if (membersQueryError) {
+      throw new HTTPException(500, {
+        message: "Error occurred when fetching members",
+        cause: membersQueryError,
+      });
+    }
+    return c.json({
+      members: membersQueryResult,
+    });
+  })
   .get("/:communityId", async (c) => {
     const { communityId } = c.req.param();
     const user = optionalUser(c);
