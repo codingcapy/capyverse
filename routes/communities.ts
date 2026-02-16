@@ -42,6 +42,16 @@ const joinCommunitySchema = z.object({
   communityId: z.string(),
 });
 
+const updateVisibilitySchema = z.object({
+  communityId: z.string(),
+  visibility: z.string(),
+});
+
+const updateMatureSchema = z.object({
+  communityId: z.string(),
+  mature: z.string(),
+});
+
 export const communitiesRouter = new Hono()
   .post("/", zValidator("json", createCommunitySchema), async (c) => {
     const decodedUser = requireUser(c);
@@ -451,4 +461,44 @@ export const communitiesRouter = new Hono()
       });
     }
     return c.json({ communityResult: communityUserDeleteResult[0] }, 200);
+  })
+  .post(
+    "/update/visibility",
+    zValidator("json", updateVisibilitySchema),
+    async (c) => {
+      const decodedUser = requireUser(c);
+      const updateValues = c.req.valid("json");
+      const { error: queryError, result: newCommunityResult } = await mightFail(
+        db
+          .update(communitiesTable)
+          .set({ description: updateValues.visibility })
+          .where(eq(communitiesTable.communityId, updateValues.communityId))
+          .returning(),
+      );
+      if (queryError) {
+        throw new HTTPException(500, {
+          message: "Error updating community visibility",
+          cause: queryError,
+        });
+      }
+      return c.json({ newCommunity: newCommunityResult[0] }, 200);
+    },
+  )
+  .post("/update/mature", zValidator("json", updateMatureSchema), async (c) => {
+    const decodedUser = requireUser(c);
+    const updateValues = c.req.valid("json");
+    const { error: queryError, result: newCommunityResult } = await mightFail(
+      db
+        .update(communitiesTable)
+        .set({ description: updateValues.mature })
+        .where(eq(communitiesTable.communityId, updateValues.communityId))
+        .returning(),
+    );
+    if (queryError) {
+      throw new HTTPException(500, {
+        message: "Error updating community mature",
+        cause: queryError,
+      });
+    }
+    return c.json({ newCommunity: newCommunityResult[0] }, 200);
   });
