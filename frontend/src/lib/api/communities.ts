@@ -35,6 +35,10 @@ type UpdateVisibilityArgs = ArgumentTypes<
   typeof client.api.v0.communities.update.visibility.$post
 >[0]["json"];
 
+type UpdateMatureArgs = ArgumentTypes<
+  typeof client.api.v0.communities.update.mature.$post
+>[0]["json"];
+
 type UpdateSettingsArgs = ArgumentTypes<
   typeof client.api.v0.communities.update.settings.$post
 >[0]["json"];
@@ -461,6 +465,41 @@ export const useUpdateVisibilityMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: updateVisibility,
+    onSettled: (args) => {
+      if (!args) return console.log("no args, returning");
+      queryClient.invalidateQueries({
+        queryKey: ["community", args.communityId],
+      });
+    },
+  });
+};
+
+async function updateMature(args: UpdateMatureArgs) {
+  const token = getSession();
+  const res = await client.api.v0.communities.update.mature.$post(
+    {
+      json: args,
+    },
+    token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined,
+  );
+  if (!res.ok) {
+    throw new Error("Error updating community mature.");
+  }
+  const { newCommunity } = await res.json();
+  console.log(newCommunity);
+  return newCommunity;
+}
+
+export const useUpdateMatureMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: updateMature,
     onSettled: (args) => {
       if (!args) return console.log("no args, returning");
       queryClient.invalidateQueries({
