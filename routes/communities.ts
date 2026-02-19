@@ -49,7 +49,7 @@ const updateVisibilitySchema = z.object({
 
 const updateMatureSchema = z.object({
   communityId: z.string(),
-  mature: z.string(),
+  mature: z.boolean(),
 });
 
 export const communitiesRouter = new Hono()
@@ -490,7 +490,7 @@ export const communitiesRouter = new Hono()
     const { error: queryError, result: newCommunityResult } = await mightFail(
       db
         .update(communitiesTable)
-        .set({ description: updateValues.mature })
+        .set({ mature: updateValues.mature })
         .where(eq(communitiesTable.communityId, updateValues.communityId))
         .returning(),
     );

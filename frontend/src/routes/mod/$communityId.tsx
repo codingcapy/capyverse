@@ -1,11 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import useAuthStore from "../../store/AuthStore";
 import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   getCommunityByIdQueryOptions,
   getMembersQueryOptions,
   getModeratorsQueryOptions,
+  useUpdateMatureMutation,
 } from "../../lib/api/communities";
 import { PiCaretDownBold } from "react-icons/pi";
 import defaultProfile from "/capypaul01.jpg";
@@ -14,10 +15,10 @@ type MembersMode = "mods" | "members";
 type EditMode = "none" | "description" | "visibility" | "mature";
 
 export const Route = createFileRoute("/mod/$communityId")({
-  component: RouteComponent,
+  component: CommunityModTools,
 });
 
-function RouteComponent() {
+function CommunityModTools() {
   const { communityId } = Route.useParams();
   const navigate = useNavigate();
   const { user } = useAuthStore();
@@ -47,6 +48,24 @@ function RouteComponent() {
   const [matureContent, setMatureContent] = useState(
     community ? community.mature : false,
   );
+  const { mutate: updateMature, isPending: updateMaturePending } =
+    useUpdateMatureMutation();
+
+  function handleSubmitMature(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (updateMaturePending) return;
+    updateMature(
+      {
+        communityId: communityId,
+        mature: matureContent,
+      },
+      {
+        onSuccess: () => {
+          setEditMode("none");
+        },
+      },
+    );
+  }
 
   useEffect(() => {
     if (moderatorsLoading) return;
@@ -233,7 +252,7 @@ function RouteComponent() {
           ) : editMode === "mature" ? (
             <div>
               <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[#222222] p-6 rounded shadow-lg w-[90%] max-w-md  z-100">
-                <form action="" className="flex flex-col">
+                <form onSubmit={handleSubmitMature} className="flex flex-col">
                   <div className="text-2xl mb-5">Mature (18+)</div>
                   <div
                     onClick={() => setMatureContent(!matureContent)}
