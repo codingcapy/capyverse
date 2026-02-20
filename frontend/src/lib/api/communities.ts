@@ -492,7 +492,6 @@ async function updateMature(args: UpdateMatureArgs) {
     throw new Error("Error updating community mature.");
   }
   const { newCommunity } = await res.json();
-  console.log(newCommunity);
   return newCommunity;
 }
 

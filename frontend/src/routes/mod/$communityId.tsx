@@ -51,22 +51,6 @@ function CommunityModTools() {
   const { mutate: updateMature, isPending: updateMaturePending } =
     useUpdateMatureMutation();
 
-  function handleSubmitMature(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    if (updateMaturePending) return;
-    updateMature(
-      {
-        communityId: communityId,
-        mature: matureContent,
-      },
-      {
-        onSuccess: () => {
-          setEditMode("none");
-        },
-      },
-    );
-  }
-
   useEffect(() => {
     if (moderatorsLoading) return;
     if (moderatorsError) navigate({ to: "/" });
@@ -120,9 +104,7 @@ function CommunityModTools() {
             <div className="flex justify-between max-w-[700px] 2xl:max-w-[1000px]">
               <div className="">Mature (18+)</div>
               <div className="flex">
-                <div className="mr-2">
-                  {community.mature ? community.mature.toString() : "Off"}
-                </div>
+                <div className="mr-2">{community.mature ? "On" : "Off"}</div>
                 <div
                   onClick={() => setEditMode("mature")}
                   className="rotate-270 hover:bg-[#666666] p-2 rounded-full cursor-pointer"
@@ -252,7 +234,7 @@ function CommunityModTools() {
           ) : editMode === "mature" ? (
             <div>
               <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[#222222] p-6 rounded shadow-lg w-[90%] max-w-md  z-100">
-                <form onSubmit={handleSubmitMature} className="flex flex-col">
+                <form className="flex flex-col">
                   <div className="text-2xl mb-5">Mature (18+)</div>
                   <div
                     onClick={() => setMatureContent(!matureContent)}
@@ -285,8 +267,24 @@ function CommunityModTools() {
                     >
                       Cancel
                     </div>
-                    <div className="mx-1 bg-cyan-600 hover:bg-cyan-500 px-2 py-1 rounded-full cursor-pointer transition-all ease-in-out duration-300">
-                      Save
+                    <div
+                      onClick={() => {
+                        if (updateMaturePending) return;
+                        updateMature(
+                          {
+                            communityId: community.communityId,
+                            mature: matureContent,
+                          },
+                          {
+                            onSuccess: () => {
+                              setEditMode("none");
+                            },
+                          },
+                        );
+                      }}
+                      className="mx-1 bg-cyan-600 hover:bg-cyan-500 px-2 py-1 rounded-full cursor-pointer transition-all ease-in-out duration-300"
+                    >
+                      {updateMaturePending ? "Saving..." : "Save"}
                     </div>
                   </div>
                 </form>
