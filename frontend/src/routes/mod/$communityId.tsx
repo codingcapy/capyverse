@@ -7,6 +7,7 @@ import {
   getMembersQueryOptions,
   getModeratorsQueryOptions,
   useUpdateMatureMutation,
+  useUpdateVisibilityMutation,
 } from "../../lib/api/communities";
 import { PiCaretDownBold } from "react-icons/pi";
 import defaultProfile from "/capypaul01.jpg";
@@ -50,6 +51,9 @@ function CommunityModTools() {
   );
   const { mutate: updateMature, isPending: updateMaturePending } =
     useUpdateMatureMutation();
+
+  const { mutate: updateVisibility, isPending: updateVisibilityPending } =
+    useUpdateVisibilityMutation();
 
   useEffect(() => {
     if (moderatorsLoading) return;
@@ -333,8 +337,24 @@ function CommunityModTools() {
                     >
                       Cancel
                     </div>
-                    <div className="mx-1 bg-cyan-600 hover:bg-cyan-500 px-2 py-1 rounded-full cursor-pointer transition-all ease-in-out duration-300">
-                      Save
+                    <div
+                      onClick={() => {
+                        if (updateVisibilityPending) return;
+                        updateVisibility(
+                          {
+                            communityId: community.communityId,
+                            visibility: visibility,
+                          },
+                          {
+                            onSuccess: () => {
+                              setEditMode("none");
+                            },
+                          },
+                        );
+                      }}
+                      className="mx-1 bg-cyan-600 hover:bg-cyan-500 px-2 py-1 rounded-full cursor-pointer transition-all ease-in-out duration-300"
+                    >
+                      {updateVisibilityPending ? "Saving..." : "Save"}
                     </div>
                   </div>
                 </form>

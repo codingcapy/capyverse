@@ -471,7 +471,7 @@ export const communitiesRouter = new Hono()
       const { error: queryError, result: newCommunityResult } = await mightFail(
         db
           .update(communitiesTable)
-          .set({ description: updateValues.visibility })
+          .set({ visibility: updateValues.visibility })
           .where(eq(communitiesTable.communityId, updateValues.communityId))
           .returning(),
       );
