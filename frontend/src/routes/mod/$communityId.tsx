@@ -6,6 +6,7 @@ import {
   getCommunityByIdQueryOptions,
   getMembersQueryOptions,
   getModeratorsQueryOptions,
+  useUpdateDescriptionMutation,
   useUpdateMatureMutation,
   useUpdateVisibilityMutation,
 } from "../../lib/api/communities";
@@ -51,9 +52,10 @@ function CommunityModTools() {
   );
   const { mutate: updateMature, isPending: updateMaturePending } =
     useUpdateMatureMutation();
-
   const { mutate: updateVisibility, isPending: updateVisibilityPending } =
     useUpdateVisibilityMutation();
+  const { mutate: updateDescription, isPending: updateDescriptionPending } =
+    useUpdateDescriptionMutation();
 
   useEffect(() => {
     if (moderatorsLoading) return;
@@ -66,6 +68,14 @@ function CommunityModTools() {
     )
       navigate({ to: "/" });
   }, [user, moderators]);
+
+  useEffect(() => {
+    if (community) {
+      setDescriptionContent(community.description);
+      setVisibility(community.visibility);
+      setMatureContent(community.mature);
+    }
+  }, [community]);
 
   return (
     <div className="pt-[70px] mx-auto">
@@ -227,8 +237,24 @@ function CommunityModTools() {
                     >
                       Cancel
                     </div>
-                    <div className="mx-1 bg-cyan-600 hover:bg-cyan-500 px-2 py-1 rounded-full cursor-pointer transition-all ease-in-out duration-300">
-                      Save
+                    <div
+                      onClick={() => {
+                        if (updateDescriptionPending) return;
+                        updateDescription(
+                          {
+                            communityId: community.communityId,
+                            description: descriptionContent,
+                          },
+                          {
+                            onSuccess: () => {
+                              setEditMode("none");
+                            },
+                          },
+                        );
+                      }}
+                      className="mx-1 bg-cyan-600 hover:bg-cyan-500 px-2 py-1 rounded-full cursor-pointer transition-all ease-in-out duration-300"
+                    >
+                      {updateDescriptionPending ? "Saving..." : "Save"}
                     </div>
                   </div>
                 </form>
