@@ -14,7 +14,7 @@ import { PiCaretDownBold } from "react-icons/pi";
 import defaultProfile from "/capypaul01.jpg";
 
 type MembersMode = "mods" | "members";
-type EditMode = "none" | "description" | "visibility" | "mature";
+type EditMode = "none" | "description" | "visibility" | "mature" | "inviteMod";
 
 export const Route = createFileRoute("/mod/$communityId")({
   component: CommunityModTools,
@@ -56,6 +56,7 @@ function CommunityModTools() {
     useUpdateVisibilityMutation();
   const { mutate: updateDescription, isPending: updateDescriptionPending } =
     useUpdateDescriptionMutation();
+  const [inviteModContent, setInviteModContent] = useState("");
 
   useEffect(() => {
     if (moderatorsLoading) return;
@@ -128,7 +129,7 @@ function CommunityModTools() {
               </div>
             </div>
           </div>
-          <div className="text-3xl font-bold">Mature (18+)</div>
+          <div className="text-3xl font-bold">Mods & Members</div>
           <div className="my-5 flex">
             <div
               onClick={() => setMembersMode("mods")}
@@ -143,6 +144,14 @@ function CommunityModTools() {
               Members
             </div>
           </div>
+          {membersMode === "mods" && (
+            <div
+              onClick={() => setEditMode("inviteMod")}
+              className="mb-5 w-[130px] text-center py-1 rounded-full bg-cyan-600 hover:bg-cyan-500 transition-all ease-in-out duration-300 cursor-pointer"
+            >
+              + Invite Mod
+            </div>
+          )}
           <div className="flex justify-between font-bold border-y border-[#555555] py-2 mb-5">
             <div>USERNAME</div>
             <div>JOINED</div>
@@ -381,6 +390,54 @@ function CommunityModTools() {
                       className="mx-1 bg-cyan-600 hover:bg-cyan-500 px-2 py-1 rounded-full cursor-pointer transition-all ease-in-out duration-300"
                     >
                       {updateVisibilityPending ? "Saving..." : "Save"}
+                    </div>
+                  </div>
+                </form>
+              </div>
+              <div className="fixed inset-0 bg-black opacity-50 z-90"></div>
+            </div>
+          ) : editMode === "inviteMod" ? (
+            <div className="">
+              <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[#222222] p-6 rounded shadow-lg w-[90%] max-w-md  z-100">
+                <form action="" className="flex flex-col">
+                  <div className="text-2xl mb-5">Invite Mod</div>
+                  <input
+                    type="text"
+                    placeholder="Username"
+                    value={inviteModContent}
+                    onChange={(e) => setInviteModContent(e.target.value)}
+                    className="border border-[#77777777] rounded mb-5 px-2 py-1"
+                  />
+                  <div className="flex justify-end">
+                    <div
+                      onClick={() => {
+                        setEditMode("none");
+                        setInviteModContent("");
+                      }}
+                      className="mx-1 bg-[#444444] hover:bg-[#555555] px-2 py-1 rounded-full cursor-pointer transition-all ease-in-out duration-300"
+                    >
+                      Cancel
+                    </div>
+                    <div
+                      // onClick={() => {
+                      //   if (inviteModPending) return;
+                      //   inviteMod(
+                      //     {
+                      //       communityId: community.communityId,
+                      //       username: username,
+                      //     },
+                      //     {
+                      //       onSuccess: () => {
+                      //         setEditMode("none");
+                      //         setInviteModeContent("");
+                      //       },
+                      //     },
+                      //   );
+                      // }}
+                      className="mx-1 bg-cyan-600 hover:bg-cyan-500 px-2 py-1 rounded-full cursor-pointer transition-all ease-in-out duration-300"
+                    >
+                      Invite
+                      {/* {inviteModPending ? "Inviting..." : "Invite"} */}
                     </div>
                   </div>
                 </form>
