@@ -507,3 +507,61 @@ export const useUpdateMatureMutation = () => {
     },
   });
 };
+
+async function inviteModerator(args: JoinCommunityArgs) {
+  const token = getSession();
+  const res = await client.api.v0.communities.moderators.invite.$post(
+    { json: args },
+    token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined,
+  );
+  if (!res.ok) {
+    let errorMessage =
+      "There was an issue joining the community :( We'll look into it ASAP!";
+    try {
+      const errorResponse = await res.json();
+      if (
+        errorResponse &&
+        typeof errorResponse === "object" &&
+        "message" in errorResponse
+      ) {
+        errorMessage = String(errorResponse.message);
+      }
+    } catch (error) {
+      console.error("Failed to parse error response:", error);
+    }
+    throw new Error(errorMessage);
+  }
+  const result = await res.json();
+  if (!result.communityResult) {
+    throw new Error("Invalid response from server");
+  }
+  return result.communityResult;
+}
+
+export const useInviteModeratorMutation = (
+  onError?: (message: string) => void,
+) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: inviteModerator,
+    onSettled: (args) => {
+      queryClient.invalidateQueries({
+        queryKey: ["moderators"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["members"],
+      });
+    },
+    onError: (error) => {
+      if (onError) {
+        onError(error.message);
+      }
+    },
+  });
+};

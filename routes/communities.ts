@@ -501,4 +501,57 @@ export const communitiesRouter = new Hono()
       });
     }
     return c.json({ newCommunity: newCommunityResult[0] }, 200);
-  });
+  })
+  .post(
+    "/moderators/invite",
+    zValidator("json", joinCommunitySchema),
+    async (c) => {
+      const decodedUser = requireUser(c);
+      const insertValues = c.req.valid("json");
+      const { result: communitiesQueryResult, error: communitiesQueryError } =
+        await mightFail(
+          db
+            .select()
+            .from(communityUsersTable)
+            .where(
+              and(
+                eq(communityUsersTable.communityId, insertValues.communityId),
+                eq(communityUsersTable.userId, decodedUser.id),
+              ),
+            ),
+        );
+      if (communitiesQueryError) {
+        throw new HTTPException(500, {
+          message: "Error occurred when fetching community user",
+          cause: communitiesQueryError,
+        });
+      }
+      if (communitiesQueryResult.length > 0)
+        throw new HTTPException(401, {
+          message: "User is already in community",
+          cause: Error(),
+        });
+      const {
+        error: communityUserInsertError,
+        result: communityUserInsertResult,
+      } = await mightFail(
+        db
+          .insert(communityUsersTable)
+          .values({
+            ...insertValues,
+            userId: decodedUser.id,
+            role: "moderator",
+          })
+          .returning(),
+      );
+      if (communityUserInsertError) {
+        console.log("Error while creating community user");
+        console.log(communityUserInsertResult);
+        throw new HTTPException(500, {
+          message: "Error while creating community user",
+          cause: communityUserInsertResult,
+        });
+      }
+      return c.json({ communityResult: communityUserInsertResult[0] }, 200);
+    },
+  );
