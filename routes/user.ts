@@ -48,7 +48,17 @@ export const userRouter = new Hono()
       try {
         const loginInfo = c.req.valid("json");
         const queryResult = await db
-          .select()
+          .select({
+            userId: usersTable.userId,
+            username: usersTable.username,
+            email: usersTable.email,
+            password: usersTable.password,
+            profilePic: usersTable.profilePic,
+            role: usersTable.role,
+            status: usersTable.status,
+            preference: usersTable.preference,
+            createdAt: usersTable.createdAt,
+          })
           .from(usersTable)
           .where(eq(usersTable.email, loginInfo.email));
         const user = queryResult[0];
@@ -63,7 +73,27 @@ export const userRouter = new Hono()
         const token = jwt.sign({ id: user.userId }, process.env.JWT_SECRET!, {
           expiresIn: "14 days",
         });
-        return c.json({ result: { user, token } });
+        const {
+          userId,
+          username,
+          email,
+          profilePic,
+          role,
+          status,
+          preference,
+          createdAt,
+        } = user;
+        const safeUser = {
+          userId,
+          username,
+          email,
+          profilePic,
+          role,
+          status,
+          preference,
+          createdAt,
+        };
+        return c.json({ result: { user: safeUser, token } });
       } catch (error) {
         console.error(error);
         c.status(500);
@@ -81,11 +111,23 @@ export const userRouter = new Hono()
       const token = authHeader.split(" ")[1];
       const decodedUser = jwt.verify(token!, process.env.JWT_SECRET!);
       const response = await db
-        .select()
+        .select({
+          userId: usersTable.userId,
+          username: usersTable.username,
+          email: usersTable.email,
+          profilePic: usersTable.profilePic,
+          role: usersTable.role,
+          status: usersTable.status,
+          preference: usersTable.preference,
+          createdAt: usersTable.createdAt,
+        })
         .from(usersTable)
         //@ts-ignore
         .where(eq(usersTable.userId, decodedUser.id));
       const user = response[0];
+      if (!user) {
+        return c.json({ result: { user: null, token: null } });
+      }
       return c.json({ result: { user, token } });
     } catch (err) {
       c.status(401);

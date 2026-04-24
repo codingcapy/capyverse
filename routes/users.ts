@@ -39,7 +39,7 @@ export const usersRouter = new Hono()
       const { error: emailQueryError, result: emailQueryResult } =
         await mightFail(
           db
-            .select()
+            .select({ userId: usersTable.userId })
             .from(usersTable)
             .where(eq(usersTable.email, insertValues.email)),
         );
@@ -58,7 +58,7 @@ export const usersRouter = new Hono()
       const { error: usernameQueryError, result: usernameQueryResult } =
         await mightFail(
           db
-            .select()
+            .select({ userId: usersTable.userId })
             .from(usersTable)
             .where(eq(usersTable.username, insertValues.username)),
         );
@@ -86,7 +86,16 @@ export const usersRouter = new Hono()
               email: insertValues.email,
               password: encrypted,
             })
-            .returning(),
+            .returning({
+              userId: usersTable.userId,
+              username: usersTable.username,
+              email: usersTable.email,
+              profilePic: usersTable.profilePic,
+              role: usersTable.role,
+              status: usersTable.status,
+              preference: usersTable.preference,
+              createdAt: usersTable.createdAt,
+            }),
         );
       if (userInsertError) {
         console.log("Error while creating user");
@@ -95,7 +104,13 @@ export const usersRouter = new Hono()
           cause: userInsertResult,
         });
       }
-      return c.json({ user: userInsertResult[0] }, 200);
+      const createdUser = userInsertResult[0];
+      if (!createdUser) {
+        throw new HTTPException(500, {
+          message: "Error while creating user",
+        });
+      }
+      return c.json({ user: createdUser }, 200);
     },
   )
   .get("/:userId", async (c) => {
@@ -154,7 +169,16 @@ export const usersRouter = new Hono()
           .update(usersTable)
           .set({ profilePic: updateValues.profilePic })
           .where(eq(usersTable.userId, updateValues.userId))
-          .returning(),
+          .returning({
+            userId: usersTable.userId,
+            username: usersTable.username,
+            email: usersTable.email,
+            profilePic: usersTable.profilePic,
+            role: usersTable.role,
+            status: usersTable.status,
+            preference: usersTable.preference,
+            createdAt: usersTable.createdAt,
+          }),
       );
       if (queryError) {
         throw new HTTPException(500, {
@@ -162,6 +186,12 @@ export const usersRouter = new Hono()
           cause: queryError,
         });
       }
-      return c.json({ newUser: newUserResult[0] }, 200);
+      const updatedUser = newUserResult[0];
+      if (!updatedUser) {
+        throw new HTTPException(500, {
+          message: "Error updating users table",
+        });
+      }
+      return c.json({ newUser: updatedUser }, 200);
     },
   );

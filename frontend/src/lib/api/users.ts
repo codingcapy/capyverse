@@ -109,7 +109,6 @@ async function updateProfilePic(args: UpdateProfilePicArgs) {
     throw new Error("Error updating user.");
   }
   const { newUser } = await res.json();
-  console.log(newUser);
   return newUser;
 }
 

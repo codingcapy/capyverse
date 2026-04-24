@@ -103,7 +103,7 @@ export const commentsRouter = new Hono()
     const username = c.req.param("username");
     const { result: users, error: userError } = await mightFail(
       db
-        .select()
+        .select({ userId: usersTable.userId })
         .from(usersTable)
         .where(eq(usersTable.username, username))
         .limit(1),
@@ -222,7 +222,7 @@ export const commentsRouter = new Hono()
     const username = c.req.param("username");
     const { result: users, error: userError } = await mightFail(
       db
-        .select()
+        .select({ userId: usersTable.userId })
         .from(usersTable)
         .where(eq(usersTable.username, username))
         .limit(1),
