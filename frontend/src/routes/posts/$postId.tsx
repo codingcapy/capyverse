@@ -11,12 +11,12 @@ import {
   useDeletePostMutation,
   useUpdatePostMutation,
 } from "../../lib/api/posts";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import useAuthStore from "../../store/AuthStore";
 import { VotesComponent } from "../../components/VotesComponent";
 import { useState } from "react";
 import {
-  getCommentsByPostIdQueryOptions,
+  getCommentsByPostIdInfiniteQueryOptions,
   useCreateCommentMutation,
 } from "../../lib/api/comments";
 import { getUserByIdQueryOptions } from "../../lib/api/users";
@@ -68,10 +68,13 @@ function PostComponent() {
   const post = Route.useRouteContext();
   const { user } = useAuthStore();
   const {
-    data: comments,
+    data: commentsPages,
     isLoading: commentsLoading,
     error: commentsError,
-  } = useQuery(getCommentsByPostIdQueryOptions(post.postId));
+    hasNextPage: commentsHasNextPage,
+    isFetchingNextPage: commentsFetchingNextPage,
+    fetchNextPage: fetchNextCommentsPage,
+  } = useInfiniteQuery(getCommentsByPostIdInfiniteQueryOptions(post.postId));
   const {
     data: author,
     isLoading: authorLoading,
@@ -82,7 +85,8 @@ function PostComponent() {
     useCreateCommentMutation();
   const navigate = useNavigate();
   const [commentMode, setCommentMode] = useState(false);
-  const commentTree = buildCommentTree((comments && comments) || [], {
+  const comments = commentsPages?.pages.flatMap((page) => page.comments) ?? [];
+  const commentTree = buildCommentTree(comments, {
     sort: "asc",
   });
   const [showMenu, setShowMenu] = useState(false);
@@ -101,7 +105,7 @@ function PostComponent() {
   } = useQuery(getImagesByPostIdQueryOptions(post.postId));
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const activeImage = images && images[activeImageIndex];
-  const [notification, setNotification] = useState("");
+  const [, setNotification] = useState("");
   const {
     data: community,
     isLoading: communityLoading,
@@ -156,7 +160,6 @@ function PostComponent() {
         "Comment content length max character limit is 10,000",
       );
     if (!user) return navigate({ to: "/login" });
-    const userId = user.userId;
     createComment(
       { postId: post.postId, content: commentContent },
       {
@@ -518,13 +521,27 @@ function PostComponent() {
       ) : commentsLoading ? (
         <div>Loading...</div>
       ) : (
-        commentTree.map((comment) => (
-          <CommentComponent
-            comment={comment}
-            post={post}
-            key={comment.commentId}
-          />
-        ))
+        <>
+          {commentTree.map((comment) => (
+            <CommentComponent
+              comment={comment}
+              post={post}
+              key={comment.commentId}
+            />
+          ))}
+          {commentsHasNextPage && (
+            <button
+              type="button"
+              onClick={() => fetchNextCommentsPage()}
+              disabled={commentsFetchingNextPage}
+              className="mt-3 text-sm text-cyan-500 hover:text-cyan-400 transition-all ease-in-out duration-300 disabled:opacity-50 cursor-pointer"
+            >
+              {commentsFetchingNextPage
+                ? "Loading comments..."
+                : "Load More Comments"}
+            </button>
+          )}
+        </>
       )}
     </div>
   );

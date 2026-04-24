@@ -86,12 +86,13 @@ export const useCreateCommentMutation = (
   });
 };
 
-async function getCommentsByPostId(postId: number) {
+async function getCommentsByPostIdPage(postId: number, cursor: CommentCursor) {
   const token = getSession();
   const res = await client.api.v0.comments[":postId"].$get(
     {
       param: { postId: postId.toString() },
-    },
+      query: cursor ? { cursorCommentId: String(cursor.commentId) } : {},
+    } as any,
     token
       ? {
           headers: {
@@ -103,14 +104,19 @@ async function getCommentsByPostId(postId: number) {
   if (!res.ok) {
     throw new Error("Error getting comments by id");
   }
-  const { comments } = await res.json();
-  return comments.map(mapSerializedCommentToSchema);
+  const { comments, nextCursor } = await res.json();
+  return {
+    comments: comments.map(mapSerializedCommentToSchema),
+    nextCursor: nextCursor ?? null,
+  };
 }
 
-export const getCommentsByPostIdQueryOptions = (postId: number) =>
-  queryOptions({
+export const getCommentsByPostIdInfiniteQueryOptions = (postId: number) =>
+  infiniteQueryOptions({
     queryKey: ["comments", postId],
-    queryFn: () => getCommentsByPostId(postId),
+    queryFn: ({ pageParam }) => getCommentsByPostIdPage(postId, pageParam),
+    initialPageParam: null as CommentCursor,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? null,
   });
 
 async function deleteComment(args: DeleteCommentArgs) {

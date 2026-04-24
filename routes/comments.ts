@@ -108,21 +108,38 @@ export const commentsRouter = new Hono()
   .get("/:postId", async (c) => {
     const { postId: postIdString } = c.req.param();
     const postId = assertIsParsableInt(postIdString);
+    const limit = Math.min(Number(c.req.query("limit") ?? 50), 100);
+    const cursorCommentId = c.req.query("cursorCommentId");
     const { result: commentsQueryResult, error: commentsQueryError } =
       await mightFail(
         db
           .select()
           .from(commentsTable)
-          .where(eq(commentsTable.postId, postId))
+          .where(
+            cursorCommentId
+              ? and(
+                  eq(commentsTable.postId, postId),
+                  sql`${commentsTable.commentId} < ${Number(cursorCommentId)}`,
+                )
+              : eq(commentsTable.postId, postId),
+          )
           .orderBy(desc(commentsTable.commentId))
-          .limit(500),
+          .limit(limit + 1),
       );
     if (commentsQueryError)
       throw new HTTPException(500, {
         message: "error querying comments",
         cause: commentsQueryError,
       });
-    return c.json({ comments: commentsQueryResult });
+    const hasNextPage = commentsQueryResult.length > limit;
+    const pageItems = hasNextPage
+      ? commentsQueryResult.slice(0, limit)
+      : commentsQueryResult;
+    const last = pageItems.at(-1);
+    return c.json({
+      comments: pageItems,
+      nextCursor: hasNextPage ? { commentId: last!.commentId } : null,
+    });
   })
   .get("/user/comments/:username", async (c) => {
     const username = c.req.param("username");
