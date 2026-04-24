@@ -5,7 +5,7 @@ import defaultProfile from "/capypaul01.jpg";
 import { displayDate } from "../lib/utils";
 import { Link } from "@tanstack/react-router";
 import { getCommentsLengthByPostIdQueryOptions } from "../lib/api/comments";
-import { getVotesByPostIdQueryOptions } from "../lib/api/votes";
+import { getVotesSummaryByPostIdQueryOptions } from "../lib/api/votes";
 import { getCommunityByIdQueryOptions } from "../lib/api/communities";
 
 export function PostThumbnailSimple(props: { post: Post }) {
@@ -20,10 +20,10 @@ export function PostThumbnailSimple(props: { post: Post }) {
     error: commentsLengthError,
   } = useQuery(getCommentsLengthByPostIdQueryOptions(props.post.postId));
   const {
-    data: votes,
+    data: votesSummary,
     isLoading: votesLoading,
     isError: votesError,
-  } = useQuery(getVotesByPostIdQueryOptions(props.post.postId));
+  } = useQuery(getVotesSummaryByPostIdQueryOptions(props.post.postId));
   const {
     data: community,
     isLoading: communityLoading,
@@ -160,11 +160,7 @@ export function PostThumbnailSimple(props: { post: Post }) {
             ? "Loading..."
             : votesError
               ? "error"
-              : votes !== undefined
-                ? votes
-                    .filter((vote) => vote.commentId === null)
-                    .reduce((acc, vote) => acc + vote.value!, 0)
-                : "error"}{" "}
+              : (votesSummary?.score ?? 0)}{" "}
           votes
         </div>
         <div className="text-sm">

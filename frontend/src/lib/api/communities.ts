@@ -1,4 +1,5 @@
 import {
+  infiniteQueryOptions,
   queryOptions,
   useMutation,
   useQueryClient,
@@ -42,6 +43,10 @@ type UpdateMatureArgs = ArgumentTypes<
 type UpdateSettingsArgs = ArgumentTypes<
   typeof client.api.v0.communities.update.settings.$post
 >[0]["json"];
+
+type CommunityUsersCursor = {
+  communityUserId: number;
+} | null;
 
 export function mapSerializedCommunityToSchema(
   serialized: SerializeCommunity,
@@ -105,25 +110,28 @@ export const useCreateCommunityMutation = (
   });
 };
 
-async function getCommunities(page: number) {
+export type CommunitiesCursor = string | null;
+
+async function getCommunities(cursor: CommunitiesCursor) {
   const res = await client.api.v0.communities.$get({
-    query: { page: page.toString() },
+    query: cursor ? { cursor } : {},
   });
   if (!res.ok) {
     throw new Error("Error getting communities");
   }
-  const { communities, page: currentPage, totalPages } = await res.json();
+  const { communities, nextCursor } = await res.json();
   return {
     communities: communities.map(mapSerializedCommunityToSchema),
-    page: currentPage,
-    totalPages,
+    nextCursor: nextCursor ?? null,
   };
 }
 
-export const getCommunitiesQueryOptions = (page: number) =>
-  queryOptions({
-    queryKey: ["communities", page],
-    queryFn: () => getCommunities(page),
+export const getCommunitiesInfiniteQueryOptions = () =>
+  infiniteQueryOptions({
+    queryKey: ["communities"],
+    queryFn: ({ pageParam }) => getCommunities(pageParam),
+    initialPageParam: null as CommunitiesCursor,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
   });
 
 async function getCommunityById(communityId: string) {
@@ -312,8 +320,37 @@ async function getModerators(communityId: string) {
 
 export const getModeratorsQueryOptions = (communityId: string) =>
   queryOptions({
-    queryKey: ["moderators"],
+    queryKey: ["moderators", communityId],
     queryFn: () => getModerators(communityId),
+  });
+
+async function getModeratorsPage(
+  communityId: string,
+  cursor: CommunityUsersCursor,
+) {
+  const res = await client.api.v0.communities.moderators[":communityId"].$get({
+    param: { communityId: communityId.toString() },
+    query: cursor
+      ? { cursorCommunityUserId: String(cursor.communityUserId) }
+      : {},
+  } as any);
+
+  if (!res.ok) {
+    throw new Error("Error getting moderators");
+  }
+  const { moderators, nextCursor } = await res.json();
+  return {
+    moderators,
+    nextCursor: nextCursor ?? null,
+  };
+}
+
+export const getModeratorsInfiniteQueryOptions = (communityId: string) =>
+  infiniteQueryOptions({
+    queryKey: ["moderators", communityId, "infinite"],
+    queryFn: ({ pageParam }) => getModeratorsPage(communityId, pageParam),
+    initialPageParam: null as CommunityUsersCursor,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
   });
 
 async function updateIcon(args: UpdateIconArgs) {
@@ -352,8 +389,37 @@ async function getMembers(communityId: string) {
 
 export const getMembersQueryOptions = (communityId: string) =>
   queryOptions({
-    queryKey: ["members"],
+    queryKey: ["members", communityId],
     queryFn: () => getMembers(communityId),
+  });
+
+async function getMembersPage(
+  communityId: string,
+  cursor: CommunityUsersCursor,
+) {
+  const res = await client.api.v0.communities.members[":communityId"].$get({
+    param: { communityId: communityId.toString() },
+    query: cursor
+      ? { cursorCommunityUserId: String(cursor.communityUserId) }
+      : {},
+  } as any);
+
+  if (!res.ok) {
+    throw new Error("Error getting members");
+  }
+  const { members, nextCursor } = await res.json();
+  return {
+    members,
+    nextCursor: nextCursor ?? null,
+  };
+}
+
+export const getMembersInfiniteQueryOptions = (communityId: string) =>
+  infiniteQueryOptions({
+    queryKey: ["members", communityId, "infinite"],
+    queryFn: ({ pageParam }) => getMembersPage(communityId, pageParam),
+    initialPageParam: null as CommunityUsersCursor,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
   });
 
 export const useUpdateIconMutation = () => {
@@ -550,7 +616,7 @@ export const useInviteModeratorMutation = (
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: inviteModerator,
-    onSettled: (args) => {
+    onSettled: () => {
       queryClient.invalidateQueries({
         queryKey: ["moderators"],
       });

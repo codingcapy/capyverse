@@ -1,4 +1,5 @@
 import {
+  infiniteQueryOptions,
   queryOptions,
   useMutation,
   useQueryClient,
@@ -30,6 +31,10 @@ export function mapSerializedCommentToSchema(
     createdAt: new Date(SerializedComment.createdAt),
   };
 }
+
+export type CommentCursor = {
+  commentId: number;
+} | null;
 
 async function createComment(args: CreateCommentArgs) {
   const token = getSession();
@@ -206,10 +211,12 @@ export const useUpdateCommentMutation = (
   });
 };
 
-async function getCommentsByUserProfile() {
+async function getCommentsByUserProfilePage(cursor: CommentCursor) {
   const token = getSession();
   const res = await client.api.v0.comments.user.profile.$get(
-    {},
+    {
+      query: cursor ? { cursorCommentId: String(cursor.commentId) } : {},
+    },
     token
       ? {
           headers: {
@@ -222,14 +229,19 @@ async function getCommentsByUserProfile() {
   if (!res.ok) {
     throw new Error("Error getting comments by user profile");
   }
-  const { comments } = await res.json();
-  return comments.map(mapSerializedCommentToSchema);
+  const { comments, nextCursor } = await res.json();
+  return {
+    comments: comments.map(mapSerializedCommentToSchema),
+    nextCursor,
+  };
 }
 
-export const getCommentsByUserProfileQueryOptions = () =>
-  queryOptions({
+export const getCommentsByUserProfileInfiniteQueryOptions = () =>
+  infiniteQueryOptions({
     queryKey: ["profile-comments"],
-    queryFn: () => getCommentsByUserProfile(),
+    queryFn: ({ pageParam }) => getCommentsByUserProfilePage(pageParam),
+    initialPageParam: null as CommentCursor,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? null,
   });
 
 async function getCommentsLengthByPostId(postId: number) {
@@ -249,20 +261,29 @@ export const getCommentsLengthByPostIdQueryOptions = (postId: number) =>
     queryFn: () => getCommentsLengthByPostId(postId),
   });
 
-async function getCommentsByUsername(username: string) {
+async function getCommentsByUsernamePage(
+  username: string,
+  cursor: CommentCursor,
+) {
   const res = await client.api.v0.comments.user.comments[":username"].$get({
     param: { username: username.toString() },
-  });
+    query: cursor ? { cursorCommentId: String(cursor.commentId) } : {},
+  } as any);
 
   if (!res.ok) {
     throw new Error("Error getting comments by username");
   }
-  const { comments } = await res.json();
-  return comments.map(mapSerializedCommentToSchema);
+  const { comments, nextCursor } = await res.json();
+  return {
+    comments: comments.map(mapSerializedCommentToSchema),
+    nextCursor,
+  };
 }
 
-export const getCommentsByUsernameQueryOptions = (username: string) =>
-  queryOptions({
+export const getCommentsByUsernameInfiniteQueryOptions = (username: string) =>
+  infiniteQueryOptions({
     queryKey: ["user-comments", username],
-    queryFn: () => getCommentsByUsername(username),
+    queryFn: ({ pageParam }) => getCommentsByUsernamePage(username, pageParam),
+    initialPageParam: null as CommentCursor,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? null,
   });

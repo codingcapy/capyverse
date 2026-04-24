@@ -1,11 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { getUserByUsernameQueryOptions } from "../../lib/api/users";
 import defaultProfile from "/capypaul01.jpg";
 import { useState } from "react";
-import { getPostsByUsernameQueryOptions } from "../../lib/api/posts";
+import { getPostsByUsernameInfiniteQueryOptions } from "../../lib/api/posts";
 import { PostThumbnail } from "../../components/PostThumbnail";
-import { getCommentsByUsernameQueryOptions } from "../../lib/api/comments";
+import { getCommentsByUsernameInfiniteQueryOptions } from "../../lib/api/comments";
 import { CommentThumbnail } from "../../components/CommentThumbnail";
 
 type ProfileMode = "Overview" | "Posts" | "Comments";
@@ -23,15 +23,25 @@ function UserProfilePage() {
   } = useQuery(getUserByUsernameQueryOptions(username));
   const [profileMode, setProfileMode] = useState<ProfileMode>("Overview");
   const {
-    data: userPosts,
+    data: userPostsData,
     isLoading: userPostsLoading,
     error: userPostsError,
-  } = useQuery(getPostsByUsernameQueryOptions(username));
+    hasNextPage: hasNextPostsPage,
+    fetchNextPage: fetchNextPostsPage,
+    isFetchingNextPage: isFetchingNextPostsPage,
+  } = useInfiniteQuery(getPostsByUsernameInfiniteQueryOptions(username));
   const {
-    data: userComments,
+    data: userCommentsData,
     isLoading: userCommentsLoading,
     error: userCommentsError,
-  } = useQuery(getCommentsByUsernameQueryOptions(username));
+    hasNextPage: hasNextCommentsPage,
+    fetchNextPage: fetchNextCommentsPage,
+    isFetchingNextPage: isFetchingNextCommentsPage,
+  } = useInfiniteQuery(getCommentsByUsernameInfiniteQueryOptions(username));
+
+  const userPosts = userPostsData?.pages.flatMap((page) => page.posts) ?? [];
+  const userComments =
+    userCommentsData?.pages.flatMap((page) => page.comments) ?? [];
 
   return (
     <div className="pt-[70px] mx-auto">
@@ -94,6 +104,17 @@ function UserProfilePage() {
         ) : (
           <div></div>
         )}
+        {profileMode === "Posts" && hasNextPostsPage && (
+          <div className="flex justify-center mt-6">
+            <button
+              onClick={() => fetchNextPostsPage()}
+              disabled={isFetchingNextPostsPage}
+              className="bg-cyan-600 px-5 py-2 rounded-full font-bold cursor-pointer hover:bg-cyan-500 transition-all ease-in-out duration-300 disabled:opacity-50"
+            >
+              {isFetchingNextPostsPage ? "Loading..." : "Load More"}
+            </button>
+          </div>
+        )}
         {(profileMode === "Overview" || profileMode === "Comments") &&
         userCommentsError ? (
           <div className="mx-auto w-full md:w-[50%] 2xl:w-[750px] border-t border-[#636363]">
@@ -115,6 +136,17 @@ function UserProfilePage() {
               <div className="relative my-1 rounded py-2 px-4"></div>
             </div>
           )
+        )}
+        {profileMode === "Comments" && hasNextCommentsPage && (
+          <div className="flex justify-center mt-6">
+            <button
+              onClick={() => fetchNextCommentsPage()}
+              disabled={isFetchingNextCommentsPage}
+              className="bg-cyan-600 px-5 py-2 rounded-full font-bold cursor-pointer hover:bg-cyan-500 transition-all ease-in-out duration-300 disabled:opacity-50"
+            >
+              {isFetchingNextCommentsPage ? "Loading..." : "Load More"}
+            </button>
+          </div>
         )}
       </div>
     </div>

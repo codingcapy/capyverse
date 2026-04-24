@@ -1,4 +1,5 @@
 import {
+  infiniteQueryOptions,
   queryOptions,
   useMutation,
   useQueryClient,
@@ -379,12 +380,17 @@ export const useUpdatePostMutation = (onError?: (message: string) => void) => {
   });
 };
 
-async function getPostsByUserId(userId: string) {
+export type UserPostCursor = {
+  postId: number;
+} | null;
+
+async function getPostsByUserIdPage(userId: string, cursor: UserPostCursor) {
   const token = getSession();
   const res = await client.api.v0.posts.user[":userId"].$get(
     {
       param: { userId: userId.toString() },
-    },
+      query: cursor ? { cursorPostId: String(cursor.postId) } : {},
+    } as any,
     token
       ? {
           headers: {
@@ -397,14 +403,19 @@ async function getPostsByUserId(userId: string) {
   if (!res.ok) {
     throw new Error("Error getting posts by user id");
   }
-  const { posts } = await res.json();
-  return posts.map(mapSerializedPostToSchema);
+  const { posts, nextCursor } = await res.json();
+  return {
+    posts: posts.map(mapSerializedPostToSchema),
+    nextCursor,
+  };
 }
 
-export const getPostsByUserIdQueryOptions = (userId: string) =>
-  queryOptions({
-    queryKey: ["posts", userId],
-    queryFn: () => getPostsByUserId(userId),
+export const getPostsByUserIdInfiniteQueryOptions = (userId: string) =>
+  infiniteQueryOptions({
+    queryKey: ["posts", userId, "infinite"],
+    queryFn: ({ pageParam }) => getPostsByUserIdPage(userId, pageParam),
+    initialPageParam: null as UserPostCursor,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? null,
   });
 
 async function savePost(args: SavePostArgs) {
@@ -470,6 +481,47 @@ export const getSavedPostsByUserIdQueryOptions = (userId: string) =>
   queryOptions({
     queryKey: ["saved-posts", userId],
     queryFn: () => getSavedPostsByUserId(userId),
+  });
+
+export type SavedPostsCursor = {
+  createdAt: string;
+} | null;
+
+async function getSavedPostsByUserIdPage(
+  userId: string,
+  cursor: SavedPostsCursor,
+) {
+  const token = getSession();
+  const res = await client.api.v0.posts.saved[":userId"].$get(
+    {
+      param: { userId: userId.toString() },
+      query: cursor ? { cursorCreatedAt: cursor.createdAt } : {},
+    } as any,
+    token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined,
+  );
+
+  if (!res.ok) {
+    throw new Error("Error getting saved posts by user id");
+  }
+  const { posts, nextCursor } = await res.json();
+  return {
+    posts: posts.map(mapSerializedPostToSchema),
+    nextCursor,
+  };
+}
+
+export const getSavedPostsByUserIdInfiniteQueryOptions = (userId: string) =>
+  infiniteQueryOptions({
+    queryKey: ["saved-posts", userId, "infinite"],
+    queryFn: ({ pageParam }) => getSavedPostsByUserIdPage(userId, pageParam),
+    initialPageParam: null as SavedPostsCursor,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? null,
   });
 
 async function unsavePost(args: UnsavePostArgs) {
@@ -543,20 +595,29 @@ export const getRecentPostsQueryOptions = () =>
     queryFn: () => getRecentPosts(),
   });
 
-async function getPostsByUsername(username: string) {
+async function getPostsByUsernamePage(
+  username: string,
+  cursor: UserPostCursor,
+) {
   const res = await client.api.v0.posts.user.posts[":username"].$get({
     param: { username: username.toString() },
-  });
+    query: cursor ? { cursorPostId: String(cursor.postId) } : {},
+  } as any);
 
   if (!res.ok) {
     throw new Error("Error getting posts by user id");
   }
-  const { posts } = await res.json();
-  return posts.map(mapSerializedPostToSchema);
+  const { posts, nextCursor } = await res.json();
+  return {
+    posts: posts.map(mapSerializedPostToSchema),
+    nextCursor,
+  };
 }
 
-export const getPostsByUsernameQueryOptions = (username: string) =>
-  queryOptions({
-    queryKey: ["user-posts", username],
-    queryFn: () => getPostsByUsername(username),
+export const getPostsByUsernameInfiniteQueryOptions = (username: string) =>
+  infiniteQueryOptions({
+    queryKey: ["user-posts", username, "infinite"],
+    queryFn: ({ pageParam }) => getPostsByUsernamePage(username, pageParam),
+    initialPageParam: null as UserPostCursor,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? null,
   });

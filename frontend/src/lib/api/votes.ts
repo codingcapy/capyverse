@@ -3,8 +3,7 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-import { Vote } from "../../../../schemas/votes";
-import { ArgumentTypes, client, ExtractData } from "./client";
+import { ArgumentTypes, client } from "./client";
 import { getSession } from "./posts";
 
 type CreateVoteArgs = ArgumentTypes<
@@ -14,17 +13,6 @@ type CreateVoteArgs = ArgumentTypes<
 type UpdateVoteArgs = ArgumentTypes<
   typeof client.api.v0.votes.update.$post
 >[0]["json"];
-
-type SerializeVote = ExtractData<
-  Awaited<ReturnType<typeof client.api.v0.votes.$get>>
->["votes"][number];
-
-export function mapSerializedVoteToSchema(SerializedVote: SerializeVote): Vote {
-  return {
-    ...SerializedVote,
-    createdAt: new Date(SerializedVote.createdAt),
-  };
-}
 
 async function createVote(args: CreateVoteArgs) {
   const token = getSession();
@@ -74,7 +62,10 @@ export const useCreateVoteMutation = (onError?: (message: string) => void) => {
         queryKey: ["votes-summary", data.postId],
       });
       queryClient.invalidateQueries({
-        queryKey: ["comment-votes", data.commentId],
+        queryKey: ["comment-votes-summary", data.commentId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["user-comment-vote", data.commentId, data.userId],
       });
     },
     onError: (error) => {
@@ -84,38 +75,6 @@ export const useCreateVoteMutation = (onError?: (message: string) => void) => {
     },
   });
 };
-
-async function getVotes() {
-  const res = await client.api.v0.votes.$get();
-  if (!res.ok) {
-    throw new Error("Error getting posts");
-  }
-  const { votes } = await res.json();
-  return votes.map(mapSerializedVoteToSchema);
-}
-
-export const getVotesQueryOptions = () =>
-  queryOptions({
-    queryKey: ["votes"],
-    queryFn: () => getVotes(),
-  });
-
-async function getVotesByPostId(postId: number) {
-  const res = await client.api.v0.votes[":postId"].$get({
-    param: { postId: postId.toString() },
-  });
-  if (!res.ok) {
-    throw new Error("Error getting votes by postId");
-  }
-  const { votes } = await res.json();
-  return votes;
-}
-
-export const getVotesByPostIdQueryOptions = (postId: number) =>
-  queryOptions({
-    queryKey: ["post-votes", postId],
-    queryFn: () => getVotesByPostId(postId),
-  });
 
 async function updateVote(args: UpdateVoteArgs) {
   const token = getSession();
@@ -149,7 +108,10 @@ export const useUpdateVoteMutation = (onError?: (message: string) => void) => {
     mutationFn: updateVote,
     onSuccess: (data) => {
       queryClient.invalidateQueries({
-        queryKey: ["comment-votes", data.commentId],
+        queryKey: ["comment-votes-summary", data.commentId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["user-comment-vote", data.commentId, data.userId],
       });
       queryClient.invalidateQueries({
         queryKey: ["user-vote", data.postId, data.userId],
@@ -165,23 +127,6 @@ export const useUpdateVoteMutation = (onError?: (message: string) => void) => {
     },
   });
 };
-
-async function getVotesByCommentId(commentId: number) {
-  const res = await client.api.v0.votes.comments[":commentId"].$get({
-    param: { commentId: commentId.toString() },
-  });
-  if (!res.ok) {
-    throw new Error("Error getting comment votes by commentId");
-  }
-  const { votes } = await res.json();
-  return votes;
-}
-
-export const getVotesByCommentIdQueryOptions = (commentId: number) =>
-  queryOptions({
-    queryKey: ["comment-votes", commentId],
-    queryFn: () => getVotesByCommentId(commentId),
-  });
 
 async function getVotesSummaryByPostId(postId: number) {
   const res = await client.api.v0.votes.post.summary[":postId"].$get({
@@ -218,4 +163,41 @@ export const getUserVoteByPostIdQueryOptions = (
   queryOptions({
     queryKey: ["user-vote", postId, userId],
     queryFn: () => getUserVoteByPostId(postId, userId),
+  });
+
+async function getVotesSummaryByCommentId(commentId: number) {
+  const res = await client.api.v0.votes.comment.summary[":commentId"].$get({
+    param: { commentId: commentId.toString() },
+  });
+  if (!res.ok) {
+    throw new Error("Error getting comment vote summary");
+  }
+  return res.json();
+}
+
+export const getVotesSummaryByCommentIdQueryOptions = (commentId: number) =>
+  queryOptions({
+    queryKey: ["comment-votes-summary", commentId],
+    queryFn: () => getVotesSummaryByCommentId(commentId),
+  });
+
+async function getUserVoteByCommentId(commentId: number, userId: string) {
+  const res = await client.api.v0.votes.comment.user[":commentId"][
+    ":userId"
+  ].$get({
+    param: { commentId: commentId.toString(), userId },
+  });
+  if (!res.ok) {
+    throw new Error("Error getting user comment vote");
+  }
+  return res.json();
+}
+
+export const getUserVoteByCommentIdQueryOptions = (
+  commentId: number,
+  userId: string,
+) =>
+  queryOptions({
+    queryKey: ["user-comment-vote", commentId, userId],
+    queryFn: () => getUserVoteByCommentId(commentId, userId),
   });

@@ -6,7 +6,7 @@ import { mightFail } from "might-fail";
 import { db } from "../db";
 import { HTTPException } from "hono/http-exception";
 import { assertIsParsableInt, optionalUser, requireUser } from "./posts";
-import { and, eq, ne } from "drizzle-orm";
+import { and, desc, eq, ne, sql } from "drizzle-orm";
 import { users as usersTable } from "../schemas/users";
 import z from "zod";
 import { savedComments as savedCommentsTable } from "../schemas/savedComments";
@@ -57,6 +57,12 @@ export const commentsRouter = new Hono()
     },
   )
   .get("/", async (c) => {
+    const limit = Math.min(Number(c.req.query("limit") ?? 50), 100);
+    const cursorCommentId = c.req.query("cursorCommentId");
+    const cursorWhere = cursorCommentId
+      ? sql`${commentsTable.commentId} < ${Number(cursorCommentId)}`
+      : undefined;
+    const visibilityFilter = ne(communitiesTable.visibility, "private");
     const { result: commentsQueryResult, error: commentsQueryError } =
       await mightFail(
         db
@@ -76,21 +82,40 @@ export const commentsRouter = new Hono()
             communitiesTable,
             eq(postsTable.communityId, communitiesTable.communityId),
           )
-          .where(ne(communitiesTable.visibility, "private")),
+          .where(
+            cursorWhere
+              ? sql`${cursorWhere} AND ${visibilityFilter}`
+              : visibilityFilter,
+          )
+          .orderBy(desc(commentsTable.commentId))
+          .limit(limit + 1),
       );
     if (commentsQueryError)
       throw new HTTPException(500, {
         message: "error querying comments",
         cause: commentsQueryError,
       });
-    return c.json({ comments: commentsQueryResult });
+    const hasNextPage = commentsQueryResult.length > limit;
+    const pageItems = hasNextPage
+      ? commentsQueryResult.slice(0, limit)
+      : commentsQueryResult;
+    const last = pageItems.at(-1);
+    return c.json({
+      comments: pageItems,
+      nextCursor: hasNextPage ? { commentId: last!.commentId } : null,
+    });
   })
   .get("/:postId", async (c) => {
     const { postId: postIdString } = c.req.param();
     const postId = assertIsParsableInt(postIdString);
     const { result: commentsQueryResult, error: commentsQueryError } =
       await mightFail(
-        db.select().from(commentsTable).where(eq(commentsTable.postId, postId)),
+        db
+          .select()
+          .from(commentsTable)
+          .where(eq(commentsTable.postId, postId))
+          .orderBy(desc(commentsTable.commentId))
+          .limit(500),
       );
     if (commentsQueryError)
       throw new HTTPException(500, {
@@ -101,6 +126,8 @@ export const commentsRouter = new Hono()
   })
   .get("/user/comments/:username", async (c) => {
     const username = c.req.param("username");
+    const limit = Math.min(Number(c.req.query("limit") ?? 20), 50);
+    const cursorCommentId = c.req.query("cursorCommentId");
     const { result: users, error: userError } = await mightFail(
       db
         .select({ userId: usersTable.userId })
@@ -127,16 +154,29 @@ export const commentsRouter = new Hono()
       db
         .select()
         .from(commentsTable)
-        .where(eq(commentsTable.userId, user.userId)),
+        .where(
+          cursorCommentId
+            ? and(
+                sql`${commentsTable.commentId} < ${Number(cursorCommentId)}`,
+                eq(commentsTable.userId, user.userId),
+              )
+            : eq(commentsTable.userId, user.userId),
+        )
+        .orderBy(desc(commentsTable.commentId))
+        .limit(limit + 1),
     );
     if (commentsError) {
       throw new HTTPException(500, {
-        message: "Error occurred when fetching comments by user id",
+        message: "Error occurred when fetching comments by username",
         cause: commentsError,
       });
     }
+    const hasNextPage = comments.length > limit;
+    const pageItems = hasNextPage ? comments.slice(0, limit) : comments;
+    const last = pageItems.at(-1);
     return c.json({
-      comments,
+      comments: pageItems,
+      nextCursor: hasNextPage ? { commentId: last!.commentId } : null,
     });
   })
   .post(
@@ -201,12 +241,23 @@ export const commentsRouter = new Hono()
   )
   .get("/user/profile", async (c) => {
     const decodedUser = requireUser(c);
+    const limit = Math.min(Number(c.req.query("limit") ?? 20), 50);
+    const cursorCommentId = c.req.query("cursorCommentId");
     const { result: commentsQueryResult, error: commentsQueryError } =
       await mightFail(
         db
           .select()
           .from(commentsTable)
-          .where(eq(commentsTable.userId, decodedUser.id)),
+          .where(
+            cursorCommentId
+              ? and(
+                  sql`${commentsTable.commentId} < ${Number(cursorCommentId)}`,
+                  eq(commentsTable.userId, decodedUser.id),
+                )
+              : eq(commentsTable.userId, decodedUser.id),
+          )
+          .orderBy(desc(commentsTable.commentId))
+          .limit(limit + 1),
       );
     if (commentsQueryError) {
       throw new HTTPException(500, {
@@ -214,64 +265,31 @@ export const commentsRouter = new Hono()
         cause: commentsQueryError,
       });
     }
+    const hasNextPage = commentsQueryResult.length > limit;
+    const pageItems = hasNextPage
+      ? commentsQueryResult.slice(0, limit)
+      : commentsQueryResult;
+    const last = pageItems.at(-1);
     return c.json({
-      comments: commentsQueryResult,
-    });
-  })
-  .get("/user/comments/:username", async (c) => {
-    const username = c.req.param("username");
-    const { result: users, error: userError } = await mightFail(
-      db
-        .select({ userId: usersTable.userId })
-        .from(usersTable)
-        .where(eq(usersTable.username, username))
-        .limit(1),
-    );
-    if (userError) {
-      throw new HTTPException(500, {
-        message: "Error fetching user by username",
-        cause: userError,
-      });
-    }
-    if (users.length === 0) {
-      throw new HTTPException(404, {
-        message: "User not found",
-      });
-    }
-    const user = users[0];
-    if (!user) {
-      throw new HTTPException(404, { message: "User not found" });
-    }
-    const { result: comments, error: commentsError } = await mightFail(
-      db
-        .select()
-        .from(commentsTable)
-        .where(eq(commentsTable.userId, user.userId)),
-    );
-    if (commentsError) {
-      throw new HTTPException(500, {
-        message: "Error occurred when fetching comments by username",
-        cause: commentsError,
-      });
-    }
-    return c.json({
-      comments,
+      comments: pageItems,
+      nextCursor: hasNextPage ? { commentId: last!.commentId } : null,
     });
   })
   .get("/post/count/:postId", async (c) => {
     const { postId: postIdString } = c.req.param();
     const postId = assertIsParsableInt(postIdString);
-    const { result: commentsQueryResult, error: commentsQueryError } =
-      await mightFail(
-        db.select().from(commentsTable).where(eq(commentsTable.postId, postId)),
-      );
+    const { result: countResult, error: commentsQueryError } = await mightFail(
+      db
+        .select({ count: sql<number>`count(*)` })
+        .from(commentsTable)
+        .where(eq(commentsTable.postId, postId)),
+    );
     if (commentsQueryError)
       throw new HTTPException(500, {
         message: "error querying comments",
         cause: commentsQueryError,
       });
-    const commentsCount = commentsQueryResult.length;
-    return c.json({ commentsLength: commentsCount });
+    return c.json({ commentsLength: Number(countResult[0]?.count ?? 0) });
   })
   .post("/save", zValidator("json", saveCommentSchema), async (c) => {
     const decodedUser = requireUser(c);

@@ -1,11 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import useAuthStore from "../../store/AuthStore";
 import { useEffect, useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import {
   getCommunityByIdQueryOptions,
-  getMembersQueryOptions,
-  getModeratorsQueryOptions,
+  getMembersInfiniteQueryOptions,
+  getModeratorsInfiniteQueryOptions,
   useUpdateDescriptionMutation,
   useUpdateMatureMutation,
   useUpdateVisibilityMutation,
@@ -25,15 +25,21 @@ function CommunityModTools() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const {
-    data: moderators,
+    data: moderatorsData,
     isLoading: moderatorsLoading,
     error: moderatorsError,
-  } = useQuery(getModeratorsQueryOptions(communityId));
+    hasNextPage: hasNextModeratorsPage,
+    fetchNextPage: fetchNextModeratorsPage,
+    isFetchingNextPage: isFetchingNextModeratorsPage,
+  } = useInfiniteQuery(getModeratorsInfiniteQueryOptions(communityId));
   const {
-    data: members,
+    data: membersData,
     isLoading: membersLoading,
     error: membersError,
-  } = useQuery(getMembersQueryOptions(communityId));
+    hasNextPage: hasNextMembersPage,
+    fetchNextPage: fetchNextMembersPage,
+    isFetchingNextPage: isFetchingNextMembersPage,
+  } = useInfiniteQuery(getMembersInfiniteQueryOptions(communityId));
   const {
     data: community,
     isLoading: communityLoading,
@@ -57,6 +63,10 @@ function CommunityModTools() {
   const { mutate: updateDescription, isPending: updateDescriptionPending } =
     useUpdateDescriptionMutation();
   const [inviteModContent, setInviteModContent] = useState("");
+
+  const moderators =
+    moderatorsData?.pages.flatMap((page) => page.moderators) ?? [];
+  const members = membersData?.pages.flatMap((page) => page.members) ?? [];
 
   useEffect(() => {
     if (moderatorsLoading) return;
@@ -225,6 +235,28 @@ function CommunityModTools() {
             })
           ) : (
             <div></div>
+          )}
+          {membersMode === "mods" && hasNextModeratorsPage && (
+            <div className="flex justify-center mt-6">
+              <button
+                onClick={() => fetchNextModeratorsPage()}
+                disabled={isFetchingNextModeratorsPage}
+                className="bg-cyan-600 px-5 py-2 rounded-full font-bold cursor-pointer hover:bg-cyan-500 transition-all ease-in-out duration-300 disabled:opacity-50"
+              >
+                {isFetchingNextModeratorsPage ? "Loading..." : "Load More"}
+              </button>
+            </div>
+          )}
+          {membersMode === "members" && hasNextMembersPage && (
+            <div className="flex justify-center mt-6">
+              <button
+                onClick={() => fetchNextMembersPage()}
+                disabled={isFetchingNextMembersPage}
+                className="bg-cyan-600 px-5 py-2 rounded-full font-bold cursor-pointer hover:bg-cyan-500 transition-all ease-in-out duration-300 disabled:opacity-50"
+              >
+                {isFetchingNextMembersPage ? "Loading..." : "Load More"}
+              </button>
+            </div>
           )}
           {editMode === "description" ? (
             <div>

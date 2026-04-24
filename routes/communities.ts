@@ -121,17 +121,22 @@ export const communitiesRouter = new Hono()
     return c.json({ communityResult: communityInsertResult[0] }, 200);
   })
   .get("/", async (c) => {
-    const PAGE_SIZE = 250;
-    const page = Math.max(Number(c.req.query("page") ?? 1), 1);
-    const offset = (page - 1) * PAGE_SIZE;
+    const PAGE_SIZE = 50;
+    const cursor = c.req.query("cursor"); // last communityId seen
+    const cursorWhere = cursor
+      ? sql`${communitiesTable.communityId} > ${cursor}`
+      : undefined;
     const { result: communities, error: communitiesError } = await mightFail(
       db
         .select()
         .from(communitiesTable)
-        .where(ne(communitiesTable.visibility, "private"))
+        .where(
+          cursorWhere
+            ? sql`${cursorWhere} AND ${ne(communitiesTable.visibility, "private")}`
+            : ne(communitiesTable.visibility, "private"),
+        )
         .orderBy(asc(communitiesTable.communityId))
-        .limit(PAGE_SIZE)
-        .offset(offset),
+        .limit(PAGE_SIZE + 1),
     );
     if (communitiesError) {
       throw new HTTPException(500, {
@@ -139,33 +144,14 @@ export const communitiesRouter = new Hono()
         cause: communitiesError,
       });
     }
-    const { result: countResult, error: countError } = await mightFail(
-      db
-        .select({
-          count: sql<number>`count(*)`,
-        })
-        .from(communitiesTable),
-    );
-    if (countError) {
-      throw new HTTPException(500, {
-        message: "Error occurred when counting communities",
-        cause: countError,
-      });
-    }
-    if (!countResult || countResult.length === 0) {
-      throw new HTTPException(500, {
-        message: "Failed to count communities",
-      });
-    }
-    //@ts-ignore
-    const total = Number(countResult[0].count);
-    const totalPages = Math.ceil(total / PAGE_SIZE);
+    const hasNextPage = communities.length > PAGE_SIZE;
+    const pageItems = hasNextPage
+      ? communities.slice(0, PAGE_SIZE)
+      : communities;
+    const last = pageItems.at(-1);
     return c.json({
-      communities,
-      page,
-      pageSize: PAGE_SIZE,
-      total,
-      totalPages,
+      communities: pageItems,
+      nextCursor: hasNextPage ? last!.communityId : null,
     });
   })
   .get("/user/:userId", async (c) => {
@@ -200,6 +186,8 @@ export const communitiesRouter = new Hono()
   })
   .get("/moderators/:communityId", async (c) => {
     const { communityId } = c.req.param();
+    const limit = Math.min(Number(c.req.query("limit") ?? 50), 100);
+    const cursorCommunityUserId = c.req.query("cursorCommunityUserId");
     const { result: moderatorsQueryResult, error: moderatorsQueryError } =
       await mightFail(
         db
@@ -218,11 +206,19 @@ export const communitiesRouter = new Hono()
             eq(communityUsersTable.userId, usersTable.userId),
           )
           .where(
-            and(
-              eq(communityUsersTable.communityId, communityId),
-              eq(communityUsersTable.role, "moderator"),
-            ),
-          ),
+            cursorCommunityUserId
+              ? and(
+                  eq(communityUsersTable.communityId, communityId),
+                  eq(communityUsersTable.role, "moderator"),
+                  sql`${communityUsersTable.communityUserId} < ${Number(cursorCommunityUserId)}`,
+                )
+              : and(
+                  eq(communityUsersTable.communityId, communityId),
+                  eq(communityUsersTable.role, "moderator"),
+                ),
+          )
+          .orderBy(desc(communityUsersTable.communityUserId))
+          .limit(limit + 1),
       );
     if (moderatorsQueryError) {
       throw new HTTPException(500, {
@@ -230,12 +226,22 @@ export const communitiesRouter = new Hono()
         cause: moderatorsQueryError,
       });
     }
+    const hasNextPage = moderatorsQueryResult.length > limit;
+    const pageItems = hasNextPage
+      ? moderatorsQueryResult.slice(0, limit)
+      : moderatorsQueryResult;
+    const last = pageItems.at(-1);
     return c.json({
-      moderators: moderatorsQueryResult,
+      moderators: pageItems,
+      nextCursor: hasNextPage
+        ? { communityUserId: last!.communityUserId }
+        : null,
     });
   })
   .get("/members/:communityId", async (c) => {
     const { communityId } = c.req.param();
+    const limit = Math.min(Number(c.req.query("limit") ?? 50), 100);
+    const cursorCommunityUserId = c.req.query("cursorCommunityUserId");
     const { result: membersQueryResult, error: membersQueryError } =
       await mightFail(
         db
@@ -254,11 +260,19 @@ export const communitiesRouter = new Hono()
             eq(communityUsersTable.userId, usersTable.userId),
           )
           .where(
-            and(
-              eq(communityUsersTable.communityId, communityId),
-              eq(communityUsersTable.role, "member"),
-            ),
-          ),
+            cursorCommunityUserId
+              ? and(
+                  eq(communityUsersTable.communityId, communityId),
+                  eq(communityUsersTable.role, "member"),
+                  sql`${communityUsersTable.communityUserId} < ${Number(cursorCommunityUserId)}`,
+                )
+              : and(
+                  eq(communityUsersTable.communityId, communityId),
+                  eq(communityUsersTable.role, "member"),
+                ),
+          )
+          .orderBy(desc(communityUsersTable.communityUserId))
+          .limit(limit + 1),
       );
     if (membersQueryError) {
       throw new HTTPException(500, {
@@ -266,8 +280,16 @@ export const communitiesRouter = new Hono()
         cause: membersQueryError,
       });
     }
+    const hasNextPage = membersQueryResult.length > limit;
+    const pageItems = hasNextPage
+      ? membersQueryResult.slice(0, limit)
+      : membersQueryResult;
+    const last = pageItems.at(-1);
     return c.json({
-      members: membersQueryResult,
+      members: pageItems,
+      nextCursor: hasNextPage
+        ? { communityUserId: last!.communityUserId }
+        : null,
     });
   })
   .get("/:communityId", async (c) => {

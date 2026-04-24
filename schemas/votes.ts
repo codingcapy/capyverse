@@ -6,7 +6,7 @@ import {
   serial,
   index,
 } from "drizzle-orm/pg-core";
-import type { InferSelectModel } from "drizzle-orm";
+import { type InferSelectModel, sql } from "drizzle-orm";
 
 export const votes = pgTable(
   "votes",
@@ -27,6 +27,9 @@ export const votes = pgTable(
       table.postId,
       table.commentId,
     ),
+    index("votes_post_score_idx")
+      .on(table.postId, table.value)
+      .where(sql`comment_id IS NULL`),
   ],
 );
 

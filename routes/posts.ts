@@ -273,10 +273,23 @@ export const postsRouter = new Hono()
   })
   .get("/user/:userId", async (c) => {
     const userId = c.req.param("userId");
-    const user = optionalUser(c);
+    const limit = Math.min(Number(c.req.query("limit") ?? 20), 50);
+    const cursorPostId = c.req.query("cursorPostId");
+    const cursorWhere = cursorPostId
+      ? sql`${postsTable.postId} < ${Number(cursorPostId)}`
+      : undefined;
     const { result: postsQueryResult, error: postsQueryError } =
       await mightFail(
-        db.select().from(postsTable).where(eq(postsTable.userId, userId)),
+        db
+          .select()
+          .from(postsTable)
+          .where(
+            cursorWhere
+              ? and(cursorWhere, eq(postsTable.userId, userId))
+              : eq(postsTable.userId, userId),
+          )
+          .orderBy(desc(postsTable.postId))
+          .limit(limit + 1),
       );
     if (postsQueryError) {
       throw new HTTPException(500, {
@@ -284,8 +297,14 @@ export const postsRouter = new Hono()
         cause: postsQueryError,
       });
     }
+    const hasNextPage = postsQueryResult.length > limit;
+    const pageItems = hasNextPage
+      ? postsQueryResult.slice(0, limit)
+      : postsQueryResult;
+    const last = pageItems.at(-1);
     return c.json({
-      posts: postsQueryResult,
+      posts: pageItems,
+      nextCursor: hasNextPage ? { postId: last!.postId } : null,
     });
   })
   .get("/user/posts/:username", async (c) => {
@@ -312,8 +331,22 @@ export const postsRouter = new Hono()
     if (!user) {
       throw new HTTPException(404, { message: "User not found" });
     }
+    const limit = Math.min(Number(c.req.query("limit") ?? 20), 50);
+    const cursorPostId = c.req.query("cursorPostId");
     const { result: posts, error: postsError } = await mightFail(
-      db.select().from(postsTable).where(eq(postsTable.userId, user.userId)),
+      db
+        .select()
+        .from(postsTable)
+        .where(
+          cursorPostId
+            ? and(
+                sql`${postsTable.postId} < ${Number(cursorPostId)}`,
+                eq(postsTable.userId, user.userId),
+              )
+            : eq(postsTable.userId, user.userId),
+        )
+        .orderBy(desc(postsTable.postId))
+        .limit(limit + 1),
     );
     if (postsError) {
       throw new HTTPException(500, {
@@ -321,8 +354,12 @@ export const postsRouter = new Hono()
         cause: postsError,
       });
     }
+    const hasNextPage = posts.length > limit;
+    const pageItems = hasNextPage ? posts.slice(0, limit) : posts;
+    const last = pageItems.at(-1);
     return c.json({
-      posts,
+      posts: pageItems,
+      nextCursor: hasNextPage ? { postId: last!.postId } : null,
     });
   })
   .get("/recent", async (c) => {
@@ -642,6 +679,11 @@ export const postsRouter = new Hono()
   })
   .get("/saved/:userId", async (c) => {
     const userId = c.req.param("userId");
+    const limit = Math.min(Number(c.req.query("limit") ?? 20), 50);
+    const cursorCreatedAt = c.req.query("cursorCreatedAt");
+    const cursorWhere = cursorCreatedAt
+      ? sql`${savedPostsTable.createdAt} < ${new Date(cursorCreatedAt)}`
+      : undefined;
     const { result: savedPostsResult, error: savedPostsError } =
       await mightFail(
         db
@@ -653,12 +695,18 @@ export const postsRouter = new Hono()
             content: postsTable.content,
             status: postsTable.status,
             createdAt: postsTable.createdAt,
+            savedAt: savedPostsTable.createdAt,
           })
           .from(savedPostsTable)
           .innerJoin(postsTable, eq(savedPostsTable.postId, postsTable.postId))
           .innerJoin(usersTable, eq(postsTable.userId, usersTable.userId))
-          .where(eq(savedPostsTable.userId, userId))
-          .orderBy(desc(savedPostsTable.createdAt)), // optional but recommended
+          .where(
+            cursorWhere
+              ? and(cursorWhere, eq(savedPostsTable.userId, userId))
+              : eq(savedPostsTable.userId, userId),
+          )
+          .orderBy(desc(savedPostsTable.createdAt))
+          .limit(limit + 1),
       );
     if (savedPostsError) {
       throw new HTTPException(500, {
@@ -666,8 +714,14 @@ export const postsRouter = new Hono()
         cause: savedPostsError,
       });
     }
+    const hasNextPage = savedPostsResult.length > limit;
+    const pageItems = hasNextPage
+      ? savedPostsResult.slice(0, limit)
+      : savedPostsResult;
+    const last = pageItems.at(-1);
     return c.json({
-      posts: savedPostsResult,
+      posts: pageItems,
+      nextCursor: hasNextPage ? { createdAt: last!.savedAt } : null,
     });
   })
   .post("/unsave", zValidator("json", savePostSchema), async (c) => {

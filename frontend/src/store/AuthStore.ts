@@ -27,7 +27,7 @@ const useAuthStore = create<{
         {
           email,
           password,
-        }
+        },
       );
       if (res.data.result?.user && res.data.result?.token) {
         setSession(res.data.result?.token);
@@ -43,7 +43,7 @@ const useAuthStore = create<{
   loginWithToken: async () => {
     try {
       const res = await axios.post(
-        `https://capyverse.up.railway.app/api/v0/user/validation`
+        `https://capyverse.up.railway.app/api/v0/user/validation`,
       );
       if (res.data.result?.user && res.data.result?.token) {
         setSession(res.data.result?.token);

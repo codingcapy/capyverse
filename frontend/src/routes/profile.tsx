@@ -3,12 +3,12 @@ import useAuthStore from "../store/AuthStore";
 import defaultProfile from "/capypaul01.jpg";
 import { useEffect, useState } from "react";
 import { useUpdateProfilePicMutation } from "../lib/api/users";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import {
-  getPostsByUserIdQueryOptions,
-  getSavedPostsByUserIdQueryOptions,
+  getPostsByUserIdInfiniteQueryOptions,
+  getSavedPostsByUserIdInfiniteQueryOptions,
 } from "../lib/api/posts";
-import { getCommentsByUserProfileQueryOptions } from "../lib/api/comments";
+import { getCommentsByUserProfileInfiniteQueryOptions } from "../lib/api/comments";
 import { PostThumbnail } from "../components/PostThumbnail";
 import { CommentThumbnail } from "../components/CommentThumbnail";
 
@@ -25,21 +25,43 @@ function ProfilePage() {
     useUpdateProfilePicMutation();
   const [profileMode, setProfileMode] = useState<ProfileMode>("Overview");
   const {
-    data: posts,
+    data: postsData,
     isLoading: postsLoading,
     error: postsError,
-  } = useQuery(getPostsByUserIdQueryOptions((user && user.userId) || ""));
+    hasNextPage: hasNextPostsPage,
+    fetchNextPage: fetchNextPostsPage,
+    isFetchingNextPage: isFetchingNextPostsPage,
+  } = useInfiniteQuery({
+    ...getPostsByUserIdInfiniteQueryOptions((user && user.userId) || ""),
+    enabled: !!user,
+  });
   const {
-    data: comments,
+    data: commentsData,
     isLoading: commentsLoading,
     error: commentsError,
-  } = useQuery(getCommentsByUserProfileQueryOptions());
+    hasNextPage: hasNextCommentsPage,
+    fetchNextPage: fetchNextCommentsPage,
+    isFetchingNextPage: isFetchingNextCommentsPage,
+  } = useInfiniteQuery({
+    ...getCommentsByUserProfileInfiniteQueryOptions(),
+    enabled: !!user,
+  });
   const navigate = useNavigate();
   const {
-    data: savedPosts,
+    data: savedPostsData,
     isLoading: savedPostsLoading,
     error: savedPostsError,
-  } = useQuery(getSavedPostsByUserIdQueryOptions((user && user.userId) || ""));
+    hasNextPage: hasNextSavedPostsPage,
+    fetchNextPage: fetchNextSavedPostsPage,
+    isFetchingNextPage: isFetchingNextSavedPostsPage,
+  } = useInfiniteQuery({
+    ...getSavedPostsByUserIdInfiniteQueryOptions((user && user.userId) || ""),
+    enabled: !!user,
+  });
+
+  const posts = postsData?.pages.flatMap((page) => page.posts) ?? [];
+  const comments = commentsData?.pages.flatMap((page) => page.comments) ?? [];
+  const savedPosts = savedPostsData?.pages.flatMap((page) => page.posts) ?? [];
 
   async function handleImageUpload(event: React.ChangeEvent<HTMLInputElement>) {
     if (updateProfilePicPending) return;
@@ -185,6 +207,28 @@ function ProfilePage() {
             </div>
           )
         )}
+        {profileMode === "Posts" && hasNextPostsPage && (
+          <div className="flex justify-center mt-6">
+            <button
+              onClick={() => fetchNextPostsPage()}
+              disabled={isFetchingNextPostsPage}
+              className="bg-cyan-600 px-5 py-2 rounded-full font-bold cursor-pointer hover:bg-cyan-500 transition-all ease-in-out duration-300 disabled:opacity-50"
+            >
+              {isFetchingNextPostsPage ? "Loading..." : "Load More"}
+            </button>
+          </div>
+        )}
+        {profileMode === "Saved" && hasNextSavedPostsPage && (
+          <div className="flex justify-center mt-6">
+            <button
+              onClick={() => fetchNextSavedPostsPage()}
+              disabled={isFetchingNextSavedPostsPage}
+              className="bg-cyan-600 px-5 py-2 rounded-full font-bold cursor-pointer hover:bg-cyan-500 transition-all ease-in-out duration-300 disabled:opacity-50"
+            >
+              {isFetchingNextSavedPostsPage ? "Loading..." : "Load More"}
+            </button>
+          </div>
+        )}
         {(profileMode === "Overview" || profileMode === "Comments") &&
         commentsError ? (
           <div className="mx-auto w-full md:w-[50%] 2xl:w-[750px] border-t border-[#636363]">
@@ -208,6 +252,17 @@ function ProfilePage() {
               <div className="relative my-1 rounded py-2 px-4"></div>
             </div>
           )
+        )}
+        {profileMode === "Comments" && hasNextCommentsPage && (
+          <div className="flex justify-center mt-6">
+            <button
+              onClick={() => fetchNextCommentsPage()}
+              disabled={isFetchingNextCommentsPage}
+              className="bg-cyan-600 px-5 py-2 rounded-full font-bold cursor-pointer hover:bg-cyan-500 transition-all ease-in-out duration-300 disabled:opacity-50"
+            >
+              {isFetchingNextCommentsPage ? "Loading..." : "Load More"}
+            </button>
+          </div>
         )}
       </div>
     </div>
