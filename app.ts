@@ -10,11 +10,23 @@ import { commentsRouter } from "./routes/comments";
 import { votesRouter } from "./routes/votes";
 import { imagesRouter } from "./routes/images";
 import { communitiesRouter } from "./routes/communities";
+import { compress } from "hono/compress";
+import { secureHeaders } from "hono/secure-headers";
 
 const app = new Hono();
 
 app.use("*", logger());
-app.use("*", cors());
+app.use("*", compress());
+app.use("*", secureHeaders());
+app.use(
+  "*",
+  cors({
+    origin: ["http://localhost:5173", "https://capyverse.up.railway.app"],
+    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  }),
+);
 
 const PORT = parseInt(process.env.PORT!) || 3333;
 

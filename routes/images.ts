@@ -46,17 +46,14 @@ export const imagesRouter = new Hono()
     zValidator(
       "form",
       z.object({
-        userId: z.string(),
         postId: z.string(),
         file: z.instanceof(File),
       }),
     ),
     async (c) => {
-      const authHeader = c.req.header("authorization");
-      if (!authHeader || !authHeader.startsWith("Bearer ")) {
-        throw new HTTPException(401, { message: "Unauthorized" });
-      }
-      const { file, userId, postId } = c.req.valid("form");
+      const decodedUser = requireUser(c);
+      const userId = decodedUser.id;
+      const { file, postId } = c.req.valid("form");
       const { result: imagesQueryResult, error: imagesQueryError } =
         await mightFail(
           db

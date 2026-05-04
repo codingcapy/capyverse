@@ -1,6 +1,6 @@
 import { zValidator } from "@hono/zod-validator";
 import { createInsertSchema } from "drizzle-zod";
-import { Hono } from "hono";
+import { Hono, type Context } from "hono";
 import { communities as communitiesTable } from "../schemas/communities";
 import { mightFail } from "might-fail";
 import { db } from "../db";
@@ -51,6 +51,36 @@ const updateMatureSchema = z.object({
   communityId: z.string(),
   mature: z.boolean(),
 });
+
+const inviteModeratorSchema = z.object({
+  communityId: z.string(),
+  username: z.string().min(1).max(32),
+});
+
+async function requireModerator(c: Context, communityId: string) {
+  const decodedUser = requireUser(c);
+  const { result, error } = await mightFail(
+    db
+      .select({ communityUserId: communityUsersTable.communityUserId })
+      .from(communityUsersTable)
+      .where(
+        and(
+          eq(communityUsersTable.communityId, communityId),
+          eq(communityUsersTable.userId, decodedUser.id),
+          eq(communityUsersTable.role, "moderator"),
+          eq(communityUsersTable.status, "active"),
+        ),
+      )
+      .limit(1),
+  );
+  if (error) {
+    throw new HTTPException(500, { message: "Error checking permissions" });
+  }
+  if (result.length === 0) {
+    throw new HTTPException(403, { message: "Forbidden" });
+  }
+  return decodedUser;
+}
 
 export const communitiesRouter = new Hono()
   .post("/", zValidator("json", createCommunitySchema), async (c) => {
@@ -347,8 +377,8 @@ export const communitiesRouter = new Hono()
     });
   })
   .post("/update/icon", zValidator("json", updateIconSchema), async (c) => {
-    const decodedUser = requireUser(c);
     const updateValues = c.req.valid("json");
+    await requireModerator(c, updateValues.communityId);
     const { error: queryError, result: newCommunityResult } = await mightFail(
       db
         .update(communitiesTable)
@@ -368,8 +398,8 @@ export const communitiesRouter = new Hono()
     "/update/description",
     zValidator("json", updateDescriptionSchema),
     async (c) => {
-      const decodedUser = requireUser(c);
       const updateValues = c.req.valid("json");
+      await requireModerator(c, updateValues.communityId);
       const { error: queryError, result: newCommunityResult } = await mightFail(
         db
           .update(communitiesTable)
@@ -390,8 +420,8 @@ export const communitiesRouter = new Hono()
     "/update/settings",
     zValidator("json", updateSettingsSchema),
     async (c) => {
-      const decodedUser = requireUser(c);
       const updateValues = c.req.valid("json");
+      await requireModerator(c, updateValues.communityId);
       const { error: queryError, result: newCommunityResult } = await mightFail(
         db
           .update(communitiesTable)
@@ -488,8 +518,8 @@ export const communitiesRouter = new Hono()
     "/update/visibility",
     zValidator("json", updateVisibilitySchema),
     async (c) => {
-      const decodedUser = requireUser(c);
       const updateValues = c.req.valid("json");
+      await requireModerator(c, updateValues.communityId);
       const { error: queryError, result: newCommunityResult } = await mightFail(
         db
           .update(communitiesTable)
@@ -507,8 +537,8 @@ export const communitiesRouter = new Hono()
     },
   )
   .post("/update/mature", zValidator("json", updateMatureSchema), async (c) => {
-    const decodedUser = requireUser(c);
     const updateValues = c.req.valid("json");
+    await requireModerator(c, updateValues.communityId);
     const { error: queryError, result: newCommunityResult } = await mightFail(
       db
         .update(communitiesTable)
@@ -526,33 +556,51 @@ export const communitiesRouter = new Hono()
   })
   .post(
     "/moderators/invite",
-    zValidator("json", joinCommunitySchema),
+    zValidator("json", inviteModeratorSchema),
     async (c) => {
-      const decodedUser = requireUser(c);
       const insertValues = c.req.valid("json");
-      const { result: communitiesQueryResult, error: communitiesQueryError } =
+      await requireModerator(c, insertValues.communityId);
+      const { result: targetUsers, error: targetUserError } = await mightFail(
+        db
+          .select({ userId: usersTable.userId })
+          .from(usersTable)
+          .where(eq(usersTable.username, insertValues.username))
+          .limit(1),
+      );
+      if (targetUserError) {
+        throw new HTTPException(500, {
+          message: "Error looking up user",
+          cause: targetUserError,
+        });
+      }
+      if (targetUsers.length === 0) {
+        throw new HTTPException(404, { message: "User not found" });
+      }
+      const targetUserId = targetUsers[0]!.userId;
+      const { result: existingMembership, error: membershipError } =
         await mightFail(
           db
-            .select()
+            .select({ communityUserId: communityUsersTable.communityUserId })
             .from(communityUsersTable)
             .where(
               and(
                 eq(communityUsersTable.communityId, insertValues.communityId),
-                eq(communityUsersTable.userId, decodedUser.id),
+                eq(communityUsersTable.userId, targetUserId),
               ),
-            ),
+            )
+            .limit(1),
         );
-      if (communitiesQueryError) {
+      if (membershipError) {
         throw new HTTPException(500, {
-          message: "Error occurred when fetching community user",
-          cause: communitiesQueryError,
+          message: "Error checking community membership",
+          cause: membershipError,
         });
       }
-      if (communitiesQueryResult.length > 0)
-        throw new HTTPException(401, {
-          message: "User is already in community",
-          cause: Error(),
+      if (existingMembership.length > 0) {
+        throw new HTTPException(409, {
+          message: "User is already in this community",
         });
+      }
       const {
         error: communityUserInsertError,
         result: communityUserInsertResult,
@@ -560,18 +608,16 @@ export const communitiesRouter = new Hono()
         db
           .insert(communityUsersTable)
           .values({
-            ...insertValues,
-            userId: decodedUser.id,
+            communityId: insertValues.communityId,
+            userId: targetUserId,
             role: "moderator",
           })
           .returning(),
       );
       if (communityUserInsertError) {
-        console.log("Error while creating community user");
-        console.log(communityUserInsertResult);
         throw new HTTPException(500, {
-          message: "Error while creating community user",
-          cause: communityUserInsertResult,
+          message: "Error while inviting moderator",
+          cause: communityUserInsertError,
         });
       }
       return c.json({ communityResult: communityUserInsertResult[0] }, 200);

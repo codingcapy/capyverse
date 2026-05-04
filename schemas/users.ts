@@ -7,7 +7,7 @@ export const users = pgTable(
     userId: varchar("user_id").primaryKey(),
     username: varchar("username").notNull(),
     email: varchar("email").notNull().unique(),
-    password: varchar("password").notNull(),
+    password: varchar("password", { length: 255 }).notNull(),
     profilePic: varchar("profile_pic"),
     role: varchar("role").default("member").notNull(),
     status: varchar("status").default("active").notNull(),

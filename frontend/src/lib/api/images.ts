@@ -56,7 +56,7 @@ export function useUploadImageMutation() {
 
       const res = await client.api.v0.images.upload.$post(
         {
-          form: { userId, file, postId },
+          form: { file, postId },
         },
         token
           ? {

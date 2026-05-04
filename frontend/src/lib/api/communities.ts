@@ -574,7 +574,11 @@ export const useUpdateMatureMutation = () => {
   });
 };
 
-async function inviteModerator(args: JoinCommunityArgs) {
+type InviteModeratorArgs = ArgumentTypes<
+  typeof client.api.v0.communities.moderators.invite.$post
+>[0]["json"];
+
+async function inviteModerator(args: InviteModeratorArgs) {
   const token = getSession();
   const res = await client.api.v0.communities.moderators.invite.$post(
     { json: args },

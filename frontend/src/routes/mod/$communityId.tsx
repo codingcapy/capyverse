@@ -6,6 +6,7 @@ import {
   getCommunityByIdQueryOptions,
   getMembersInfiniteQueryOptions,
   getModeratorsInfiniteQueryOptions,
+  useInviteModeratorMutation,
   useUpdateDescriptionMutation,
   useUpdateMatureMutation,
   useUpdateVisibilityMutation,
@@ -62,6 +63,8 @@ function CommunityModTools() {
     useUpdateVisibilityMutation();
   const { mutate: updateDescription, isPending: updateDescriptionPending } =
     useUpdateDescriptionMutation();
+  const { mutate: inviteMod, isPending: inviteModPending } =
+    useInviteModeratorMutation();
   const [inviteModContent, setInviteModContent] = useState("");
 
   const moderators =
@@ -451,25 +454,24 @@ function CommunityModTools() {
                       Cancel
                     </div>
                     <div
-                      // onClick={() => {
-                      //   if (inviteModPending) return;
-                      //   inviteMod(
-                      //     {
-                      //       communityId: community.communityId,
-                      //       username: username,
-                      //     },
-                      //     {
-                      //       onSuccess: () => {
-                      //         setEditMode("none");
-                      //         setInviteModeContent("");
-                      //       },
-                      //     },
-                      //   );
-                      // }}
+                      onClick={() => {
+                        if (inviteModPending) return;
+                        inviteMod(
+                          {
+                            communityId: community.communityId,
+                            username: inviteModContent,
+                          },
+                          {
+                            onSuccess: () => {
+                              setEditMode("none");
+                              setInviteModContent("");
+                            },
+                          },
+                        );
+                      }}
                       className="mx-1 bg-cyan-600 hover:bg-cyan-500 px-2 py-1 rounded-full cursor-pointer transition-all ease-in-out duration-300"
                     >
-                      Invite
-                      {/* {inviteModPending ? "Inviting..." : "Invite"} */}
+                      {inviteModPending ? "Inviting..." : "Invite"}
                     </div>
                   </div>
                 </form>
