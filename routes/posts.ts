@@ -138,7 +138,7 @@ export const postsRouter = new Hono()
   )
   .get("/", async (c) => {
     const user = optionalUser(c);
-    const limit = Number(c.req.query("limit") ?? 10);
+    const limit = Math.min(Number(c.req.query("limit") ?? 10), 50);
     const cursorPostId = c.req.query("cursorPostId");
     const cursorWhere = cursorPostId
       ? sql`${postsTable.postId} < ${Number(cursorPostId)}`
@@ -187,7 +187,7 @@ export const postsRouter = new Hono()
   })
   .get("/popular", async (c) => {
     const user = optionalUser(c);
-    const limit = Number(c.req.query("limit") ?? 10);
+    const limit = Math.min(Number(c.req.query("limit") ?? 10), 50);
     const cursorScore = c.req.query("cursorScore");
     const cursorPostId = c.req.query("cursorPostId");
     const scoreSubquery = db
@@ -458,12 +458,60 @@ export const postsRouter = new Hono()
       }),
     ),
     async (c) => {
-      const limit = Number(c.req.query("limit") ?? 10);
+      const user = optionalUser(c);
+      const limit = Math.min(Number(c.req.query("limit") ?? 10), 50);
       const cursorPostId = c.req.query("cursorPostId");
       const cursorWhere = cursorPostId
         ? sql`${postsTable.postId} < ${Number(cursorPostId)}`
         : undefined;
       const { communityId } = c.req.param();
+      const { result: communityResult, error: communityError } =
+        await mightFail(
+          db
+            .select({
+              visibility: communitiesTable.visibility,
+            })
+            .from(communitiesTable)
+            .where(eq(communitiesTable.communityId, communityId))
+            .limit(1),
+        );
+      if (communityError) {
+        throw new HTTPException(500, { message: "Error fetching community" });
+      }
+      const community = communityResult[0];
+      if (!community) {
+        throw new HTTPException(404, { message: "Community not found" });
+      }
+      if (community.visibility === "private") {
+        if (!user) {
+          throw new HTTPException(403, {
+            message: "This community is private",
+          });
+        }
+        const { result: membership, error: membershipError } = await mightFail(
+          db
+            .select({ communityUserId: communityUsersTable.communityUserId })
+            .from(communityUsersTable)
+            .where(
+              and(
+                eq(communityUsersTable.communityId, communityId),
+                eq(communityUsersTable.userId, user.id),
+                eq(communityUsersTable.status, "active"),
+              ),
+            )
+            .limit(1),
+        );
+        if (membershipError) {
+          throw new HTTPException(500, {
+            message: "Error checking membership",
+          });
+        }
+        if (membership.length === 0) {
+          throw new HTTPException(403, {
+            message: "This community is private",
+          });
+        }
+      }
       const { result, error } = await mightFail(
         db
           .select()
@@ -498,10 +546,56 @@ export const postsRouter = new Hono()
       }),
     ),
     async (c) => {
-      const limit = Number(c.req.query("limit") ?? 10);
+      const user = optionalUser(c);
+      const limit = Math.min(Number(c.req.query("limit") ?? 10), 50);
       const cursorScore = c.req.query("cursorScore");
       const { communityId } = c.req.param();
       const cursorPostId = c.req.query("cursorPostId");
+      const { result: communityResult, error: communityError } =
+        await mightFail(
+          db
+            .select({ visibility: communitiesTable.visibility })
+            .from(communitiesTable)
+            .where(eq(communitiesTable.communityId, communityId))
+            .limit(1),
+        );
+      if (communityError) {
+        throw new HTTPException(500, { message: "Error fetching community" });
+      }
+      const community = communityResult[0];
+      if (!community) {
+        throw new HTTPException(404, { message: "Community not found" });
+      }
+      if (community.visibility === "private") {
+        if (!user) {
+          throw new HTTPException(403, {
+            message: "This community is private",
+          });
+        }
+        const { result: membership, error: membershipError } = await mightFail(
+          db
+            .select({ communityUserId: communityUsersTable.communityUserId })
+            .from(communityUsersTable)
+            .where(
+              and(
+                eq(communityUsersTable.communityId, communityId),
+                eq(communityUsersTable.userId, user.id),
+                eq(communityUsersTable.status, "active"),
+              ),
+            )
+            .limit(1),
+        );
+        if (membershipError) {
+          throw new HTTPException(500, {
+            message: "Error checking membership",
+          });
+        }
+        if (membership.length === 0) {
+          throw new HTTPException(403, {
+            message: "This community is private",
+          });
+        }
+      }
       const scoreSubquery = db
         .select({
           postId: votesTable.postId,

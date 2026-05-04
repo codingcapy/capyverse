@@ -4,6 +4,7 @@ import {
   ListObjectsV2Command,
   DeleteObjectsCommand,
 } from "@aws-sdk/client-s3";
+import { randomUUID } from "crypto";
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import z from "zod";
@@ -23,7 +24,7 @@ const s3Client = new S3Client({
   },
 });
 
-const ALLOWED_FILE_TYPES = ["jpeg", "jpg", "png", "gif", "webp", "svg"];
+const ALLOWED_FILE_TYPES = ["jpeg", "jpg", "png", "gif", "webp"];
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 type UploadResponse =
@@ -79,12 +80,7 @@ export const imagesRouter = new Hono()
         );
       try {
         const fileType = file.type;
-        let extension: string;
-        if (fileType === "image/svg+xml") {
-          extension = "svg";
-        } else {
-          extension = fileType.split("/")[1] || "";
-        }
+        const extension = fileType.split("/")[1] || "";
         if (!ALLOWED_FILE_TYPES.includes(extension)) {
           return c.json<UploadResponse>(
             {
@@ -104,11 +100,9 @@ export const imagesRouter = new Hono()
             400,
           );
         }
-        // Use timestamp in the key itself for time-versioned images
-        // Enables to avoid the cache (CloudFront) when image is updated
         const timestamp = Date.now();
         const env = process.env.NODE_ENV || "dev";
-        const key = `${env}/images/${file.name}-${timestamp}.${extension}`;
+        const key = `${env}/images/${randomUUID()}-${timestamp}.${extension}`;
         const arrayBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
         // Upload to S3

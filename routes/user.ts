@@ -129,8 +129,8 @@ export const userRouter = new Hono()
         return c.json({ result: { user: null, token: null } });
       }
       return c.json({ result: { user, token } });
-    } catch (err) {
+    } catch {
       c.status(401);
-      return c.json({ err });
+      return c.json({ message: "Unauthorized" });
     }
   });
