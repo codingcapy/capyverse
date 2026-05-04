@@ -2,49 +2,20 @@ import { Link } from "@tanstack/react-router";
 import { FaEllipsis } from "react-icons/fa6";
 import { VotesComponent } from "./VotesComponent";
 import { displayDate } from "../lib/utils";
-import { useDeletePostMutation } from "../lib/api/posts";
+import { EnrichedPost, useDeletePostMutation } from "../lib/api/posts";
 import { useState } from "react";
 import useAuthStore from "../store/AuthStore";
 import { Menu } from "./Menu";
 import defaultProfile from "/capypaul01.jpg";
-import { useQuery } from "@tanstack/react-query";
-import { getUserByIdQueryOptions } from "../lib/api/users";
-import { getCommentsLengthByPostIdQueryOptions } from "../lib/api/comments";
 import { IoChatbubbleOutline } from "react-icons/io5";
-import { getImagesByPostIdQueryOptions } from "../lib/api/images";
-import { Post } from "../../../schemas/posts";
 import DOMPurify from "dompurify";
-import { getCommunityByIdQueryOptions } from "../lib/api/communities";
 
-export function PostThumbnail(props: { post: Post }) {
+export function PostThumbnail(props: { post: EnrichedPost }) {
   const [showMenu, setShowMenu] = useState(false);
   const [deleteMode, setDeleteMode] = useState(false);
   const { mutate: deletePost, isPending: deletePostPending } =
     useDeletePostMutation();
   const { user } = useAuthStore();
-  const {
-    data: poster,
-    isLoading: posterLoading,
-    error: posterError,
-  } = useQuery(getUserByIdQueryOptions(props.post.userId));
-  const {
-    data: images,
-    isLoading: imagesLoading,
-    error: imagesError,
-  } = useQuery(getImagesByPostIdQueryOptions(props.post.postId));
-  const {
-    data: commentsLength,
-    isLoading: commentsLengthLoading,
-    error: commentsLengthError,
-  } = useQuery(getCommentsLengthByPostIdQueryOptions(props.post.postId));
-  const {
-    data: community,
-    isLoading: communityLoading,
-    error: communityError,
-  } = useQuery({
-    ...getCommunityByIdQueryOptions(props.post.communityId!),
-    enabled: !!props.post.communityId,
-  });
   const isCommunityPost = !!props.post.communityId;
 
   return (
@@ -59,81 +30,24 @@ export function PostThumbnail(props: { post: Post }) {
         <div className="relative my-1 rounded py-2 px-4 hover:bg-[#333333] transition-all ease-in-out duration-300">
           <div className="flex justify-between">
             {isCommunityPost ? (
-              communityLoading ? (
-                <div>Loading...</div>
-              ) : communityError ? (
-                <div>Error loading community</div>
-              ) : community ? (
-                <div className="flex text-[#bdbdbd] text-sm">
-                  <img
-                    src={
-                      !communityLoading || communityError
-                        ? community
-                          ? community.icon
-                            ? community.icon
-                            : defaultProfile
-                          : defaultProfile
-                        : defaultProfile
-                    }
-                    alt=""
-                    className="w-6 h-6 rounded-full object-cover object-center"
-                  />
-                  <div className="font-bold ml-2">
-                    c/{community.communityId}
-                  </div>
-                </div>
-              ) : (
-                <div className="flex text-[#bdbdbd] text-sm">
-                  <img
-                    src={
-                      !posterLoading || posterError
-                        ? poster
-                          ? poster.profilePic
-                            ? poster.profilePic
-                            : defaultProfile
-                          : defaultProfile
-                        : defaultProfile
-                    }
-                    alt=""
-                    className="w-6 h-6 rounded-full object-cover object-center"
-                  />
-                  {posterLoading ? (
-                    <div>Loading...</div>
-                  ) : posterError ? (
-                    <div>Unknown author</div>
-                  ) : poster ? (
-                    <div className="font-bold ml-2">u/{poster.username}</div>
-                  ) : (
-                    <div>Unknown author</div>
-                  )}
-                  <div className="px-1">•</div>
-                  <div>{displayDate(props.post.createdAt)}</div>
-                </div>
-              )
-            ) : (
               <div className="flex text-[#bdbdbd] text-sm">
                 <img
-                  src={
-                    !posterLoading || posterError
-                      ? poster
-                        ? poster.profilePic
-                          ? poster.profilePic
-                          : defaultProfile
-                        : defaultProfile
-                      : defaultProfile
-                  }
+                  src={props.post.communityIcon ?? defaultProfile}
                   alt=""
                   className="w-6 h-6 rounded-full object-cover object-center"
                 />
-                {posterLoading ? (
-                  <div>Loading...</div>
-                ) : posterError ? (
-                  <div>Unknown author</div>
-                ) : poster ? (
-                  <div className="font-bold ml-2">u/{poster.username}</div>
-                ) : (
-                  <div>Unknown author</div>
-                )}
+                <div className="font-bold ml-2">c/{props.post.communityId}</div>
+              </div>
+            ) : (
+              <div className="flex text-[#bdbdbd] text-sm">
+                <img
+                  src={props.post.posterProfilePic ?? defaultProfile}
+                  alt=""
+                  className="w-6 h-6 rounded-full object-cover object-center"
+                />
+                <div className="font-bold ml-2">
+                  u/{props.post.posterUsername ?? "Unknown"}
+                </div>
                 <div className="px-1">•</div>
                 <div>{displayDate(props.post.createdAt)}</div>
               </div>
@@ -152,28 +66,14 @@ export function PostThumbnail(props: { post: Post }) {
           <div className="text-xl md:text-2xl font-semibold">
             {props.post.title}
           </div>
-          {imagesLoading ? (
-            <div>Loading...</div>
-          ) : imagesError ? (
-            <div>Error loading images</div>
-          ) : images ? (
-            images.map((image, idx) => {
-              if (idx < 1)
-                return (
-                  <div
-                    key={image.imageId}
-                    className="w-full h-[220px] sm:h-[300px] md:h-[400px] xl:h-[500px] border border-[#424242] bg-[#202020] rounded-xl my-2 flex items-center justify-center"
-                  >
-                    <img
-                      src={`https://${image.imageUrl}`}
-                      alt=""
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-                );
-            })
-          ) : (
-            <div>An unexpected error has occured</div>
+          {props.post.firstImageUrl && (
+            <div className="w-full h-[220px] sm:h-[300px] md:h-[400px] xl:h-[500px] border border-[#424242] bg-[#202020] rounded-xl my-2 flex items-center justify-center">
+              <img
+                src={`https://${props.post.firstImageUrl}`}
+                alt=""
+                className="w-full h-full object-contain"
+              />
+            </div>
           )}
           <div className="my-2">
             <div
@@ -205,15 +105,9 @@ export function PostThumbnail(props: { post: Post }) {
               <div className="pl-3 pr-1">
                 <IoChatbubbleOutline size={20} />
               </div>
-              {
-                <div className="pr-3 font-semibold">
-                  {commentsLengthLoading
-                    ? "Loading..."
-                    : commentsLengthError
-                      ? "Error loading comments"
-                      : (commentsLength ?? 0)}
-                </div>
-              }
+              <div className="pr-3 font-semibold">
+                {props.post.commentCount}
+              </div>
             </div>
           </div>
           {showMenu && (

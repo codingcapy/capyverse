@@ -31,11 +31,24 @@ type SerializePost = ExtractData<
   Awaited<ReturnType<typeof client.api.v0.posts.$get>>
 >["posts"][number];
 
-export function mapSerializedPostToSchema(serialized: SerializePost): Post {
-  return {
-    ...serialized,
-    createdAt: new Date(serialized.createdAt),
-  };
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function mapSerializedPostToSchema(serialized: any): Post {
+  return { ...serialized, createdAt: new Date(serialized.createdAt) };
+}
+
+export type SerializeEnrichedPost = ExtractData<
+  Awaited<ReturnType<typeof client.api.v0.posts.$get>>
+>["posts"][number];
+
+export type EnrichedPost = Omit<SerializeEnrichedPost, "createdAt"> & {
+  createdAt: Date;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function mapSerializedEnrichedPostToSchema(
+  serialized: any,
+): EnrichedPost {
+  return { ...serialized, createdAt: new Date(serialized.createdAt) };
 }
 
 const TOKEN_KEY = "jwt_access_token";
@@ -150,7 +163,7 @@ export async function getNewPostsPage({
   }
   const { posts, nextCursor } = await res.json();
   return {
-    posts: posts.map(mapSerializedPostToSchema),
+    posts: posts.map(mapSerializedEnrichedPostToSchema),
     nextCursor,
   };
 }
@@ -181,7 +194,7 @@ export async function getNewCommunityPostsPage(ctx: QueryFunctionContext) {
   if (!res.ok) throw new Error("Error getting posts");
   const { posts, nextCursor } = await res.json();
   return {
-    posts: posts.map(mapSerializedPostToSchema),
+    posts: posts.map(mapSerializedEnrichedPostToSchema),
     nextCursor,
   };
 }
@@ -221,7 +234,7 @@ export async function getPopularPostsPage({
   }
   const { posts, nextCursor } = await res.json();
   return {
-    posts: posts.map(mapSerializedPostToSchema),
+    posts: posts.map(mapSerializedEnrichedPostToSchema),
     nextCursor,
   };
 }
@@ -257,7 +270,7 @@ export async function getPopularCommunityPostsPage(ctx: QueryFunctionContext) {
   }
   const { posts, nextCursor } = await res.json();
   return {
-    posts: posts.map(mapSerializedPostToSchema),
+    posts: posts.map(mapSerializedEnrichedPostToSchema),
     nextCursor,
   };
 }
@@ -405,7 +418,7 @@ async function getPostsByUserIdPage(userId: string, cursor: UserPostCursor) {
   }
   const { posts, nextCursor } = await res.json();
   return {
-    posts: posts.map(mapSerializedPostToSchema),
+    posts: posts.map(mapSerializedEnrichedPostToSchema),
     nextCursor,
   };
 }
@@ -511,7 +524,7 @@ async function getSavedPostsByUserIdPage(
   }
   const { posts, nextCursor } = await res.json();
   return {
-    posts: posts.map(mapSerializedPostToSchema),
+    posts: posts.map(mapSerializedEnrichedPostToSchema),
     nextCursor,
   };
 }
@@ -609,7 +622,7 @@ async function getPostsByUsernamePage(
   }
   const { posts, nextCursor } = await res.json();
   return {
-    posts: posts.map(mapSerializedPostToSchema),
+    posts: posts.map(mapSerializedEnrichedPostToSchema),
     nextCursor,
   };
 }

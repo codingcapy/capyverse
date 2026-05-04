@@ -7,7 +7,17 @@ import { images as imagesTable } from "../schemas/images";
 import { votes as votesTable } from "../schemas/votes";
 import { mightFail, mightFailSync } from "might-fail";
 import { db } from "../db";
-import { and, desc, eq, isNotNull, isNull, ne, sql, or } from "drizzle-orm";
+import {
+  and,
+  desc,
+  eq,
+  inArray,
+  isNotNull,
+  isNull,
+  ne,
+  sql,
+  or,
+} from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import { deleteImageFromS3 } from "./images";
@@ -15,6 +25,7 @@ import { savedPosts as savedPostsTable } from "../schemas/savedPosts";
 import jwt from "jsonwebtoken";
 import { communities as communitiesTable } from "../schemas/communities";
 import { communityUsers as communityUsersTable } from "../schemas/communityusers";
+import { comments as commentsTable } from "../schemas/comments";
 
 const deletePostSchema = z.object({
   postId: z.number(),
@@ -68,6 +79,64 @@ export function optionalUser(c: Context) {
   } catch {
     return null;
   }
+}
+
+async function batchEnrichPosts(postIds: number[], userIds: string[]) {
+  const [
+    { result: commentCounts, error: commentCountsError },
+    { result: firstImages, error: firstImagesError },
+    { result: postUsers, error: postUsersError },
+  ] = await Promise.all([
+    mightFail(
+      db
+        .select({
+          postId: commentsTable.postId,
+          count: sql<number>`count(*)`,
+        })
+        .from(commentsTable)
+        .where(inArray(commentsTable.postId, postIds))
+        .groupBy(commentsTable.postId),
+    ),
+    mightFail(
+      db
+        .select({
+          postId: imagesTable.postId,
+          imageUrl: imagesTable.imageUrl,
+        })
+        .from(imagesTable)
+        .where(
+          and(
+            inArray(imagesTable.postId, postIds),
+            eq(imagesTable.posted, true),
+          ),
+        )
+        .orderBy(imagesTable.postId, imagesTable.imageId),
+    ),
+    mightFail(
+      db
+        .select({
+          userId: usersTable.userId,
+          username: usersTable.username,
+          profilePic: usersTable.profilePic,
+        })
+        .from(usersTable)
+        .where(inArray(usersTable.userId, userIds)),
+    ),
+  ]);
+  if (commentCountsError || firstImagesError || postUsersError) {
+    throw new HTTPException(500, { message: "Error enriching posts" });
+  }
+  const commentCountMap = new Map(
+    commentCounts.map((r) => [r.postId, Number(r.count)]),
+  );
+  const firstImageMap = new Map<number, string | null>();
+  for (const img of firstImages) {
+    if (img.postId !== null && !firstImageMap.has(img.postId)) {
+      firstImageMap.set(img.postId, img.imageUrl);
+    }
+  }
+  const userMap = new Map(postUsers.map((u) => [u.userId, u]));
+  return { commentCountMap, firstImageMap, userMap };
 }
 
 export const postsRouter = new Hono()
@@ -152,6 +221,7 @@ export const postsRouter = new Hono()
       db
         .select({
           post: postsTable,
+          communityIcon: communitiesTable.icon,
         })
         .from(postsTable)
         .leftJoin(
@@ -180,8 +250,24 @@ export const postsRouter = new Hono()
     const hasNextPage = result.length > limit;
     const pageItems = hasNextPage ? result.slice(0, limit) : result;
     const last = pageItems.at(-1);
+    if (pageItems.length === 0) {
+      return c.json({ posts: [], nextCursor: null });
+    }
+    const postIds = pageItems.map((r) => r.post.postId);
+    const userIds = [...new Set(pageItems.map((r) => r.post.userId))];
+    const { commentCountMap, firstImageMap, userMap } = await batchEnrichPosts(
+      postIds,
+      userIds,
+    );
     return c.json({
-      posts: pageItems.map((row) => row.post),
+      posts: pageItems.map((row) => ({
+        ...row.post,
+        communityIcon: row.communityIcon ?? null,
+        posterUsername: userMap.get(row.post.userId)?.username ?? null,
+        posterProfilePic: userMap.get(row.post.userId)?.profilePic ?? null,
+        commentCount: commentCountMap.get(row.post.postId) ?? 0,
+        firstImageUrl: firstImageMap.get(row.post.postId) ?? null,
+      })),
       nextCursor: hasNextPage ? { postId: last!.post.postId } : null,
     });
   })
@@ -223,6 +309,7 @@ export const postsRouter = new Hono()
       db
         .select({
           post: postsTable,
+          communityIcon: communitiesTable.icon,
           score: sql<number>`coalesce(${scoreSubquery.score}, 0)`.as("score"),
         })
         .from(postsTable)
@@ -256,12 +343,24 @@ export const postsRouter = new Hono()
     const hasNextPage = result.length > limit;
     const pageItems = hasNextPage ? result.slice(0, limit) : result;
     const last = pageItems.at(-1);
-    console.log({
-      returned: pageItems.length,
-      hasNextPage,
-    });
+    if (pageItems.length === 0) {
+      return c.json({ posts: [], nextCursor: null });
+    }
+    const postIds = pageItems.map((r) => r.post.postId);
+    const userIds = [...new Set(pageItems.map((r) => r.post.userId))];
+    const { commentCountMap, firstImageMap, userMap } = await batchEnrichPosts(
+      postIds,
+      userIds,
+    );
     return c.json({
-      posts: pageItems.map((r) => r.post),
+      posts: pageItems.map((row) => ({
+        ...row.post,
+        communityIcon: row.communityIcon ?? null,
+        posterUsername: userMap.get(row.post.userId)?.username ?? null,
+        posterProfilePic: userMap.get(row.post.userId)?.profilePic ?? null,
+        commentCount: commentCountMap.get(row.post.postId) ?? 0,
+        firstImageUrl: firstImageMap.get(row.post.postId) ?? null,
+      })),
       nextCursor: hasNextPage
         ? {
             score: last!.score,
@@ -281,8 +380,15 @@ export const postsRouter = new Hono()
     const { result: postsQueryResult, error: postsQueryError } =
       await mightFail(
         db
-          .select()
+          .select({
+            post: postsTable,
+            communityIcon: communitiesTable.icon,
+          })
           .from(postsTable)
+          .leftJoin(
+            communitiesTable,
+            eq(postsTable.communityId, communitiesTable.communityId),
+          )
           .where(
             cursorWhere
               ? and(cursorWhere, eq(postsTable.userId, userId))
@@ -302,9 +408,25 @@ export const postsRouter = new Hono()
       ? postsQueryResult.slice(0, limit)
       : postsQueryResult;
     const last = pageItems.at(-1);
+    if (pageItems.length === 0) {
+      return c.json({ posts: [], nextCursor: null });
+    }
+    const postIds = pageItems.map((r) => r.post.postId);
+    const userIds = [...new Set(pageItems.map((r) => r.post.userId))];
+    const { commentCountMap, firstImageMap, userMap } = await batchEnrichPosts(
+      postIds,
+      userIds,
+    );
     return c.json({
-      posts: pageItems,
-      nextCursor: hasNextPage ? { postId: last!.postId } : null,
+      posts: pageItems.map((row) => ({
+        ...row.post,
+        communityIcon: row.communityIcon ?? null,
+        posterUsername: userMap.get(row.post.userId)?.username ?? null,
+        posterProfilePic: userMap.get(row.post.userId)?.profilePic ?? null,
+        commentCount: commentCountMap.get(row.post.postId) ?? 0,
+        firstImageUrl: firstImageMap.get(row.post.postId) ?? null,
+      })),
+      nextCursor: hasNextPage ? { postId: last!.post.postId } : null,
     });
   })
   .get("/user/posts/:username", async (c) => {
@@ -335,8 +457,15 @@ export const postsRouter = new Hono()
     const cursorPostId = c.req.query("cursorPostId");
     const { result: posts, error: postsError } = await mightFail(
       db
-        .select()
+        .select({
+          post: postsTable,
+          communityIcon: communitiesTable.icon,
+        })
         .from(postsTable)
+        .leftJoin(
+          communitiesTable,
+          eq(postsTable.communityId, communitiesTable.communityId),
+        )
         .where(
           cursorPostId
             ? and(
@@ -357,9 +486,25 @@ export const postsRouter = new Hono()
     const hasNextPage = posts.length > limit;
     const pageItems = hasNextPage ? posts.slice(0, limit) : posts;
     const last = pageItems.at(-1);
+    if (pageItems.length === 0) {
+      return c.json({ posts: [], nextCursor: null });
+    }
+    const postIds = pageItems.map((r) => r.post.postId);
+    const userIds = [...new Set(pageItems.map((r) => r.post.userId))];
+    const { commentCountMap, firstImageMap, userMap } = await batchEnrichPosts(
+      postIds,
+      userIds,
+    );
     return c.json({
-      posts: pageItems,
-      nextCursor: hasNextPage ? { postId: last!.postId } : null,
+      posts: pageItems.map((row) => ({
+        ...row.post,
+        communityIcon: row.communityIcon ?? null,
+        posterUsername: userMap.get(row.post.userId)?.username ?? null,
+        posterProfilePic: userMap.get(row.post.userId)?.profilePic ?? null,
+        commentCount: commentCountMap.get(row.post.postId) ?? 0,
+        firstImageUrl: firstImageMap.get(row.post.postId) ?? null,
+      })),
+      nextCursor: hasNextPage ? { postId: last!.post.postId } : null,
     });
   })
   .get("/recent", async (c) => {
@@ -470,6 +615,7 @@ export const postsRouter = new Hono()
           db
             .select({
               visibility: communitiesTable.visibility,
+              icon: communitiesTable.icon,
             })
             .from(communitiesTable)
             .where(eq(communitiesTable.communityId, communityId))
@@ -517,7 +663,7 @@ export const postsRouter = new Hono()
           .select()
           .from(postsTable)
           .where(and(cursorWhere, eq(postsTable.communityId, communityId)))
-          .orderBy(desc(postsTable.postId)) // newest first
+          .orderBy(desc(postsTable.postId))
           .limit(limit + 1),
       );
       if (error) {
@@ -529,8 +675,22 @@ export const postsRouter = new Hono()
       const hasNextPage = result.length > limit;
       const pageItems = hasNextPage ? result.slice(0, limit) : result;
       const last = pageItems.at(-1);
+      if (pageItems.length === 0) {
+        return c.json({ posts: [], nextCursor: null });
+      }
+      const postIds = pageItems.map((r) => r.postId);
+      const userIds = [...new Set(pageItems.map((r) => r.userId))];
+      const { commentCountMap, firstImageMap, userMap } =
+        await batchEnrichPosts(postIds, userIds);
       return c.json({
-        posts: pageItems,
+        posts: pageItems.map((post) => ({
+          ...post,
+          communityIcon: community.icon ?? null,
+          posterUsername: userMap.get(post.userId)?.username ?? null,
+          posterProfilePic: userMap.get(post.userId)?.profilePic ?? null,
+          commentCount: commentCountMap.get(post.postId) ?? 0,
+          firstImageUrl: firstImageMap.get(post.postId) ?? null,
+        })),
         nextCursor: hasNextPage ? { postId: last!.postId } : null,
       });
     },
@@ -554,7 +714,10 @@ export const postsRouter = new Hono()
       const { result: communityResult, error: communityError } =
         await mightFail(
           db
-            .select({ visibility: communitiesTable.visibility })
+            .select({
+              visibility: communitiesTable.visibility,
+              icon: communitiesTable.icon,
+            })
             .from(communitiesTable)
             .where(eq(communitiesTable.communityId, communityId))
             .limit(1),
@@ -646,12 +809,22 @@ export const postsRouter = new Hono()
       const hasNextPage = result.length > limit;
       const pageItems = hasNextPage ? result.slice(0, limit) : result;
       const last = pageItems.at(-1);
-      console.log({
-        returned: pageItems.length,
-        hasNextPage,
-      });
+      if (pageItems.length === 0) {
+        return c.json({ posts: [], nextCursor: null });
+      }
+      const postIds = pageItems.map((r) => r.post.postId);
+      const userIds = [...new Set(pageItems.map((r) => r.post.userId))];
+      const { commentCountMap, firstImageMap, userMap } =
+        await batchEnrichPosts(postIds, userIds);
       return c.json({
-        posts: pageItems.map((r) => r.post),
+        posts: pageItems.map((row) => ({
+          ...row.post,
+          communityIcon: community.icon ?? null,
+          posterUsername: userMap.get(row.post.userId)?.username ?? null,
+          posterProfilePic: userMap.get(row.post.userId)?.profilePic ?? null,
+          commentCount: commentCountMap.get(row.post.postId) ?? 0,
+          firstImageUrl: firstImageMap.get(row.post.postId) ?? null,
+        })),
         nextCursor: hasNextPage
           ? {
               score: last!.score,
@@ -782,18 +955,16 @@ export const postsRouter = new Hono()
       await mightFail(
         db
           .select({
-            postId: postsTable.postId,
-            userId: postsTable.userId,
-            communityId: postsTable.communityId,
-            title: postsTable.title,
-            content: postsTable.content,
-            status: postsTable.status,
-            createdAt: postsTable.createdAt,
+            post: postsTable,
+            communityIcon: communitiesTable.icon,
             savedAt: savedPostsTable.createdAt,
           })
           .from(savedPostsTable)
           .innerJoin(postsTable, eq(savedPostsTable.postId, postsTable.postId))
-          .innerJoin(usersTable, eq(postsTable.userId, usersTable.userId))
+          .leftJoin(
+            communitiesTable,
+            eq(postsTable.communityId, communitiesTable.communityId),
+          )
           .where(
             cursorWhere
               ? and(cursorWhere, eq(savedPostsTable.userId, userId))
@@ -813,8 +984,24 @@ export const postsRouter = new Hono()
       ? savedPostsResult.slice(0, limit)
       : savedPostsResult;
     const last = pageItems.at(-1);
+    if (pageItems.length === 0) {
+      return c.json({ posts: [], nextCursor: null });
+    }
+    const postIds = pageItems.map((r) => r.post.postId);
+    const userIds = [...new Set(pageItems.map((r) => r.post.userId))];
+    const { commentCountMap, firstImageMap, userMap } = await batchEnrichPosts(
+      postIds,
+      userIds,
+    );
     return c.json({
-      posts: pageItems,
+      posts: pageItems.map((row) => ({
+        ...row.post,
+        communityIcon: row.communityIcon ?? null,
+        posterUsername: userMap.get(row.post.userId)?.username ?? null,
+        posterProfilePic: userMap.get(row.post.userId)?.profilePic ?? null,
+        commentCount: commentCountMap.get(row.post.postId) ?? 0,
+        firstImageUrl: firstImageMap.get(row.post.postId) ?? null,
+      })),
       nextCursor: hasNextPage ? { createdAt: last!.savedAt } : null,
     });
   })
