@@ -71,6 +71,7 @@ export const getUserByIdQueryOptions = (userId: string) =>
   queryOptions({
     queryKey: ["user", userId],
     queryFn: () => getUserById(userId),
+    staleTime: 5 * 60 * 1000,
   });
 
 async function getUserByUsername(username: string) {
@@ -89,6 +90,7 @@ export const getUserByUsernameQueryOptions = (username: string) =>
   queryOptions({
     queryKey: ["user", username],
     queryFn: () => getUserByUsername(username),
+    staleTime: 5 * 60 * 1000,
   });
 
 async function updateProfilePic(args: UpdateProfilePicArgs) {

@@ -159,6 +159,7 @@ export const getCommunityByIdQueryOptions = (communityId: string) =>
   queryOptions({
     queryKey: ["community", communityId],
     queryFn: () => getCommunityById(communityId),
+    staleTime: 5 * 60 * 1000,
   });
 
 async function getCommunitiesByUserId(userId: string) {

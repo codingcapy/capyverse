@@ -143,6 +143,7 @@ export const getVotesSummaryByPostIdQueryOptions = (postId: number) =>
   queryOptions({
     queryKey: ["votes-summary", postId],
     queryFn: () => getVotesSummaryByPostId(postId),
+    staleTime: 30 * 1000,
   });
 
 async function getUserVoteByPostId(postId: number, userId: string) {
@@ -163,6 +164,7 @@ export const getUserVoteByPostIdQueryOptions = (
   queryOptions({
     queryKey: ["user-vote", postId, userId],
     queryFn: () => getUserVoteByPostId(postId, userId),
+    staleTime: 30 * 1000,
   });
 
 async function getVotesSummaryByCommentId(commentId: number) {
