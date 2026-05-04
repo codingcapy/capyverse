@@ -1,4 +1,4 @@
-import { Hono } from "hono";
+import { Hono, type Context } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { serveStatic } from "hono/bun";
@@ -12,12 +12,39 @@ import { imagesRouter } from "./routes/images";
 import { communitiesRouter } from "./routes/communities";
 import { compress } from "hono/compress";
 import { secureHeaders } from "hono/secure-headers";
+import { rateLimiter } from "hono-rate-limiter";
+
+const getClientIp = (c: Context) =>
+  c.req.header("x-forwarded-for")?.split(",")[0]?.trim() ??
+  c.req.header("x-real-ip") ??
+  "unknown";
 
 const app = new Hono();
 
 app.use("*", logger());
 app.use("*", compress());
 app.use("*", secureHeaders());
+
+// Rate limit login: 20 attempts per 15 minutes per IP
+app.use(
+  "/api/v0/user/login",
+  rateLimiter({
+    windowMs: 15 * 60 * 1000,
+    limit: 20,
+    keyGenerator: getClientIp,
+  }),
+);
+
+// Rate limit signup: 10 accounts per hour per IP
+app.use(
+  "/api/v0/users",
+  rateLimiter({
+    windowMs: 60 * 60 * 1000,
+    limit: 10,
+    keyGenerator: getClientIp,
+  }),
+);
+
 app.use(
   "*",
   cors({

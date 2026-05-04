@@ -25,6 +25,7 @@
     "drizzle-orm": "^0.44.7",
     "drizzle-zod": "^0.8.3",
     "hono": "^4.10.4",
+    "hono-rate-limiter": "^0.5.3",
     "jsonwebtoken": "^9.0.2",
     "might-fail": "^0.7.5",
     "pg": "^8.16.3"
