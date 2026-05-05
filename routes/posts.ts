@@ -22,7 +22,6 @@ import { z } from "zod";
 import { deleteImageFromS3 } from "./images";
 import { savedPosts as savedPostsTable } from "../schemas/savedPosts";
 import jwt from "jsonwebtoken";
-import { getCookie } from "hono/cookie";
 import { communities as communitiesTable } from "../schemas/communities";
 import { communityUsers as communityUsersTable } from "../schemas/communityusers";
 import { comments as commentsTable } from "../schemas/comments";
@@ -54,30 +53,28 @@ export function assertIsParsableInt(id: string): number {
 }
 
 export function requireUser(c: Context) {
-  const token =
-    getCookie(c, "auth_token") ??
-    (c.req.header("authorization")?.startsWith("Bearer ")
-      ? c.req.header("authorization")!.split(" ")[1]
-      : undefined);
-  if (!token) {
+  const authHeader = c.req.header("authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
     throw new HTTPException(401, { message: "Unauthorized" });
   }
   try {
-    return jwt.verify(token, process.env.JWT_SECRET!) as { id: string };
+    return jwt.verify(authHeader.split(" ")[1]!, process.env.JWT_SECRET!) as {
+      id: string;
+    };
   } catch {
     throw new HTTPException(401, { message: "Invalid token" });
   }
 }
 
 export function optionalUser(c: Context) {
-  const token =
-    getCookie(c, "auth_token") ??
-    (c.req.header("authorization")?.startsWith("Bearer ")
-      ? c.req.header("authorization")!.split(" ")[1]
-      : undefined);
-  if (!token) return null;
+  const authHeader = c.req.header("authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return null;
+  }
   try {
-    return jwt.verify(token, process.env.JWT_SECRET!) as { id: string };
+    return jwt.verify(authHeader.split(" ")[1]!, process.env.JWT_SECRET!) as {
+      id: string;
+    };
   } catch {
     return null;
   }

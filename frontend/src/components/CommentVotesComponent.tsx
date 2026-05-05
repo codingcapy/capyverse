@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import {
-  getVotesSummaryByCommentIdQueryOptions,
   getUserVoteByCommentIdQueryOptions,
   useCreateVoteMutation,
   useUpdateVoteMutation,
@@ -21,11 +20,6 @@ export function CommentVotesComponent(props: { comment: Comment }) {
   const { user } = useAuthStore();
   const navigate = useNavigate();
 
-  const {
-    data: votesSummary,
-    isLoading: votesSummaryLoading,
-    error: votesSummaryError,
-  } = useQuery(getVotesSummaryByCommentIdQueryOptions(props.comment.commentId));
   const {
     data: userVote,
     isLoading: userVoteLoading,
@@ -102,11 +96,7 @@ export function CommentVotesComponent(props: { comment: Comment }) {
         )}
 
         <div className="">
-          {votesSummaryLoading
-            ? "..."
-            : votesSummaryError
-              ? "?"
-              : (votesSummary?.score ?? 0)}
+          {props.comment.score ?? 0}
         </div>
 
         {user ? (

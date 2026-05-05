@@ -3,15 +3,11 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import jwt from "jsonwebtoken";
-import { getCookie, setCookie, deleteCookie } from "hono/cookie";
 import { db } from "../db";
 import { users as usersTable } from "../schemas/users";
 import { createInsertSchema } from "drizzle-zod";
 import { randomBytes, scrypt, timingSafeEqual } from "crypto";
 import { promisify } from "util";
-
-const COOKIE_NAME = "auth_token";
-const IS_PROD = process.env.NODE_ENV === "production";
 
 const scryptAsync = promisify(scrypt);
 
@@ -100,14 +96,7 @@ export const userRouter = new Hono()
           preference,
           createdAt,
         };
-        setCookie(c, COOKIE_NAME, token, {
-          httpOnly: true,
-          secure: IS_PROD,
-          sameSite: "Lax",
-          maxAge: 14 * 24 * 60 * 60,
-          path: "/",
-        });
-        return c.json({ result: { user: safeUser } });
+        return c.json({ result: { user: safeUser, token } });
       } catch (error) {
         console.error(error);
         c.status(500);
@@ -117,12 +106,13 @@ export const userRouter = new Hono()
   )
   .post("/validation", async (c) => {
     try {
-      const token = getCookie(c, COOKIE_NAME);
-      if (!token) {
+      const authHeader = c.req.header("authorization");
+      if (!authHeader) {
         c.status(403);
-        return c.json({ message: "Not authenticated" });
+        return c.json({ message: "Header does not exist" });
       }
-      const decodedUser = jwt.verify(token, process.env.JWT_SECRET!);
+      const token = authHeader.split(" ")[1];
+      const decodedUser = jwt.verify(token!, process.env.JWT_SECRET!);
       const response = await db
         .select({
           userId: usersTable.userId,
@@ -139,15 +129,11 @@ export const userRouter = new Hono()
         .where(eq(usersTable.userId, decodedUser.id));
       const user = response[0];
       if (!user) {
-        return c.json({ result: { user: null } });
+        return c.json({ result: { user: null, token: null } });
       }
-      return c.json({ result: { user } });
+      return c.json({ result: { user, token } });
     } catch {
       c.status(401);
       return c.json({ message: "Unauthorized" });
     }
-  })
-  .post("/logout", (c) => {
-    deleteCookie(c, COOKIE_NAME, { path: "/" });
-    return c.json({ success: true });
   });

@@ -1,9 +1,10 @@
-import { type ArgumentTypes, client } from "./client";
+import { type ArgumentTypes, client, type ExtractData } from "./client";
 import {
   queryOptions,
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
+import { getSession } from "./posts";
 
 type CreateUserArgs = ArgumentTypes<
   typeof client.api.v0.users.$post
@@ -93,7 +94,19 @@ export const getUserByUsernameQueryOptions = (username: string) =>
   });
 
 async function updateProfilePic(args: UpdateProfilePicArgs) {
-  const res = await client.api.v0.users.update.profilepic.$post({ json: args });
+  const token = getSession();
+  const res = await client.api.v0.users.update.profilepic.$post(
+    {
+      json: args,
+    },
+    token
+      ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      : undefined,
+  );
   if (!res.ok) {
     throw new Error("Error updating user.");
   }
