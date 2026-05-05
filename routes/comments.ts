@@ -74,6 +74,7 @@ export const commentsRouter = new Hono()
             level: commentsTable.level,
             content: commentsTable.content,
             status: commentsTable.status,
+            score: commentsTable.score,
             createdAt: commentsTable.createdAt,
           })
           .from(commentsTable)

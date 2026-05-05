@@ -18,12 +18,14 @@ export const comments = pgTable(
     level: integer("level").default(0).notNull(),
     content: varchar("content"),
     status: varchar("status").default("active").notNull(),
+    score: integer("score").default(0).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (table) => [
     index("comments_post_id_idx").on(table.postId),
     index("comments_user_id_idx").on(table.userId),
     index("comments_parent_comment_id_idx").on(table.parentCommentId),
+    index("comments_score_idx").on(table.score),
   ],
 );
 

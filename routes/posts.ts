@@ -4,7 +4,6 @@ import { Hono, type Context } from "hono";
 import { posts as postsTable } from "../schemas/posts";
 import { users as usersTable } from "../schemas/users";
 import { images as imagesTable } from "../schemas/images";
-import { votes as votesTable } from "../schemas/votes";
 import { mightFail, mightFailSync } from "might-fail";
 import { db } from "../db";
 import {
@@ -276,26 +275,12 @@ export const postsRouter = new Hono()
     const limit = Math.min(Number(c.req.query("limit") ?? 10), 50);
     const cursorScore = c.req.query("cursorScore");
     const cursorPostId = c.req.query("cursorPostId");
-    const scoreSubquery = db
-      .select({
-        postId: votesTable.postId,
-        score: sql<number>`coalesce(sum(${votesTable.value}), 0)`.as("score"),
-      })
-      .from(votesTable)
-      .where(
-        and(
-          sql`${votesTable.value} != 0`,
-          sql`${votesTable.commentId} IS NULL`,
-        ),
-      )
-      .groupBy(votesTable.postId)
-      .as("scores");
     const cursorWhere =
       cursorScore && cursorPostId
         ? or(
-            sql`coalesce(${scoreSubquery.score}, 0) < ${Number(cursorScore)}`,
+            sql`${postsTable.score} < ${Number(cursorScore)}`,
             and(
-              sql`coalesce(${scoreSubquery.score}, 0) = ${Number(cursorScore)}`,
+              sql`${postsTable.score} = ${Number(cursorScore)}`,
               sql`${postsTable.postId} < ${Number(cursorPostId)}`,
             ),
           )
@@ -310,10 +295,8 @@ export const postsRouter = new Hono()
         .select({
           post: postsTable,
           communityIcon: communitiesTable.icon,
-          score: sql<number>`coalesce(${scoreSubquery.score}, 0)`.as("score"),
         })
         .from(postsTable)
-        .leftJoin(scoreSubquery, eq(scoreSubquery.postId, postsTable.postId))
         .leftJoin(
           communitiesTable,
           eq(postsTable.communityId, communitiesTable.communityId),
@@ -328,10 +311,7 @@ export const postsRouter = new Hono()
         .where(
           cursorWhere ? and(cursorWhere, visibilityFilter) : visibilityFilter,
         )
-        .orderBy(
-          desc(sql`coalesce(${scoreSubquery.score}, 0)`),
-          desc(postsTable.postId),
-        )
+        .orderBy(desc(postsTable.score), desc(postsTable.postId))
         .limit(limit + 1),
     );
     if (error) {
@@ -363,7 +343,7 @@ export const postsRouter = new Hono()
       })),
       nextCursor: hasNextPage
         ? {
-            score: last!.score,
+            score: last!.post.score,
             createdAt: last!.post.createdAt,
             postId: last!.post.postId,
           }
@@ -759,46 +739,27 @@ export const postsRouter = new Hono()
           });
         }
       }
-      const scoreSubquery = db
-        .select({
-          postId: votesTable.postId,
-          score: sql<number>`coalesce(sum(${votesTable.value}), 0)`.as("score"),
-        })
-        .from(votesTable)
-        .where(
-          and(
-            sql`${votesTable.value} != 0`,
-            sql`${votesTable.commentId} IS NULL`,
-          ),
-        )
-        .groupBy(votesTable.postId)
-        .as("scores");
       const cursorWhere =
         cursorScore && cursorPostId
-          ? sql`
-        (
-          coalesce(${scoreSubquery.score}, 0) < ${Number(cursorScore)}
-        )
-        OR (
-          coalesce(${scoreSubquery.score}, 0) = ${Number(cursorScore)}
-          AND ${postsTable.postId} < ${Number(cursorPostId)}
-        )
-      `
+          ? or(
+              sql`${postsTable.score} < ${Number(cursorScore)}`,
+              and(
+                sql`${postsTable.score} = ${Number(cursorScore)}`,
+                sql`${postsTable.postId} < ${Number(cursorPostId)}`,
+              ),
+            )
           : undefined;
       const { result, error } = await mightFail(
         db
-          .select({
-            post: postsTable,
-            score: sql<number>`coalesce(${scoreSubquery.score}, 0)`.as("score"),
-          })
+          .select({ post: postsTable })
           .from(postsTable)
-          .leftJoin(scoreSubquery, eq(scoreSubquery.postId, postsTable.postId))
-          .where(and(cursorWhere, eq(postsTable.communityId, communityId)))
-          .orderBy(
-            desc(sql`coalesce(${scoreSubquery.score}, 0)`),
-            desc(postsTable.postId),
+          .where(
+            cursorWhere
+              ? and(cursorWhere, eq(postsTable.communityId, communityId))
+              : eq(postsTable.communityId, communityId),
           )
-          .limit(limit + 1), // fetch one extra to detect next page
+          .orderBy(desc(postsTable.score), desc(postsTable.postId))
+          .limit(limit + 1),
       );
       if (error) {
         throw new HTTPException(500, {
@@ -827,7 +788,7 @@ export const postsRouter = new Hono()
         })),
         nextCursor: hasNextPage
           ? {
-              score: last!.score,
+              score: last!.post.score,
               postId: last!.post.postId,
             }
           : null,

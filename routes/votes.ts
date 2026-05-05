@@ -2,6 +2,8 @@ import { zValidator } from "@hono/zod-validator";
 import { createInsertSchema } from "drizzle-zod";
 import { Hono } from "hono";
 import { votes as votesTable } from "../schemas/votes";
+import { posts as postsTable } from "../schemas/posts";
+import { comments as commentsTable } from "../schemas/comments";
 import { mightFail } from "might-fail";
 import { db } from "../db";
 import { HTTPException } from "hono/http-exception";
@@ -99,35 +101,84 @@ export const votesRouter = new Hono()
           cause: voteInsertError,
         });
       }
+      // Update denormalized score
+      const scoreValue = insertValues.value ?? 0;
+      if (scoreValue !== 0) {
+        if (
+          insertValues.commentId !== null &&
+          insertValues.commentId !== undefined
+        ) {
+          await db
+            .update(commentsTable)
+            .set({ score: sql`${commentsTable.score} + ${scoreValue}` })
+            .where(eq(commentsTable.commentId, insertValues.commentId));
+        } else {
+          await db
+            .update(postsTable)
+            .set({ score: sql`${postsTable.score} + ${scoreValue}` })
+            .where(eq(postsTable.postId, insertValues.postId));
+        }
+      }
       return c.json({ vote: voteInsertResult[0] }, 200);
     },
   )
   .post("/update", zValidator("json", updateVoteSchema), async (c) => {
     const decodedUser = requireUser(c);
-    const insertValues = c.req.valid("json");
+    const { voteId, value: newValue } = c.req.valid("json");
+    // Fetch old vote to compute score delta
+    const { result: oldVotes, error: oldVoteError } = await mightFail(
+      db
+        .select()
+        .from(votesTable)
+        .where(
+          and(
+            eq(votesTable.voteId, voteId),
+            eq(votesTable.userId, decodedUser.id),
+          ),
+        )
+        .limit(1),
+    );
+    if (oldVoteError) {
+      throw new HTTPException(500, { message: "Error fetching vote" });
+    }
+    const oldVote = oldVotes[0];
+    if (!oldVote) {
+      throw new HTTPException(404, { message: "Vote not found" });
+    }
+    const delta = (newValue ?? 0) - (oldVote.value ?? 0);
     const { error: voteUpdateError, result: voteUpdateResult } =
       await mightFail(
         db
           .update(votesTable)
-          .set({
-            value: insertValues.value,
-          })
+          .set({ value: newValue })
           .where(
             and(
-              eq(votesTable.voteId, insertValues.voteId),
+              eq(votesTable.voteId, voteId),
               eq(votesTable.userId, decodedUser.id),
             ),
           )
           .returning(),
       );
     if (voteUpdateError) {
-      console.log("Error while updating vote");
       throw new HTTPException(500, {
         message: "Error while updating vote",
         cause: voteUpdateError,
       });
     }
-    console.log("update result:", voteUpdateResult);
+    // Apply score delta to post or comment
+    if (delta !== 0) {
+      if (oldVote.commentId !== null) {
+        await db
+          .update(commentsTable)
+          .set({ score: sql`${commentsTable.score} + ${delta}` })
+          .where(eq(commentsTable.commentId, oldVote.commentId));
+      } else {
+        await db
+          .update(postsTable)
+          .set({ score: sql`${postsTable.score} + ${delta}` })
+          .where(eq(postsTable.postId, oldVote.postId));
+      }
+    }
     return c.json({ vote: voteUpdateResult[0] }, 200);
   })
   .get("/post/summary/:postId", async (c) => {

@@ -202,7 +202,6 @@ export async function getNewCommunityPostsPage(ctx: QueryFunctionContext) {
 export type PopularPostsCursor = {
   score: number;
   postId: number;
-  createdAt: string;
 } | null;
 
 export async function getPopularPostsPage({
