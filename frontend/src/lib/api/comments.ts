@@ -5,7 +5,6 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { ArgumentTypes, client, ExtractData } from "./client";
-import { getSession } from "./posts";
 
 type CreateCommentArgs = ArgumentTypes<
   typeof client.api.v0.comments.$post
@@ -37,17 +36,7 @@ export type CommentCursor = {
 } | null;
 
 async function createComment(args: CreateCommentArgs) {
-  const token = getSession();
-  const res = await client.api.v0.comments.$post(
-    { json: args },
-    token
-      ? {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      : undefined,
-  );
+  const res = await client.api.v0.comments.$post({ json: args });
   if (!res.ok) {
     let errorMessage =
       "There was an issue creating your comment :( We'll look into it ASAP!";
@@ -87,20 +76,10 @@ export const useCreateCommentMutation = (
 };
 
 async function getCommentsByPostIdPage(postId: number, cursor: CommentCursor) {
-  const token = getSession();
-  const res = await client.api.v0.comments[":postId"].$get(
-    {
-      param: { postId: postId.toString() },
-      query: cursor ? { cursorCommentId: String(cursor.commentId) } : {},
-    } as any,
-    token
-      ? {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      : undefined,
-  );
+  const res = await client.api.v0.comments[":postId"].$get({
+    param: { postId: postId.toString() },
+    query: cursor ? { cursorCommentId: String(cursor.commentId) } : {},
+  } as any);
   if (!res.ok) {
     throw new Error("Error getting comments by id");
   }
@@ -120,17 +99,7 @@ export const getCommentsByPostIdInfiniteQueryOptions = (postId: number) =>
   });
 
 async function deleteComment(args: DeleteCommentArgs) {
-  const token = getSession();
-  const res = await client.api.v0.comments.comment.delete.$post(
-    { json: args },
-    token
-      ? {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      : undefined,
-  );
+  const res = await client.api.v0.comments.comment.delete.$post({ json: args });
   if (!res.ok) {
     let errorMessage =
       "There was an issue deleting your post :( We'll look into it ASAP!";
@@ -169,17 +138,7 @@ export const useDeleteCommentMutation = (
 };
 
 async function updateComment(args: UpdateCommentArgs) {
-  const token = getSession();
-  const res = await client.api.v0.comments.comment.update.$post(
-    { json: args },
-    token
-      ? {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      : undefined,
-  );
+  const res = await client.api.v0.comments.comment.update.$post({ json: args });
   if (!res.ok) {
     let errorMessage =
       "There was an issue updating your post :( We'll look into it ASAP!";
@@ -218,19 +177,9 @@ export const useUpdateCommentMutation = (
 };
 
 async function getCommentsByUserProfilePage(cursor: CommentCursor) {
-  const token = getSession();
-  const res = await client.api.v0.comments.user.profile.$get(
-    {
-      query: cursor ? { cursorCommentId: String(cursor.commentId) } : {},
-    },
-    token
-      ? {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      : undefined,
-  );
+  const res = await client.api.v0.comments.user.profile.$get({
+    query: cursor ? { cursorCommentId: String(cursor.commentId) } : {},
+  });
 
   if (!res.ok) {
     throw new Error("Error getting comments by user profile");

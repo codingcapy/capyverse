@@ -51,24 +51,8 @@ export function mapSerializedEnrichedPostToSchema(
   return { ...serialized, createdAt: new Date(serialized.createdAt) };
 }
 
-const TOKEN_KEY = "jwt_access_token";
-
-export function getSession() {
-  return localStorage.getItem(TOKEN_KEY);
-}
-
 async function createPost(args: CreatePostArgs) {
-  const token = getSession();
-  const res = await client.api.v0.posts.$post(
-    { json: args },
-    token
-      ? {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      : undefined,
-  );
+  const res = await client.api.v0.posts.$post({ json: args });
   if (!res.ok) {
     let errorMessage =
       "There was an issue creating your post :( We'll look into it ASAP!";
@@ -112,16 +96,7 @@ export const useCreatePostMutation = (onError?: (message: string) => void) => {
 };
 
 async function getPosts() {
-  const token = getSession();
-  const res = await client.api.v0.posts.$get(
-    token
-      ? {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      : undefined,
-  );
+  const res = await client.api.v0.posts.$get();
   if (!res.ok) {
     throw new Error("Error getting posts");
   }
@@ -145,19 +120,9 @@ export async function getNewPostsPage({
 }: {
   pageParam: NewPostsCursor;
 }) {
-  const token = getSession();
-  const res = await client.api.v0.posts.$get(
-    {
-      query: pageParam ? { cursorPostId: String(pageParam.postId) } : {},
-    },
-    token
-      ? {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      : undefined,
-  );
+  const res = await client.api.v0.posts.$get({
+    query: pageParam ? { cursorPostId: String(pageParam.postId) } : {},
+  });
   if (!res.ok) {
     throw new Error("Error getting posts");
   }
@@ -171,26 +136,16 @@ export async function getNewPostsPage({
 import type { QueryFunctionContext } from "@tanstack/react-query";
 
 export async function getNewCommunityPostsPage(ctx: QueryFunctionContext) {
-  const token = getSession();
   const { pageParam, queryKey } = ctx;
   const [, communityId] = queryKey as ["community-posts", number];
   const cursor =
     pageParam && typeof pageParam === "object"
       ? (pageParam as NewPostsCursor)
       : null;
-  const res = await client.api.v0.posts.community[":communityId"].$get(
-    {
-      param: { communityId: String(communityId) },
-      query: cursor ? { cursorPostId: String(cursor.postId) } : {},
-    },
-    token
-      ? {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      : undefined,
-  );
+  const res = await client.api.v0.posts.community[":communityId"].$get({
+    param: { communityId: String(communityId) },
+    query: cursor ? { cursorPostId: String(cursor.postId) } : {},
+  });
   if (!res.ok) throw new Error("Error getting posts");
   const { posts, nextCursor } = await res.json();
   return {
@@ -209,24 +164,14 @@ export async function getPopularPostsPage({
 }: {
   pageParam: PopularPostsCursor;
 }) {
-  const token = getSession();
-  const res = await client.api.v0.posts.popular.$get(
-    {
-      query: pageParam
-        ? {
-            cursorScore: String(pageParam.score),
-            cursorPostId: String(pageParam.postId),
-          }
-        : {},
-    },
-    token
+  const res = await client.api.v0.posts.popular.$get({
+    query: pageParam
       ? {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          cursorScore: String(pageParam.score),
+          cursorPostId: String(pageParam.postId),
         }
-      : undefined,
-  );
+      : {},
+  });
 
   if (!res.ok) {
     throw new Error("Error getting popular posts");
@@ -239,7 +184,6 @@ export async function getPopularPostsPage({
 }
 
 export async function getPopularCommunityPostsPage(ctx: QueryFunctionContext) {
-  const token = getSession();
   const { pageParam, queryKey } = ctx;
   const [, communityId] = queryKey as ["community-popular-posts", number];
   const cursor =
@@ -256,13 +200,6 @@ export async function getPopularCommunityPostsPage(ctx: QueryFunctionContext) {
           }
         : {},
     },
-    token
-      ? {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      : undefined,
   );
   if (!res.ok) {
     throw new Error("Error getting popular community posts");
@@ -275,19 +212,9 @@ export async function getPopularCommunityPostsPage(ctx: QueryFunctionContext) {
 }
 
 async function getPostById(postId: number) {
-  const token = getSession();
-  const res = await client.api.v0.posts[":postId"].$get(
-    {
-      param: { postId: postId.toString() },
-    },
-    token
-      ? {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      : undefined,
-  );
+  const res = await client.api.v0.posts[":postId"].$get({
+    param: { postId: postId.toString() },
+  });
   if (!res.ok) {
     throw new Error("Error getting post by id");
   }
@@ -302,17 +229,7 @@ export const getPostByIdQueryOptions = (postId: number) =>
   });
 
 async function deletePost(args: DeletePostArgs) {
-  const token = getSession();
-  const res = await client.api.v0.posts.post.delete.$post(
-    { json: args },
-    token
-      ? {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      : undefined,
-  );
+  const res = await client.api.v0.posts.post.delete.$post({ json: args });
   if (!res.ok) {
     let errorMessage =
       "There was an issue deleting your post :( We'll look into it ASAP!";
@@ -349,17 +266,7 @@ export const useDeletePostMutation = (onError?: (message: string) => void) => {
 };
 
 async function updatePost(args: UpdatePostArgs) {
-  const token = getSession();
-  const res = await client.api.v0.posts.post.update.$post(
-    { json: args },
-    token
-      ? {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      : undefined,
-  );
+  const res = await client.api.v0.posts.post.update.$post({ json: args });
   if (!res.ok) {
     let errorMessage =
       "There was an issue updating your post :( We'll look into it ASAP!";
@@ -397,20 +304,10 @@ export type UserPostCursor = {
 } | null;
 
 async function getPostsByUserIdPage(userId: string, cursor: UserPostCursor) {
-  const token = getSession();
-  const res = await client.api.v0.posts.user[":userId"].$get(
-    {
-      param: { userId: userId.toString() },
-      query: cursor ? { cursorPostId: String(cursor.postId) } : {},
-    } as any,
-    token
-      ? {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      : undefined,
-  );
+  const res = await client.api.v0.posts.user[":userId"].$get({
+    param: { userId: userId.toString() },
+    query: cursor ? { cursorPostId: String(cursor.postId) } : {},
+  } as any);
 
   if (!res.ok) {
     throw new Error("Error getting posts by user id");
@@ -431,17 +328,7 @@ export const getPostsByUserIdInfiniteQueryOptions = (userId: string) =>
   });
 
 async function savePost(args: SavePostArgs) {
-  const token = getSession();
-  const res = await client.api.v0.posts.save.$post(
-    { json: args },
-    token
-      ? {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      : undefined,
-  );
+  const res = await client.api.v0.posts.save.$post({ json: args });
   if (!res.ok) {
     let errorMessage =
       "There was an issue saving your post :( We'll look into it ASAP!";
@@ -503,20 +390,10 @@ async function getSavedPostsByUserIdPage(
   userId: string,
   cursor: SavedPostsCursor,
 ) {
-  const token = getSession();
-  const res = await client.api.v0.posts.saved[":userId"].$get(
-    {
-      param: { userId: userId.toString() },
-      query: cursor ? { cursorCreatedAt: cursor.createdAt } : {},
-    } as any,
-    token
-      ? {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      : undefined,
-  );
+  const res = await client.api.v0.posts.saved[":userId"].$get({
+    param: { userId: userId.toString() },
+    query: cursor ? { cursorCreatedAt: cursor.createdAt } : {},
+  } as any);
 
   if (!res.ok) {
     throw new Error("Error getting saved posts by user id");
@@ -537,17 +414,7 @@ export const getSavedPostsByUserIdInfiniteQueryOptions = (userId: string) =>
   });
 
 async function unsavePost(args: UnsavePostArgs) {
-  const token = getSession();
-  const res = await client.api.v0.posts.unsave.$post(
-    { json: args },
-    token
-      ? {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      : undefined,
-  );
+  const res = await client.api.v0.posts.unsave.$post({ json: args });
   if (!res.ok) {
     let errorMessage =
       "There was an issue unsaving your post :( We'll look into it ASAP!";
@@ -584,16 +451,7 @@ export const useUnsavePostMutation = (onError?: (message: string) => void) => {
 };
 
 async function getRecentPosts() {
-  const token = getSession();
-  const res = await client.api.v0.posts.recent.$get(
-    token
-      ? {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      : undefined,
-  );
+  const res = await client.api.v0.posts.recent.$get();
   if (!res.ok) {
     throw new Error("Error getting posts");
   }

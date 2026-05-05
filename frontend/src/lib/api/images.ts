@@ -5,7 +5,6 @@ import {
 } from "@tanstack/react-query";
 import { ArgumentTypes, client, ExtractData } from "./client";
 import { ImagePost } from "../../../../schemas/images";
-import { getSession } from "./posts";
 
 type UploadResponse =
   | {
@@ -39,7 +38,6 @@ export function mapSerializedImageToSchema(
 }
 
 export function useUploadImageMutation() {
-  const token = getSession();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({
@@ -54,18 +52,9 @@ export function useUploadImageMutation() {
       const formData = new FormData();
       formData.append("file", file);
 
-      const res = await client.api.v0.images.upload.$post(
-        {
-          form: { file, postId },
-        },
-        token
-          ? {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          : undefined,
-      );
+      const res = await client.api.v0.images.upload.$post({
+        form: { file, postId },
+      });
 
       const data = (await res.json()) as UploadResponse;
       if (!data.success) throw new Error(data.error);
@@ -129,19 +118,7 @@ export const getAllImagesQueryOptions = () =>
   });
 
 async function deleteImage(args: DeleteImageArgs) {
-  const token = getSession();
-  const res = await client.api.v0.images.delete.$post(
-    {
-      json: args,
-    },
-    token
-      ? {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      : undefined,
-  );
+  const res = await client.api.v0.images.delete.$post({ json: args });
   if (!res.ok) {
     throw new Error("Error deleting image.");
   }
@@ -167,19 +144,7 @@ export const useDeleteImageMutation = () => {
 };
 
 async function updateImage(args: UpdateImageArgs) {
-  const token = getSession();
-  const res = await client.api.v0.images.update.$post(
-    {
-      json: args,
-    },
-    token
-      ? {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      : undefined,
-  );
+  const res = await client.api.v0.images.update.$post({ json: args });
   if (!res.ok) {
     throw new Error("Error updating image.");
   }

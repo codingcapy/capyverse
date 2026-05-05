@@ -15,4 +15,5 @@ const prodServer = "https://capyverse.up.railway.app";
 
 export const client = hc<ApiRoutes>(
   import.meta.env.DEV ? devServer : prodServer,
+  { init: { credentials: "include" } },
 );

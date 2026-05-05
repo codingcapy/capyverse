@@ -4,7 +4,6 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { ArgumentTypes, client } from "./client";
-import { getSession } from "./posts";
 
 type CreateVoteArgs = ArgumentTypes<
   typeof client.api.v0.votes.$post
@@ -15,17 +14,7 @@ type UpdateVoteArgs = ArgumentTypes<
 >[0]["json"];
 
 async function createVote(args: CreateVoteArgs) {
-  const token = getSession();
-  const res = await client.api.v0.votes.$post(
-    { json: args },
-    token
-      ? {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      : undefined,
-  );
+  const res = await client.api.v0.votes.$post({ json: args });
   if (!res.ok) {
     let errorMessage =
       "There was an issue creating your vote :( We'll look into it ASAP!";
@@ -77,17 +66,7 @@ export const useCreateVoteMutation = (onError?: (message: string) => void) => {
 };
 
 async function updateVote(args: UpdateVoteArgs) {
-  const token = getSession();
-  const res = await client.api.v0.votes.update.$post(
-    { json: args },
-    token
-      ? {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      : undefined,
-  );
+  const res = await client.api.v0.votes.update.$post({ json: args });
   if (!res.ok) {
     let errorMessage =
       "There was an issue updating your vote :( We'll look into it ASAP!";

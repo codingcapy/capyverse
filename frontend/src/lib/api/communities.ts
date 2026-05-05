@@ -6,7 +6,6 @@ import {
 } from "@tanstack/react-query";
 import { Community } from "../../../../schemas/communities";
 import { ArgumentTypes, client, ExtractData } from "./client";
-import { getSession } from "./posts";
 
 type CreateCommunityArgs = ArgumentTypes<
   typeof client.api.v0.communities.$post
@@ -58,17 +57,7 @@ export function mapSerializedCommunityToSchema(
 }
 
 async function createCommunity(args: CreateCommunityArgs) {
-  const token = getSession();
-  const res = await client.api.v0.communities.$post(
-    { json: args },
-    token
-      ? {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      : undefined,
-  );
+  const res = await client.api.v0.communities.$post({ json: args });
   if (!res.ok) {
     let errorMessage =
       "There was an issue creating your community :( We'll look into it ASAP!";
@@ -135,19 +124,9 @@ export const getCommunitiesInfiniteQueryOptions = () =>
   });
 
 async function getCommunityById(communityId: string) {
-  const token = getSession();
-  const res = await client.api.v0.communities[":communityId"].$get(
-    {
-      param: { communityId },
-    },
-    token
-      ? {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      : undefined,
-  );
+  const res = await client.api.v0.communities[":communityId"].$get({
+    param: { communityId },
+  });
   if (!res.ok) {
     throw new Error("Error getting community by id");
   }
@@ -163,19 +142,9 @@ export const getCommunityByIdQueryOptions = (communityId: string) =>
   });
 
 async function getCommunitiesByUserId(userId: string) {
-  const token = getSession();
-  const res = await client.api.v0.communities.user[":userId"].$get(
-    {
-      param: { userId: userId.toString() },
-    },
-    token
-      ? {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      : undefined,
-  );
+  const res = await client.api.v0.communities.user[":userId"].$get({
+    param: { userId: userId.toString() },
+  });
 
   if (!res.ok) {
     throw new Error("Error getting saved posts by user id");
@@ -192,17 +161,7 @@ export const getCommunitiesByUserIdQueryOptions = (userId: string | null) =>
   });
 
 async function joinCommunity(args: JoinCommunityArgs) {
-  const token = getSession();
-  const res = await client.api.v0.communities.join.$post(
-    { json: args },
-    token
-      ? {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      : undefined,
-  );
+  const res = await client.api.v0.communities.join.$post({ json: args });
   if (!res.ok) {
     let errorMessage =
       "There was an issue joining the community :( We'll look into it ASAP!";
@@ -250,17 +209,7 @@ export const useJoinCommunityMutation = (
 };
 
 async function leaveCommunity(args: LeaveCommunityArgs) {
-  const token = getSession();
-  const res = await client.api.v0.communities.leave.$post(
-    { json: args },
-    token
-      ? {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      : undefined,
-  );
+  const res = await client.api.v0.communities.leave.$post({ json: args });
   if (!res.ok) {
     let errorMessage =
       "There was an issue leaving the community :( We'll look into it ASAP!";
@@ -355,19 +304,7 @@ export const getModeratorsInfiniteQueryOptions = (communityId: string) =>
   });
 
 async function updateIcon(args: UpdateIconArgs) {
-  const token = getSession();
-  const res = await client.api.v0.communities.update.icon.$post(
-    {
-      json: args,
-    },
-    token
-      ? {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      : undefined,
-  );
+  const res = await client.api.v0.communities.update.icon.$post({ json: args });
   if (!res.ok) {
     throw new Error("Error updating community icon.");
   }
@@ -437,19 +374,7 @@ export const useUpdateIconMutation = () => {
 };
 
 async function updateDescription(args: UpdateDescriptionArgs) {
-  const token = getSession();
-  const res = await client.api.v0.communities.update.description.$post(
-    {
-      json: args,
-    },
-    token
-      ? {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      : undefined,
-  );
+  const res = await client.api.v0.communities.update.description.$post({ json: args });
   if (!res.ok) {
     throw new Error("Error updating community description.");
   }
@@ -472,19 +397,7 @@ export const useUpdateDescriptionMutation = () => {
 };
 
 async function updateSettings(args: UpdateSettingsArgs) {
-  const token = getSession();
-  const res = await client.api.v0.communities.update.settings.$post(
-    {
-      json: args,
-    },
-    token
-      ? {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      : undefined,
-  );
+  const res = await client.api.v0.communities.update.settings.$post({ json: args });
   if (!res.ok) {
     throw new Error("Error updating community description.");
   }
@@ -507,19 +420,7 @@ export const useUpdateSettingsMutation = () => {
 };
 
 async function updateVisibility(args: UpdateVisibilityArgs) {
-  const token = getSession();
-  const res = await client.api.v0.communities.update.visibility.$post(
-    {
-      json: args,
-    },
-    token
-      ? {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      : undefined,
-  );
+  const res = await client.api.v0.communities.update.visibility.$post({ json: args });
   if (!res.ok) {
     throw new Error("Error updating community visibility.");
   }
@@ -542,19 +443,7 @@ export const useUpdateVisibilityMutation = () => {
 };
 
 async function updateMature(args: UpdateMatureArgs) {
-  const token = getSession();
-  const res = await client.api.v0.communities.update.mature.$post(
-    {
-      json: args,
-    },
-    token
-      ? {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      : undefined,
-  );
+  const res = await client.api.v0.communities.update.mature.$post({ json: args });
   if (!res.ok) {
     throw new Error("Error updating community mature.");
   }
@@ -580,17 +469,7 @@ type InviteModeratorArgs = ArgumentTypes<
 >[0]["json"];
 
 async function inviteModerator(args: InviteModeratorArgs) {
-  const token = getSession();
-  const res = await client.api.v0.communities.moderators.invite.$post(
-    { json: args },
-    token
-      ? {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      : undefined,
-  );
+  const res = await client.api.v0.communities.moderators.invite.$post({ json: args });
   if (!res.ok) {
     let errorMessage =
       "There was an issue joining the community :( We'll look into it ASAP!";
