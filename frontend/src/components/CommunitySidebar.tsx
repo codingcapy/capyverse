@@ -1,4 +1,4 @@
-import { Community } from "../../../schemas/communities";
+import { Community } from "@server/schemas/communities";
 import { FiEdit2 } from "react-icons/fi";
 import {
   getModeratorsQueryOptions,

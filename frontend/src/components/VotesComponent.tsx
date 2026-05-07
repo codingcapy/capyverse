@@ -7,7 +7,7 @@ import {
 } from "../lib/api/votes";
 import useAuthStore from "../store/AuthStore";
 import { useNavigate } from "@tanstack/react-router";
-import { Post } from "../../../schemas/posts";
+import { Post } from "@server/schemas/posts";
 import { PiArrowFatUp } from "react-icons/pi";
 import { PiArrowFatDown } from "react-icons/pi";
 import { PiArrowFatUpFill } from "react-icons/pi";

@@ -29,7 +29,7 @@ import defaultProfile from "/capypaul01.jpg";
 import { getImagesByPostIdQueryOptions } from "../../lib/api/images";
 import { PiCaretRightBold } from "react-icons/pi";
 import { PiCaretLeftBold } from "react-icons/pi";
-import { Comment } from "../../../../schemas/comments";
+import { Comment } from "@server/schemas/comments";
 import DOMPurify from "dompurify";
 import { PostContentInput } from "../../components/PostContentInput";
 import { getCommunityByIdQueryOptions } from "../../lib/api/communities";

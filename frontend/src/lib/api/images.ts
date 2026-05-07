@@ -4,7 +4,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { ArgumentTypes, client, ExtractData } from "./client";
-import { ImagePost } from "../../../../schemas/images";
+import { ImagePost } from "@server/schemas/images";
 import { getSession } from "./posts";
 
 type UploadResponse =

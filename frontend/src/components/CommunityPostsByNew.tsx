@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react";
 import { getNewCommunityPostsPage, getNewPostsPage } from "../lib/api/posts";
 import usePostStore from "../store/PostStore";
 import { PostThumbnail } from "./PostThumbnail";
-import { Community } from "../../../schemas/communities";
+import { Community } from "@server/schemas/communities";
 import { CommunitySidebar } from "./CommunitySidebar";
 
 export function CommunityPostsByNew(props: { community: Community }) {

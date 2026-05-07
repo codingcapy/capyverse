@@ -1,5 +1,5 @@
 import { hc, type ClientResponse } from "hono/client";
-import { type ApiRoutes } from "../../../../app";
+import { type ApiRoutes } from "@server/app";
 
 export type ArgumentTypes<F extends Function> = F extends (
   ...args: infer A

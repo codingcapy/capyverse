@@ -10,7 +10,7 @@ import { PiArrowFatUp } from "react-icons/pi";
 import { PiArrowFatDown } from "react-icons/pi";
 import { PiArrowFatUpFill } from "react-icons/pi";
 import { PiArrowFatDownFill } from "react-icons/pi";
-import { Comment } from "../../../schemas/comments";
+import { Comment } from "@server/schemas/comments";
 
 export function CommentVotesComponent(props: { comment: Comment }) {
   const { mutate: createVote, isPending: createVotePending } =
@@ -95,9 +95,7 @@ export function CommentVotesComponent(props: { comment: Comment }) {
           </div>
         )}
 
-        <div className="">
-          {props.comment.score ?? 0}
-        </div>
+        <div className="">{props.comment.score ?? 0}</div>
 
         {user ? (
           userVoteLoading ? (

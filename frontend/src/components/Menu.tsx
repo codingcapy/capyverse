@@ -3,7 +3,7 @@ import useAuthStore from "../store/AuthStore";
 import { FiEdit2 } from "react-icons/fi";
 import { FaRegTrashAlt } from "react-icons/fa";
 import { FaRegBookmark } from "react-icons/fa";
-import { Post } from "../../../schemas/posts";
+import { Post } from "@server/schemas/posts";
 import usePostStore from "../store/PostStore";
 import { useNavigate } from "@tanstack/react-router";
 import {

@@ -1,6 +1,6 @@
 import axios from "axios";
 import { create } from "zustand";
-import { type PublicUser } from "../../../schemas/users";
+import { type PublicUser } from "@server/schemas/users";
 import { setSession } from "../services/jwt.service";
 
 const useAuthStore = create<{

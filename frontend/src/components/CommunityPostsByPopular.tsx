@@ -7,7 +7,7 @@ import {
 import usePostStore from "../store/PostStore";
 import { PostThumbnail } from "./PostThumbnail";
 import Sidebar from "./Sidebar";
-import { Community } from "../../../schemas/communities";
+import { Community } from "@server/schemas/communities";
 import { CommunitySidebar } from "./CommunitySidebar";
 
 export function CommunityPostsByPopular(props: { community: Community }) {

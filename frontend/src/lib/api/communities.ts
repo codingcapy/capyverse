@@ -4,7 +4,7 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-import { Community } from "../../../../schemas/communities";
+import { Community } from "@server/schemas/communities";
 import { ArgumentTypes, client, ExtractData } from "./client";
 import { getSession } from "./posts";
 

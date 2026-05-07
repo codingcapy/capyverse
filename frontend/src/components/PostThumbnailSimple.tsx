@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Post } from "../../../schemas/posts";
+import { Post } from "@server/schemas/posts";
 import { getUserByIdQueryOptions } from "../lib/api/users";
 import defaultProfile from "/capypaul01.jpg";
 import { displayDate } from "../lib/utils";

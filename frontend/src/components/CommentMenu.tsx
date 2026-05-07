@@ -5,7 +5,7 @@ import { FaRegTrashAlt } from "react-icons/fa";
 import { FaRegBookmark } from "react-icons/fa";
 import usePostStore from "../store/PostStore";
 import { useNavigate } from "@tanstack/react-router";
-import { Comment } from "../../../schemas/comments";
+import { Comment } from "@server/schemas/comments";
 
 export function CommentMenu(props: {
   comment: Comment;

@@ -1,5 +1,5 @@
 import { IoChatbubbleOutline } from "react-icons/io5";
-import { Post } from "../../../schemas/posts";
+import { Post } from "@server/schemas/posts";
 import { displayDate } from "../lib/utils";
 import { CommentVotesComponent } from "./CommentVotesComponent";
 import { useState } from "react";

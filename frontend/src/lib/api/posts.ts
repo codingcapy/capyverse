@@ -5,7 +5,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { ArgumentTypes, client, ExtractData } from "./client";
-import { Post } from "../../../../schemas/posts";
+import { Post } from "@server/schemas/posts";
 
 type CreatePostArgs = ArgumentTypes<
   typeof client.api.v0.posts.$post

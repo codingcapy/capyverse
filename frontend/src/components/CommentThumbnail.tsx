@@ -7,7 +7,7 @@ import { CommentVotesComponent } from "./CommentVotesComponent";
 import { useState } from "react";
 import { CommentMenu } from "./CommentMenu";
 import { useDeleteCommentMutation } from "../lib/api/comments";
-import { Comment } from "../../../schemas/comments";
+import { Comment } from "@server/schemas/comments";
 import { getUserByIdQueryOptions } from "../lib/api/users";
 import { useQuery } from "@tanstack/react-query";
 
