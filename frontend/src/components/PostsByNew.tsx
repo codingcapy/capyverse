@@ -4,6 +4,7 @@ import { getNewPostsPage } from "../lib/api/posts";
 import usePostStore from "../store/PostStore";
 import { PostThumbnail } from "./PostThumbnail";
 import Sidebar from "./Sidebar";
+import capyness from "/capyness.png";
 
 export function PostsByNew() {
   const { searchContent } = usePostStore();
@@ -31,7 +32,7 @@ export function PostsByNew() {
           fetchNextPage();
         }
       },
-      { rootMargin: "200px" }
+      { rootMargin: "200px" },
     );
     observer.observe(loadMoreRef.current);
     return () => observer.disconnect();
@@ -44,7 +45,14 @@ export function PostsByNew() {
   }
 
   if (isPending) {
-    return <div className="mx-auto w-full lg:w-[50%]">Loading...</div>;
+    return (
+      <div className="mx-auto w-full mt-10 lg:w-[50%]">
+        <img src={capyness} className="mx-auto w-[100px] md:w-auto float" />
+        <div className="loading-dots text-[#c0c0c0] text-center font-bold my-2 text-2xl">
+          Loading
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -55,7 +63,7 @@ export function PostsByNew() {
             (post) =>
               searchContent === "" ||
               post.title.toLowerCase().includes(searchContent.toLowerCase()) ||
-              post.content.toLowerCase().includes(searchContent.toLowerCase())
+              post.content.toLowerCase().includes(searchContent.toLowerCase()),
           )
           .map((post) => (
             <PostThumbnail key={post.postId} post={post} />

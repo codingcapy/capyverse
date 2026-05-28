@@ -10,6 +10,13 @@ import { and, asc, desc, eq, ne, sql } from "drizzle-orm";
 import { communityUsers as communityUsersTable } from "../schemas/communityusers";
 import z from "zod";
 import { users as usersTable } from "../schemas/users";
+import { LRUCache } from "../cache";
+
+// Cache up to 500 community records for 5 minutes
+const communityCache = new LRUCache<
+  string,
+  typeof communitiesTable.$inferSelect
+>(500, 5 * 60 * 1000);
 
 const createCommunitySchema = z.object({
   communityId: z.string(),
@@ -325,6 +332,41 @@ export const communitiesRouter = new Hono()
   .get("/:communityId", async (c) => {
     const { communityId } = c.req.param();
     const user = optionalUser(c);
+
+    const cached = communityCache.get(communityId);
+    if (cached) {
+      if (cached.visibility === "private") {
+        if (!user) {
+          throw new HTTPException(403, {
+            message: "This community is private",
+          });
+        }
+        const { result: membershipQueryResult, error: membershipQueryError } =
+          await mightFail(
+            db
+              .select()
+              .from(communityUsersTable)
+              .where(
+                and(
+                  eq(communityUsersTable.communityId, communityId),
+                  eq(communityUsersTable.userId, user.id),
+                  eq(communityUsersTable.status, "active"),
+                ),
+              ),
+          );
+        if (membershipQueryError)
+          throw new HTTPException(500, {
+            message: "Error occurred when fetching community",
+            cause: membershipQueryError,
+          });
+        if (membershipQueryResult.length === 0)
+          throw new HTTPException(403, {
+            message: "This community is private",
+          });
+      }
+      return c.json({ community: cached });
+    }
+
     const { result: communitiesQueryResult, error: communitiesQueryError } =
       await mightFail(
         db
@@ -372,6 +414,7 @@ export const communitiesRouter = new Hono()
           message: "This community is private",
         });
     }
+    communityCache.set(communityId, communitiesQueryResult[0]!);
     return c.json({
       community: communitiesQueryResult[0],
     });
@@ -392,6 +435,7 @@ export const communitiesRouter = new Hono()
         cause: queryError,
       });
     }
+    communityCache.set(updateValues.communityId, newCommunityResult[0]!);
     return c.json({ newCommunity: newCommunityResult[0] }, 200);
   })
   .post(
@@ -413,6 +457,7 @@ export const communitiesRouter = new Hono()
           cause: queryError,
         });
       }
+      communityCache.set(updateValues.communityId, newCommunityResult[0]!);
       return c.json({ newCommunity: newCommunityResult[0] }, 200);
     },
   )
@@ -439,6 +484,7 @@ export const communitiesRouter = new Hono()
           cause: queryError,
         });
       }
+      communityCache.set(updateValues.communityId, newCommunityResult[0]!);
       return c.json({ newCommunity: newCommunityResult[0] }, 200);
     },
   )
@@ -533,6 +579,7 @@ export const communitiesRouter = new Hono()
           cause: queryError,
         });
       }
+      communityCache.set(updateValues.communityId, newCommunityResult[0]!);
       return c.json({ newCommunity: newCommunityResult[0] }, 200);
     },
   )
@@ -552,6 +599,7 @@ export const communitiesRouter = new Hono()
         cause: queryError,
       });
     }
+    communityCache.set(updateValues.communityId, newCommunityResult[0]!);
     return c.json({ newCommunity: newCommunityResult[0] }, 200);
   })
   .post(
