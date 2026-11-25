@@ -22,7 +22,6 @@ const getClientIp = (c: Context) =>
 const app = new Hono();
 
 app.use("*", logger());
-app.use("*", compress());
 app.use("*", secureHeaders());
 
 // Rate limit login: 20 attempts per 15 minutes per IP
