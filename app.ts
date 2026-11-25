@@ -34,7 +34,15 @@ app.use(
     keyGenerator: getClientIp,
   }),
 );
-
+// Rate limit token refresh: 100 per 15 minutes per IP
+app.use(
+  "/api/v0/user/refresh",
+  rateLimiter({
+    windowMs: 15 * 60 * 1000,
+    limit: 100,
+    keyGenerator: getClientIp,
+  }),
+);
 // Rate limit signup: 10 accounts per hour per IP
 app.use(
   "/api/v0/users",
@@ -48,7 +56,11 @@ app.use(
 app.use(
   "*",
   cors({
-    origin: ["http://localhost:5173", "https://capyverse.up.railway.app"],
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:3333",
+      "https://capyverse.up.railway.app",
+    ],
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization"],
     credentials: true,

@@ -9,6 +9,7 @@
     "start-server": "bun start"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@types/bun": "latest"
   },
   "peerDependencies": {

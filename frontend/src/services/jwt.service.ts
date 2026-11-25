@@ -1,32 +1,60 @@
-import axios from "axios";
-import { jwtDecode } from "jwt-decode";
+import { type PublicUser } from "@server/schemas/users";
 
-export function setSession(token: any) {
-  if (token) {
-    localStorage.setItem("jwt_access_token", token);
-    axios.defaults.headers.common["Authorization"] = "Bearer " + token;
-  } else {
-    localStorage.removeItem("jwt_access_token");
-    delete axios.defaults.headers.common["Authorization"];
-  }
+export const API_BASE = import.meta.env.DEV
+  ? "http://localhost:3333"
+  : window.location.origin;
+
+// One-time cleanup of the old localStorage token
+try {
+  localStorage.removeItem("jwt_access_token");
+} catch {}
+
+let accessToken: string | null = null;
+
+export function setSession(token: string | null) {
+  accessToken = token;
 }
 
 export function getAccessToken() {
-  return window.localStorage.getItem("jwt_access_token");
+  return accessToken;
 }
 
-export function getUserIdFromToken() {
-  const token = getAccessToken();
-  if (token) {
+type AuthResult = { user: PublicUser; token: string };
+
+let refreshPromise: Promise<AuthResult | null> | null = null;
+
+// Concurrent callers (StrictMode double effects, parallel 401s) share one request
+export function refreshSession(): Promise<AuthResult | null> {
+  if (!refreshPromise) {
+    refreshPromise = doRefresh().finally(() => {
+      refreshPromise = null;
+    });
+  }
+  return refreshPromise;
+}
+
+async function doRefresh(): Promise<AuthResult | null> {
+  for (let attempt = 0; attempt < 3; attempt++) {
     try {
-      const decodedToken = jwtDecode(token);
-      //@ts-ignore
-      return decodedToken.id;
+      const res = await fetch(`${API_BASE}/api/v0/user/refresh`, {
+        method: "POST",
+        credentials: "include",
+      });
+      if (res.status === 409) {
+        // Another tab just rotated the token; retry with the new cookie
+        await new Promise((resolve) => setTimeout(resolve, 400));
+        continue;
+      }
+      if (!res.ok) return null;
+      const data = await res.json();
+      const result = data.result;
+      if (!result?.user || !result?.token) return null;
+      setSession(result.token);
+      return { user: result.user, token: result.token };
     } catch (err) {
-      console.log("Error decoding token: ", err);
+      console.log(err);
       return null;
     }
-  } else {
-    return null;
   }
+  return null;
 }

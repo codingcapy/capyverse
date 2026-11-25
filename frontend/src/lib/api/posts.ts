@@ -51,10 +51,8 @@ export function mapSerializedEnrichedPostToSchema(
   return { ...serialized, createdAt: new Date(serialized.createdAt) };
 }
 
-const TOKEN_KEY = "jwt_access_token";
-
 export function getSession() {
-  return localStorage.getItem(TOKEN_KEY);
+  return getAccessToken();
 }
 
 async function createPost(args: CreatePostArgs) {
@@ -169,6 +167,7 @@ export async function getNewPostsPage({
 }
 
 import type { QueryFunctionContext } from "@tanstack/react-query";
+import { getAccessToken } from "../../services/jwt.service";
 
 export async function getNewCommunityPostsPage(ctx: QueryFunctionContext) {
   const token = getSession();
